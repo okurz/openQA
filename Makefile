@@ -187,9 +187,17 @@ test-fullstack-unstable:
 # we have apparently-redundant -I args in PERL5OPT here because Docker
 # only works with one and Fedora's build system only works with the other
 .PHONY: test-with-database
-test-with-database:
+test-with-database: setup-test-database
+	$(MAKE) test-unit-and-integration
+	$(MAKE) stop-test-database
+
+.PHONY: setup-test-database
+setup-test-database:
 	test -d $(TEST_PG_PATH) && (pg_ctl -D $(TEST_PG_PATH) -s status >&/dev/null || pg_ctl -D $(TEST_PG_PATH) -s start) || ./t/test_postgresql $(TEST_PG_PATH)
 	$(MAKE) RETRY=20 test-unit-and-integration TEST_PG="DBI:Pg:dbname=openqa_test;host=$(TEST_PG_PATH)"
+
+.PHONY: stop-test-database
+stop-test-database:
 	-[ $(KEEP_DB) = 1 ] || pg_ctl -D $(TEST_PG_PATH) stop
 
 .PHONY: test-unit-and-integration
@@ -260,7 +268,7 @@ $(container_env_file):
 .PHONY: launch-container-to-run-tests-within
 launch-container-to-run-tests-within: $(container_env_file)
 	${CRE} run --env-file $(container_env_file) -v $(current_dir):/opt/openqa \
-	   $(CONTAINER_IMG) make coverage-codecov
+	   $(CONTAINER_IMG) make setup-test-database coverage-codecov
 	rm $(container_env_file)
 
 .PHONY: prepare-and-launch-container-to-run-tests-within
