@@ -263,7 +263,6 @@ ENV DEPENDENCIES glibc-i18ndata \
 
 
 RUN zypper ar -f -G "http://download.opensuse.org/repositories/devel:/openQA:/Leap:/42.3/openSUSE_Leap_42.3" devel_openqa
-
 RUN zypper in -y -C $DEPENDENCIES
 VOLUME ["/sys/fs/cgroup", "/run"]
 

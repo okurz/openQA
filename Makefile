@@ -162,9 +162,17 @@ test-developer:
 # we have apparently-redundant -I args in PERL5OPT here because Docker
 # only works with one and Fedora's build system only works with the other
 .PHONY: test-with-database
-test-with-database:
+test-with-database: setup-test-database
+	$(MAKE) test-unit-and-integration
+	$(MAKE) stop-test-database
+
+.PHONY: setup-test-database
+setup-test-database:
 	test -d $(TEST_PG_PATH) && (pg_ctl -D $(TEST_PG_PATH) -s status >&/dev/null || pg_ctl -D $(TEST_PG_PATH) -s start) || ./t/test_postgresql $(TEST_PG_PATH)
 	PERL5OPT="$(PERL5OPT) -It/lib -I$(PWD)/t/lib -MOpenQA::Test::PatchDeparse" $(MAKE) RETRY=20 test-unit-and-integration TEST_PG="DBI:Pg:dbname=openqa_test;host=$(TEST_PG_PATH)"
+
+.PHONY: stop-test-database
+stop-test-database:
 	-[ $(KEEP_DB) = 1 ] || pg_ctl -D $(TEST_PG_PATH) stop
 
 .PHONY: test-unit-and-integration
@@ -224,7 +232,7 @@ docker.env:
 .PHONY: launch-docker-to-run-tests-within
 launch-docker-to-run-tests-within: docker.env
 	docker run --env-file $(docker_env_file) -v $(current_dir):/opt/openqa \
-	   $(DOCKER_IMG) make coverage-codecov
+	   $(DOCKER_IMG) make setup-test-database coverage-codecov
 	rm $(docker_env_file)
 
 .PHONY: prepare-and-launch-docker-to-run-tests-within
