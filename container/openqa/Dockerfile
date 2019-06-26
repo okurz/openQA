@@ -7,7 +7,10 @@ RUN diff -q /dependencies{,.new} || sudo xargs -a /dependencies.new zypper --no-
 # is a noop otherwise
 # this would be an alternative by reading from an environment variable.
 # However keep in mind that the env variable from the base layer has the *old*
-# content
+# content. So this will not work for any new added dependencies because the
+# environment variable DEPENDENCIES is actually only defined in the *built*
+# base image which we would only get from OBS *after* a PR is merged, not as
+# long as it is open
 #RUN [ -z "${DEPENDENCIES}" ] || zypper --gpg-auto-import-keys in -n -C ${DEPENDENCIES}
 COPY entrypoint.sh /usr/bin/entrypoint
 # don't know how to replace sudo with other calls right now
