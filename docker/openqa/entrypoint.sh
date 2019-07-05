@@ -13,6 +13,7 @@ export LC_ALL="en_US.UTF-8"
   sudo zypper --gpg-auto-import-keys -n ref --force && \
   sudo zypper up -l -y
 
+sudo zypper --gpg-auto-import-keys -n ref --force && sudo zypper -n in python3-base python3-future python3-requests
 cp -rd /opt/openqa /opt/testing_area
 cd /opt/testing_area/openqa
 
