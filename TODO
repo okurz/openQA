@@ -1,0 +1,5 @@
+# Using
+rpmspec -P openQA.spec  | sed -n 's/BuildRequires:\s*//p' | tr '\n' ' '
+# it is possible to extract all BuildRequires in a single line and we can call
+# `zypper -n in` on it, might be helpful in the future to reduce duplicates
+# further :)
