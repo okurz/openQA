@@ -178,7 +178,7 @@ stop-test-database:
 .PHONY: test-unit-and-integration
 test-unit-and-integration:
 	export GLOBIGNORE="$(GLOBIGNORE)";\
-	RETRY=${RETRY} STABILITY_TEST=1 timeout -s SIGINT -k 5 -v ${TIMEOUT_RETRIES} tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	RETRY=${RETRY} STABILITY_TEST=1 TEST_PG="DBI:Pg:dbname=openqa_test;host=$(TEST_PG_PATH)" timeout -v ${TIMEOUT_RETRIES} tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 
 # prepares running the tests within Docker (eg. pulls os-autoinst) and then runs the tests considering
 # the test matrix environment variables
