@@ -12,7 +12,7 @@
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
 
-# Please submit bugfixes or comments via http://bugs.opensuse.org/
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
 
@@ -88,14 +88,17 @@ Source0:        %{name}-%{version}.tar.xz
 Source1:        cache.txz
 Source100:      openQA-rpmlintrc
 Source101:      update-cache.sh
+Source102:      Dockerfile
 BuildRequires:  fdupes
 # for install-opensuse in Makefile
 BuildRequires:  openSUSE-release
 BuildRequires:  %{build_requires}
 Requires:       perl(Minion) >= 10.0
+BuildRequires:  fdupes
 Requires:       %{main_requires}
 Requires:       openQA-client = %{version}
 Requires:       openQA-common = %{version}
+Requires:       perl(Minion) >= 9.13
 # we need to have the same sha1 as expected
 %requires_eq    perl-Mojolicious-Plugin-AssetPack
 Recommends:     %{name}-local-db
@@ -149,7 +152,22 @@ Development package pulling in all build+test dependencies except chromedriver f
 %package devel
 Summary:        Development package pulling in all build+test dependencies
 Group:          Development/Tools/Other
-Requires:       %{devel_requires}
+Requires:       %build_requires
+Requires:       %main_requires
+Requires:       %test_requires
+Requires:       curl
+Requires:       postgresql-devel
+Requires:       postgresql-server
+Requires:       qemu
+Requires:       qemu-kvm
+Requires:       rsync
+Requires:       sudo
+Requires:       tar
+Requires:       xorg-x11-fonts
+Requires:       perl(Devel::Cover)
+Requires:       perl(Devel::Cover::Report::Codecov)
+Requires:       perl(Perl::Tidy)
+Requires:       perl(SQL::SplitStatement)
 
 %description devel
 Development package pulling in all build+test dependencies.
@@ -186,8 +204,8 @@ The openQA worker manages test engine (provided by os-autoinst package).
 %package client
 Summary:        Client tools for remote openQA management
 Group:          Development/Tools/Other
-Requires:       openQA-common = %{version}
 Requires:       %client_requires
+Requires:       openQA-common = %{version}
 
 %description client
 Tools and support files for openQA client script. Client script is
