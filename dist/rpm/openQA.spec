@@ -12,7 +12,7 @@
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
 
-# Please submit bugfixes or comments via http://bugs.opensuse.org/
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
 
@@ -88,6 +88,7 @@ Source0:        %{name}-%{version}.tar.xz
 Source1:        cache.txz
 Source100:      openQA-rpmlintrc
 Source101:      update-cache.sh
+Source102:      Dockerfile
 BuildRequires:  fdupes
 # for install-opensuse in Makefile
 %if 0%{?is_opensuse}
@@ -97,9 +98,11 @@ BuildRequires:  sles-release
 %endif
 BuildRequires:  %{build_requires}
 Requires:       perl(Minion) >= 10.0
+BuildRequires:  fdupes
 Requires:       %{main_requires}
 Requires:       openQA-client = %{version}
 Requires:       openQA-common = %{version}
+Requires:       perl(Minion) >= 9.13
 # we need to have the same sha1 as expected
 %requires_eq    perl-Mojolicious-Plugin-AssetPack
 Recommends:     %{name}-local-db
@@ -200,8 +203,8 @@ The openQA worker manages test engine (provided by os-autoinst package).
 %package client
 Summary:        Client tools for remote openQA management
 Group:          Development/Tools/Other
-Requires:       openQA-common = %{version}
 Requires:       %client_requires
+Requires:       openQA-common = %{version}
 
 %description client
 Tools and support files for openQA client script. Client script is
