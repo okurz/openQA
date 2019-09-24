@@ -748,6 +748,28 @@ keys_to_render_as_links=FOO,AUTOYAST
 The files referenced by the configured keys should be located either under the root
 of `CASEDIR` or the data folder within `CASEDIR`.
 
+=== Automatic investigation jobs
+
+Following
+https://progress.opensuse.org/projects/openqav3/wiki#Further-decision-steps-working-on-test-issues
+and
+https://progress.opensuse.org/projects/openqatests/wiki#Structured-test-issue-investigation
+openQA can automatically trigger jobs for investigation of failed, unlabeled
+tests to
+allow the test reviewers to more easily bisect and find out most likely failure
+reasons. As each failed job will trigger multiple, automatic clones this can
+have significant impact on the job execution load but can save manual
+investigation and retriggering work
+
+This feature can be enabled in
+`/etc/openqa/openqa.ini`:
+
+[source,ini]
+--------------------------------------------------------------------------------
+[global]
+investigation_jobs_enabled = 1
+--------------------------------------------------------------------------------
+
 == Auditing - tracking openQA changes
 [id="auditing"]
 

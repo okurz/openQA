@@ -340,4 +340,8 @@ my $round5 = job_get_rs($round3->id)->auto_duplicate;
 ok(defined $round5, "manual-duplicate works");
 $job3 = job_get($round5->id);
 
+subtest 'auto-investigation jobs' => sub {
+    fail 'here';
+};
+
 done_testing;

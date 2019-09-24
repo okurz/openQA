@@ -31,7 +31,7 @@ use Mojo::JSON 'decode_json';
 use Test::Warnings ':report_warnings';
 use Mojo::File qw(path tempdir);
 use Mojo::IOLoop::ReadWriteProcess;
-use OpenQA::Test::Utils 'redirect_output';
+use OpenQA::Test::Utils qw(redirect_output job_create);
 use OpenQA::Test::TimeLimit '20';
 use OpenQA::Parser::Result::OpenQA;
 use OpenQA::Parser::Result::Test;
@@ -68,13 +68,6 @@ my %settings = (
     MACHINE => "RainbowPC",
     ARCH    => 'x86_64',
 );
-
-sub _job_create {
-    my $job = $schema->resultset('Jobs')->create_from_settings(@_);
-    # reload all values from database so we can check against default values
-    $job->discard_changes;
-    return $job;
-}
 
 subtest 'has_dependencies' => sub {
     ok($jobs->find(99961)->has_dependencies,  'positive case: job is parent');
@@ -116,7 +109,7 @@ subtest 'hard-coded initial job module statistics consistent; no automatic handl
 subtest 'job with all modules passed => overall is passsed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'A';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     for my $i (qw(a b c d)) {
         $job->insert_module({name => $i, category => $i, script => $i, flags => {}});
         $job->update_module($i, {result => 'ok', details => []});
@@ -136,7 +129,7 @@ subtest 'job with all modules passed => overall is passsed' => sub {
 subtest 'job with one skipped module => overall is failed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'A';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->insert_module({name => 'e', category => 'e', script => 'e', flags => {}});
     $job->update_module('e', {result => 'none', details => []});
     for my $i (qw(a b c d)) {
@@ -158,7 +151,7 @@ subtest 'job with one skipped module => overall is failed' => sub {
 subtest 'job with at least one module failed => overall is failed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'B';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     for my $i (qw(a b c d)) {
         $job->insert_module({name => $i, category => $i, script => $i, flags => {}});
         $job->update_module($i, {result => $i eq 'c' ? 'fail' : 'ok', details => []});
@@ -178,7 +171,7 @@ subtest 'job with at least one module failed => overall is failed' => sub {
 subtest 'job with at least one softfailed and rest passed => overall is softfailed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'C';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     for my $i (qw(a b c)) {
         $job->insert_module({name => $i, category => $i, script => $i, flags => {}});
         $job->update_module($i, {result => 'ok', details => []});
@@ -198,7 +191,7 @@ subtest 'job with at least one softfailed and rest passed => overall is softfail
 };
 
 subtest 'inserting the same module twice keeps the job module statistics intact' => sub {
-    my $job               = _job_create({%settings, TEST => 'TEST2'});
+    my $job               = job_create({%settings, TEST => 'TEST2'});
     my @test_module_names = (qw(a b b c));
     my @test_modules      = map { {name => $_, category => $_, script => $_, flags => {}} } @test_module_names;
     $job->insert_test_modules(\@test_modules);
@@ -216,7 +209,7 @@ subtest 'inserting the same module twice keeps the job module statistics intact'
 subtest 'Create custom job module' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'TEST1';
-    my $job    = _job_create(\%_settings);
+    my $job    = job_create(\%_settings);
     my $result = OpenQA::Parser::Result::OpenQA->new(
         details => [{text => "Test-CUSTOM.txt", title => 'CUSTOM'}],
         name    => 'random',
@@ -245,7 +238,7 @@ subtest 'Create custom job module' => sub {
 subtest 'job with at least one failed module and one softfailed => overall is failed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'D';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {}});
     $job->update_module('a', {result => 'ok', details => []});
     $job->insert_module({name => 'b', category => 'b', script => 'b', flags => {}});
@@ -265,7 +258,7 @@ subtest 'job with at least one failed module and one softfailed => overall is fa
 subtest 'job with all modules passed and at least one ignore_failure failed => overall passed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'E';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     for my $i (qw(a b c)) {
         $job->insert_module({name => $i, category => $i, script => $i, flags => {}});
         $job->update_module($i, {result => 'ok', details => []});
@@ -285,7 +278,7 @@ subtest
   => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'F';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     for my $i (qw(a b)) {
         $job->insert_module({name => $i, category => $i, script => $i, flags => {}});
         $job->update_module($i, {result => 'ok', details => []});
@@ -307,7 +300,7 @@ subtest
   => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'G';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     for my $i (qw(a b c)) {
         $job->insert_module({name => $i, category => $i, script => $i, flags => {ignore_failure => 1}});
         $job->update_module($i, {result => 'ok', details => []});
@@ -325,7 +318,7 @@ subtest
 subtest 'job with first ignore_failure failed and rest softfails => overall is softfailed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'H';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {ignore_failure => 1}});
     $job->update_module('a', {result => 'fail', details => []});
     $job->insert_module({name => 'b', category => 'b', script => 'b', flags => {important => 1}});
@@ -341,7 +334,7 @@ subtest 'job with first ignore_failure failed and rest softfails => overall is s
 subtest 'job with one ignore_failure pass => overall is passed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'H';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {ignore_failure => 1}});
     $job->update_module('a', {result => 'ok', details => []});
     $job->update;
@@ -355,7 +348,7 @@ subtest 'job with one ignore_failure pass => overall is passed' => sub {
 subtest 'job with one ignore_failure fail => overall is passed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'H';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {ignore_failure => 1}});
     $job->update_module('a', {result => 'fail', details => []});
     $job->update;
@@ -369,7 +362,7 @@ subtest 'job with one ignore_failure fail => overall is passed' => sub {
 subtest 'job with at least one softfailed => overall is softfailed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'I';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {important => 1}});
     $job->update_module('a', {result => 'ok', details => []});
     $job->insert_module({name => 'b', category => 'b', script => 'b', flags => {}});
@@ -390,7 +383,7 @@ subtest 'job with at least one softfailed => overall is softfailed' => sub {
 subtest 'job with no modules => overall is failed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'J';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->update;
     $job->discard_changes;
 
@@ -403,7 +396,7 @@ subtest 'job with no modules => overall is failed' => sub {
 subtest 'carry over, including soft-fails' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'K';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {}});
     $job->update_module('a', {result => 'ok', details => [], dents => 1});
     $job->insert_module({name => 'b', category => 'b', script => 'b', flags => {}});
@@ -418,7 +411,7 @@ subtest 'carry over, including soft-fails' => sub {
     $job->comments->create({text => 'bsc#101', user_id => $user->id});
 
     $_settings{BUILD} = '667';
-    $job = _job_create(\%_settings);
+    $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {}});
     $job->update_module('a', {result => 'ok', details => [], dents => 1});
     $job->insert_module({name => 'b', category => 'b', script => 'b', flags => {}});
@@ -434,7 +427,7 @@ subtest 'carry over, including soft-fails' => sub {
     like($job->comments->first->text, qr/\Qbsc#101\E/, 'right take over');
 
     $_settings{BUILD} = '668';
-    $job = _job_create(\%_settings);
+    $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {}});
     $job->update_module('a', {result => 'ok', details => [], dents => 1});
     $job->insert_module({name => 'b', category => 'b', script => 'b', flags => {}});
@@ -474,7 +467,7 @@ subtest 'carry over for ignore_failure modules' => sub {
     my %_settings = %settings;
     $_settings{TEST}  = 'K';
     $_settings{BUILD} = '669';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {ignore_failure => 1}});
     $job->update_module('a', {result => 'fail', details => []});
     $job->insert_module({name => 'b', category => 'b', script => 'b', flags => {}});
@@ -489,7 +482,7 @@ subtest 'carry over for ignore_failure modules' => sub {
     $job->comments->create({text => 'bsc#101', user_id => $user->id});
 
     $_settings{BUILD} = '670';
-    $job = _job_create(\%_settings);
+    $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {ignore_failure => 1}});
     $job->update_module('a', {result => 'fail', details => []});
     $job->insert_module({name => 'b', category => 'b', script => 'b', flags => {}});
@@ -505,7 +498,7 @@ subtest 'carry over for ignore_failure modules' => sub {
     like($job->comments->first->text, qr/\Qbsc#101\E/, 'right take over');
 
     $_settings{BUILD} = '671';
-    $job = _job_create(\%_settings);
+    $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {ignore_failure => 1}});
     $job->update_module('a', {result => 'fail', details => []});
     $job->insert_module({name => 'b', category => 'b', script => 'b', flags => {}});
@@ -523,7 +516,7 @@ subtest 'carry over for ignore_failure modules' => sub {
 subtest 'job with only important passes => overall is passed' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'L';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {important => 1}});
     $job->update_module('a', {result => 'ok', details => []});
     $job->insert_module({name => 'b', category => 'b', script => 'b', flags => {important => 1}});
@@ -561,7 +554,7 @@ subtest 'job with skipped modules' => sub {
         $module_count{$tm_str[0]} = $module_count{$tm_str[0]} + 1;
         $module_count{$tm_str[1]} = $module_count{$tm_str[1]} + 1;
         $_settings{TEST}          = 'SKIP_TEST_' . join('_', @tm_str);
-        my $job = _job_create(\%_settings);
+        my $job = job_create(\%_settings);
         $job->insert_module({name => 'a', category => 'a', script => 'a'});
         $job->update_module('a', {result => $tm->[0], details => []});
         $job->insert_module({name => 'b', category => 'b', script => 'b'});
@@ -594,7 +587,7 @@ subtest 'job is marked as linked if accessed from recognized referal' => sub {
       = ['test.referer.info', 'test.referer1.info', 'test.referer2.info', 'test.referer3.info'];
     my %_settings = %settings;
     $_settings{TEST} = 'refJobTest';
-    my $job    = _job_create(\%_settings);
+    my $job    = job_create(\%_settings);
     my $linked = job_is_linked($job);
     is($linked, 0, 'new job is not linked');
     $t->get_ok('/tests/' . $job->id => {Referer => 'http://test.referer.info'})->status_is(200);
@@ -602,7 +595,7 @@ subtest 'job is marked as linked if accessed from recognized referal' => sub {
     is($linked, 1, 'job linked after accessed from known referer');
 
     $_settings{TEST} = 'refJobTest-step';
-    $job = _job_create(\%_settings);
+    $job = job_create(\%_settings);
 
     $job->insert_module({name => 'a', category => 'a', script => 'a', flags => {}});
     my $module = $job->modules->find({name => 'a'});
@@ -620,7 +613,7 @@ subtest 'job is not marked as linked if accessed from unrecognized referal' => s
       = ['test.referer.info', 'test.referer1.info', 'test.referer2.info', 'test.referer3.info'];
     my %_settings = %settings;
     $_settings{TEST} = 'refJobTest2';
-    my $job    = _job_create(\%_settings);
+    my $job    = job_create(\%_settings);
     my $linked = job_is_linked($job);
     is($linked, 0, 'new job is not linked');
     $t->get_ok('/tests/' . $job->id => {Referer => 'http://unknown.referer.info'})->status_is(200);
@@ -631,7 +624,7 @@ subtest 'job is not marked as linked if accessed from unrecognized referal' => s
 subtest 'job set_running()' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'L';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->update({state => OpenQA::Jobs::Constants::ASSIGNED});
     is($job->set_running, 1,                                'job was set to running');
     is($job->state,       OpenQA::Jobs::Constants::RUNNING, 'job state is now on running');
@@ -707,7 +700,7 @@ $ENV{OPENQA_BASEDIR} = 't/data';
 subtest 'modules are unique per job' => sub {
     my %_settings = %settings;
     $_settings{TEST} = 'X';
-    my $job = _job_create(\%_settings);
+    my $job = job_create(\%_settings);
     $job->insert_module({name => 'some_name', category => 'some_category', script => 'foo/bar.pm', flags => {}});
     $job->insert_module({name => 'some_name', category => 'some_category', script => 'foo/bar.pm', flags => {}});
     my @modules = $job->modules->all;

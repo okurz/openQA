@@ -119,6 +119,7 @@ subtest 'failed->failed labels which are not bugrefs are *not* carried over' => 
     $t->post_ok("/api/v1/jobs/$job/comments", $auth => form => {text => $label})->status_is(200);
     my $res = restart_with_result($job, 'failed');
     $old_job = $job;
+    $job     = $res->{result}[0]->{$job};
     my @comments_new = @{comments($res->{test_url}[0]->{$old_job})};
     is(join('', @comments_new), '', 'no simple labels are carried over');
     is(scalar @comments_new,    0,  'no simple label present in new result');
@@ -151,13 +152,49 @@ subtest 'failed in different modules with different bugref in details' => sub {
         0, 'no labels carried when not bug reference is used and job fails on different modules');
 };
 
-subtest 'failed in different modules with bugref in details' => sub {
-    # Fail test in different modules with same bug reference
-    $rs->find(99962)->update_module('aplay',     {result => 'fail', details => [{title => 'bsc#77777'}]});
-    $rs->find(99963)->update_module('yast2_lan', {result => 'fail', details => [{title => 'bsc#77777'}]});
-    $t->post_ok('/api/v1/jobs/99963/set_done', $auth => form => {result => 'failed'})->status_is(200);
-
-    is(join('', @{comments('/tests/99963')}), $comment_must, 'label is carried over');
+subtest 'auto-investigation jobs are triggered for unlabeled jobs if feature enabled' => sub {
+    $t->app->config->{global}->{investigation_jobs_enabled} = 1;
+    my $res = restart_with_result($job, 'failed');
+    $job    = $res->{result}[0]->{$job};
+    my @comments = @{comments($res->{test_url}[0]->{$job})};
+    is(scalar @comments, 0, 'no labels carried over to passed');
+    is(join('', @{comments('/tests/$job')}), $comment_must, 'label is carried over');
+    fail 'extend';
 };
+
+## Init data again to have clean state
+#$test_case->init_data;
+#subtest 'failed in different modules *without* bugref in details' => sub {
+#    $t->post_ok('/api/v1/jobs/99962/comments', $auth => form => {text => 'bsc#1234'})->status_is(200);
+#    # Add details for the failure
+#    $rs->find(99962)->update_module('aplay', {result => 'fail', details => [{title => 'not a bug reference'}]});
+#    # Fail second module, so carry over is not triggered due to the failure in the same module
+#    $rs->find(99963)->update_module('yast2_lan', {result => 'fail', details => [{title => 'not a bug reference'}]});
+#
+#    $t->post_ok('/api/v1/jobs/99963/set_done', $auth => form => {result => 'failed'})->status_is(200);
+#
+#    is(scalar @{comments('/tests/99963')},
+#        0, 'no labels carried when not bug reference is used and job fails on different modules');
+#};
+#
+#subtest 'failed in different modules with different bugref in details' => sub {
+#    # Fail test in different modules with different bug references
+#    $rs->find(99962)->update_module('aplay',     {result => 'fail', details => [{title => 'bsc#999888'}]});
+#    $rs->find(99963)->update_module('yast2_lan', {result => 'fail', details => [{title => 'bsc#77777'}]});
+#
+#    $t->post_ok('/api/v1/jobs/99963/set_done', $auth => form => {result => 'failed'})->status_is(200);
+#
+#    is(scalar @{comments('/tests/99963')},
+#        0, 'no labels carried when not bug reference is used and job fails on different modules');
+#};
+#
+#subtest 'failed in different modules with bugref in details' => sub {
+#    # Fail test in different modules with same bug reference
+#    $rs->find(99962)->update_module('aplay',     {result => 'fail', details => [{title => 'bsc#77777'}]});
+#    $rs->find(99963)->update_module('yast2_lan', {result => 'fail', details => [{title => 'bsc#77777'}]});
+#    $t->post_ok('/api/v1/jobs/99963/set_done', $auth => form => {result => 'failed'})->status_is(200);
+#
+#    is(join('', @{comments('/tests/99963')}), $comment_must, 'label is carried over');
+#};
 
 done_testing;

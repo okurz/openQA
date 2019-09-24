@@ -1743,21 +1743,22 @@ sub _carry_over_candidate {
     return;
 }
 
-=head2 carry_over_bugrefs
+=head2 label_or_investigate
 
-carry over bugrefs (i.e. special comments) from previous jobs to current
-result in the same scenario.
+Either carry over bugrefs (i.e. special comments) from previous jobs to
+current result in the same scenario if bugrefs are available or trigger
+investigation jobs where applicable.
 
 =cut
-sub carry_over_bugrefs {
+sub label_or_investigate {
     my ($self) = @_;
 
     if (my $group = $self->group) {
-        return unless $group->carry_over_bugrefs;
+        return undef unless $group->carry_over_bugrefs;
     }
 
     my $prev = $self->_carry_over_candidate;
-    return if !$prev;
+    return undef if !$prev;
 
     my $comments = $prev->comments->search({}, {order_by => {-desc => 'me.id'}});
 
@@ -1765,18 +1766,17 @@ sub carry_over_bugrefs {
         next if !($comment->bugref);
 
         my $text = $comment->text;
-        if ($text !~ "Automatic takeover") {
-            $text .= "\n\n(Automatic takeover from t#" . $prev->id . ")\n";
-        }
+        $text .= "\n\n(Automatic takeover from t#" . $prev->id . ")\n" unless $text =~ "Automatic takeover";
         my %newone = (text => $text);
-        # TODO can we also use another user id to tell that
-        # this comment was created automatically and not by a
-        # human user?
         $newone{user_id} = $comment->user_id;
         $self->comments->create(\%newone);
-        last;
+        return 1;
     }
-    return;
+    # TODO only trigger if mandatory assets available or retrigger parent if available
+    # TODO probably we only want to trigger on "fail", not "incomplete"
+    $self->trigger_investigation_jobs unless $self->clone_id or $self->origin;
+
+    return undef;
 }
 
 sub bugref {
@@ -1945,6 +1945,39 @@ sub packages_diff {
     return join("\n", grep { !/(^@@|$ignore)/ } split(/\n/, $diff_packages));
 }
 
+=head2 trigger_investigation_jobs
+
+A helper for bisecting test/product/infra regressions. If called this method
+will trigger clones outside the job groups with different name and build
+identifier to not pollute any production validation tests. The combination of
+results from the clones can help with bisecting.
+
+=cut
+sub trigger_investigation_jobs {
+    my ($self, %args) = @_;
+    return unless OpenQA::App->singleton && OpenQA::App->singleton->config->{global}->{investigation_jobs_enabled};
+    # TODO copy from openqa-investigate
+    #my $retry = $self->auto_duplicate(dup_type_auto => 1, build => undef, _group => 0,  prio => 100 + old, ...);
+    my $retry = 1;
+    my $last_good_test = 2;
+    my $last_good_build = 3;
+    my $last_good_test_and_build = 4;
+
+    #my ($retry_url, $last_good_test_url, $last_good_build_url, $last_good_test_and_build_url) = map { $self->url_for('test', testid => $_) } ($retry, $last_good_test, $last_good_build, $last_good_test_and_build);
+    my $msg = 'test';
+    #    my $msg = "<<EOF";
+    #Investigation jobs triggered automatically:
+    #
+    #* retry: $retry_url
+    #* last_good_test: $last_good_test_url
+    #* last_good_build: $last_good_build_url
+    #* last_good_test_and_build: $last_good_test_and_build_url
+    #EOF
+    my $user = $self->result_source->schema->resultset('Users')->search({username => 'system'})->first;
+    my %newone = (text => $msg, user_id => $user->id);
+    $self->comments->create(\%newone);
+}
+
 =head2 done
 
 Finalize job by setting it as DONE.
@@ -2010,7 +2043,7 @@ sub done {
     }
 
     # bugrefs are there to mark reasons of failure - the function checks itself though
-    $self->carry_over_bugrefs;
+    $self->label_or_investigate;
     $self->unblock;
 
     return $result;

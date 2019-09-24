@@ -53,7 +53,7 @@ our (@EXPORT, @EXPORT_OK);
     qw(unresponsive_worker broken_worker rejective_worker setup_share_dir setup_fullstack_temp_dir run_gru_job),
     qw(collect_coverage_of_gru_jobs stop_service start_worker unstable_worker fake_asset_server),
     qw(cache_minion_worker cache_worker_service shared_hash embed_server_for_testing),
-    qw(run_cmd test_cmd wait_for_or_bail_out)
+    qw(job_create run_cmd test_cmd wait_for_or_bail_out)
 );
 
 # The function OpenQA::Utils::service_port method hardcodes ports in a
@@ -636,6 +636,13 @@ sub wait_for_or_bail_out(&*;*) {
         $timeout -= sleep $interval;
     }
     BAIL_OUT "$description not available";
+}
+
+sub job_create {
+    my $job = OpenQA::Schema->singleton->resultset('Jobs')->create_from_settings(@_);
+    # reload all values from database so we can check against default values
+    $job->discard_changes;
+    return $job;
 }
 
 1;
