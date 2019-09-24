@@ -1753,11 +1753,11 @@ sub carry_over_bugrefs {
     my ($self) = @_;
 
     if (my $group = $self->group) {
-        return unless $group->carry_over_bugrefs;
+        return undef unless $group->carry_over_bugrefs;
     }
 
     my $prev = $self->_carry_over_candidate;
-    return if !$prev;
+    return undef if !$prev;
 
     my $comments = $prev->comments->search({}, {order_by => {-desc => 'me.id'}});
 
@@ -1769,14 +1769,11 @@ sub carry_over_bugrefs {
             $text .= "\n\n(Automatic takeover from t#" . $prev->id . ")\n";
         }
         my %newone = (text => $text);
-        # TODO can we also use another user id to tell that
-        # this comment was created automatically and not by a
-        # human user?
         $newone{user_id} = $comment->user_id;
         $self->comments->create(\%newone);
-        last;
+        return 1;
     }
-    return;
+    return undef;
 }
 
 sub bugref {
@@ -1945,6 +1942,25 @@ sub packages_diff {
     return join("\n", grep { !/(^@@|$ignore)/ } split(/\n/, $diff_packages));
 }
 
+=head2 detect_known_issues
+
+Look in test result dir for log files and compare content with regex match
+against known issues from test distribution and mark with comment. This can
+check worker log as well as autoinst log so we can also check for problems
+where isotovideo was not even started, e.g. failed to download asset from
+cache, etc.
+
+=cut
+sub detect_known_issues {
+    my ($self, %args) = @_;
+    my $msg = "TODO";
+    # TODO can use existing job fixtures with autoinst-log.txt, e.g. 99938
+    # (done, failed) or 99961 (running but autoinst-log.txt shows "Crashed")
+    #
+    my %newone = (text => "Known issue detected: $msg", user_id => 'system');
+    $self->comments->create(\%newone);
+}
+
 =head2 done
 
 Finalize job by setting it as DONE.
@@ -2010,7 +2026,8 @@ sub done {
     }
 
     # bugrefs are there to mark reasons of failure - the function checks itself though
-    $self->carry_over_bugrefs;
+    my $carried_over = $self->carry_over_bugrefs;
+    $self->detect_known_issues unless $carried_over;
     $self->unblock;
 
     return $result;
