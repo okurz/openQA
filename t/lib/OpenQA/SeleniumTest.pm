@@ -27,6 +27,7 @@ use OpenQA::Log 'log_info';
 use OpenQA::Utils;
 use OpenQA::Test::Utils;
 use POSIX '_exit';
+use Carp;
 
 our $_driver;
 our $webapi;
@@ -100,7 +101,7 @@ sub start_driver {
         my $startup_timeout = $ENV{OPENQA_SELENIUM_TEST_STARTUP_TIMEOUT} // 10;
         $_driver = Test::Selenium::Chrome->new(%opts, startup_timeout => $startup_timeout);
         $_driver->{is_wd3} = 0;    # ensure the Selenium::Remote::Driver instance uses JSON Wire protocol
-        # Scripts are considered stuck after this timeout
+                                   # Scripts are considered stuck after this timeout
         $_driver->set_timeout(script => $ENV{OPENQA_SELENIUM_SCRIPT_TIMEOUT_MS} // 2000);
         $_driver->set_window_size(600, 800);
         $_driver->get("http://localhost:$mojoport/");
