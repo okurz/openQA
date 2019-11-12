@@ -78,7 +78,7 @@ aliases:
         sudo cp -r /var/cache/autoinst ../os-autoinst
         sudo chown -R 1000 ../os-autoinst
       else # only in local run
-         tools/ci/build_autoinst.sh
+         tools/ci/build_autoinst.sh $(cat .circleci/autoinst.sha)
        fi
 
   - &make_test
@@ -163,7 +163,7 @@ jobs:
           name: "Build os-autoinst if not cached"
           command: |
             if [ ! -d /var/cache/autoinst/t ]; then
-              bash -x tools/ci/build_autoinst.sh "/var/cache/autoinst"
+              bash -x tools/ci/build_autoinst.sh "/var/cache/autoinst" $(cat .circleci/autoinst.sha)
             fi
       - save_cache: *save_fullstack_cache
 
