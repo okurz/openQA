@@ -105,6 +105,20 @@ sub start_driver {
                 # context but bail out to not have repeated entries for the
                 # same problem exceeded console scrollback buffers easily
                 my ($driver, $exception, $args) = @_;
+                # TODO See
+                # https://circleci.com/api/v1.1/project/github/os-autoinst/openQA/6241/output/111/0?file=true
+                # , there is
+                # ````
+                # Failed test 'findElement: no such element: Unable to locate element: {"method":"css selector","selector":"#result-row .card-body"}'
+    #   at /home/squamata/project/t/lib/OpenQA/SeleniumTest.pm line 130.
+                # ```
+                #
+                # not very helpful. So I am trying to
+                # report from the caller location instead of this code
+                # location however this then reports something like
+                # at /usr/lib/perl5/vendor_perl/5.26.1/Selenium/Remote/Driver.pm line 353.
+                # which is also not really helpful.
+                local $Test::Builder::Level = $Test::Builder::Level + 1;
                 my $err = (split /\n/, $exception)[0] =~ s/Error while executing command: //r;
                 BAIL_OUT($err . ' at ' . __FILE__ . ':' . __LINE__);
             },
