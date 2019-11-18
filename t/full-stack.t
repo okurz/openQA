@@ -36,6 +36,7 @@ use lib "$FindBin::Bin/lib", "$FindBin::Bin/../external/os-autoinst-common/lib";
 use Test::Mojo;
 use Test::Warnings ':report_warnings';
 use autodie ':all';
+use Carp;
 use IO::Socket::INET;
 use POSIX '_exit';
 use OpenQA::CacheService::Client;
@@ -62,9 +63,7 @@ plan skip_all => 'set TEST_PG to e.g. "DBI:Pg:dbname=test" to enable this test' 
 my $worker;
 my $ws;
 my $livehandler;
-sub turn_down_stack {
-    stop_service($_) for ($worker, $ws, $livehandler);
-}
+sub turn_down_stack { stop_service($_) for ($worker, $ws, $livehandler) }
 sub stop_worker { stop_service $worker }
 
 # skip if appropriate modules aren't available
@@ -118,7 +117,7 @@ ok javascript_console_has_no_warnings_or_errors, 'no javascript warnings or erro
 
 sub start_worker_and_schedule {
     $worker = start_worker(get_connect_args());
-    ok($worker, "Worker started as $worker");
+    diag 'Failed to start worker' and return 1 unless $worker;
     schedule_one_job;
 }
 
