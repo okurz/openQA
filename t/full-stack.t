@@ -25,6 +25,7 @@ use Mojo::Base -signatures;
 use Test::Mojo;
 use Test::Warnings ':report_warnings';
 use autodie ':all';
+use Carp;
 use IO::Socket::INET;
 use POSIX '_exit';
 use OpenQA::CacheService::Client;
@@ -53,9 +54,7 @@ plan skip_all => 'set TEST_PG to e.g. "DBI:Pg:dbname=test" to enable this test' 
 my $worker;
 my $ws;
 my $livehandler;
-sub turn_down_stack {
-    stop_service($_) for ($worker, $ws, $livehandler);
-}
+sub turn_down_stack { stop_service($_) for ($worker, $ws, $livehandler) }
 sub stop_worker { stop_service $worker }
 
 driver_missing unless check_driver_modules;
@@ -141,9 +140,10 @@ sub assign_jobs ($worker_class = undef) {
     check_scheduled_job_and_wait_for_free_worker $worker_class // 'qemu_i386';
     OpenQA::Scheduler::Model::Jobs->singleton->schedule;
 }
+
 sub start_worker_and_assign_jobs ($worker_class = undef) {
     $worker = start_worker get_connect_args;
-    ok $worker, "Worker started as $worker";
+    diag 'Failed to start worker' and return 1 unless $worker;
     assign_jobs $worker_class;
 }
 
