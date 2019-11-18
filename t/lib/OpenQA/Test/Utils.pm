@@ -249,7 +249,8 @@ sub _setup_sigchld_handler {
 }
 
 sub stop_service {
-    my ($h, $forced) = @_;
+    my ($h, $forced, $result) = @_;
+    $result //= 1;
     return unless $h;
 
     delete $RELEVANT_CHILD_PIDS{$_} for @{_pids_from_ipc_run_harness($h)};
@@ -260,6 +261,7 @@ sub stop_service {
         $h->signal('TERM');
     }
     $h->finish;
+    is $h->result, $result, 'process stopped with expected result';
 }
 
 sub create_webapi {
