@@ -88,7 +88,8 @@ sub create {
     my $log                 = $self->app->log;
     my $validation          = $self->validation;
     my $scheduled_products  = $self->schema->resultset('ScheduledProducts');
-    my @mandatory_parameter = qw(DISTRI VERSION FLAVOR ARCH);
+    my @mandatory_parameter = qw(VERSION FLAVOR ARCH);
+    push @mandatory_parameter, 'DISTRI' unless $params->{DISTRI_URL};
 
     # validate parameter
     if (defined $scheduled_product_clone_id) {
