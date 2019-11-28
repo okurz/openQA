@@ -296,6 +296,9 @@ sub asset_type_from_setting {
     if ($setting =~ /^ASSET_\d+$/ || $setting eq 'KERNEL' || $setting eq 'INITRD') {
         return 'other';
     }
+    if ($setting =~ /^DISTRI_/) {
+        return 'tests';
+    }
     # empty string if this doesn't look like an asset type
     return '';
 }

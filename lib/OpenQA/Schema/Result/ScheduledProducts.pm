@@ -179,8 +179,21 @@ sub schedule_iso {
     return $result;
 }
 
-# make sure that the DISTRI is lowercase
-sub _distri_key { lc(shift->{DISTRI}) }
+sub _handle_distri {
+    my ($args) = @_;
+    my $distri_url = $args->{DISTRI_URL};
+    return undef unless $distri_url;
+    OpenQA::Utils::log_info("distri URL parameter provided: '$distri_url'");
+    if (!$args->{DISTRI}) {
+        my $url = Mojo::URL($distri_url);
+        die "Cannot find distri name from URL, check URL or supply DISTRI" unless $url->path->parts->[-1];
+        $args->{DISTRI} = $url->path->parts->[-1] =~ s/\.git$//ri;
+    }
+    # TODO check if also DISTRI is supplied, otherwise compute
+    # check if OPENQA_BASEDIR/share/tests/$distri_last_part already exists
+    # clone from URL to OPENQA_BASE_DIR/share/tests/$distri_last_part
+    die("not implemented");
+}
 
 =over 4
 
@@ -222,6 +235,7 @@ sub _schedule_iso {
         };
     }
 
+    _handle_distri($args);
     my $result = $self->_generate_jobs($args, \@notes, $skip_chained_deps);
     return {error => $result->{error_message}, error_code => $result->{error_code} // 400}
       if defined $result->{error_message};

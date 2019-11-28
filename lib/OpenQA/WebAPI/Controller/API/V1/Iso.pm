@@ -1,5 +1,17 @@
-# Copyright 2015-2019 SUSE LLC
-# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2015-2019 SUSE LLC
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <http://www.gnu.org/licenses/>.
 
 package OpenQA::WebAPI::Controller::API::V1::Iso;
 use Mojo::Base 'Mojolicious::Controller';
@@ -76,7 +88,8 @@ sub create {
     my $log = $self->app->log;
     my $validation = $self->validation;
     my $scheduled_products = $self->schema->resultset('ScheduledProducts');
-    my @mandatory_parameter = qw(DISTRI VERSION FLAVOR ARCH);
+    my @mandatory_parameter = qw(VERSION FLAVOR ARCH);
+    push @mandatory_parameter, 'DISTRI' unless $params->{DISTRI_URL};
 
     # validate parameter
     if (defined $scheduled_product_clone_id) {

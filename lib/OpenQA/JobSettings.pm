@@ -38,8 +38,7 @@ sub generate_settings {
         $settings->{MACHINE} = $machine->name;
     }
 
-    # make sure that the DISTRI is lowercase
-    $settings->{DISTRI} = lc($settings->{DISTRI}) if $settings->{DISTRI};
+    $settings{DISTRI} = _distri_key(\%settings);
 
     # add properties from dedicated database columns to settings
     if (my $job_template = $params->{job_template}) {
