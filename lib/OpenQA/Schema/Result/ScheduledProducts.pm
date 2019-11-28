@@ -229,6 +229,22 @@ sub set_done ($self, $result) {
 # make sure that the DISTRI is lowercase
 sub _distri_key ($settings) { lc($settings->{DISTRI}) }
 
+sub _handle_distri {
+    my ($args) = @_;
+    my $distri_url = $args->{DISTRI_URL};
+    return undef unless $distri_url;
+    OpenQA::Utils::log_info("distri URL parameter provided: '$distri_url'");
+    if (!$args->{DISTRI}) {
+        my $url = Mojo::URL($distri_url);
+        die "Cannot find distri name from URL, check URL or supply DISTRI" unless $url->path->parts->[-1];
+        $args->{DISTRI} = $url->path->parts->[-1] =~ s/\.git$//ri;
+    }
+    # TODO check if also DISTRI is supplied, otherwise compute
+    # check if OPENQA_BASEDIR/share/tests/$distri_last_part already exists
+    # clone from URL to OPENQA_BASE_DIR/share/tests/$distri_last_part
+    die("not implemented");
+}
+
 sub _delete_prefixed_args_storing_info_about_product_itself ($args) {
     for my $arg (keys %$args) {
         delete $args->{$arg} if substr($arg, 0, 2) eq '__';
@@ -348,6 +364,7 @@ sub _schedule_iso ($self, $args, $guard) {
 
     _delete_prefixed_args_storing_info_about_product_itself $args;
 
+    _handle_distri($args);
     my $result;
     my $yaml = delete $args->{SCENARIO_DEFINITIONS_YAML};
     my $yaml_file = delete $args->{SCENARIO_DEFINITIONS_YAML_FILE};
