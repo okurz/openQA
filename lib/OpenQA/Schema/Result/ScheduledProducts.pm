@@ -10,6 +10,7 @@ use Exporter 'import';
 use File::Basename;
 use Feature::Compat::Try;
 use HTTP::Status qw(:constants);
+use File::Spec::Functions 'catdir';
 use OpenQA::App;
 use OpenQA::Log qw(log_debug log_warning log_error);
 use OpenQA::Utils;
@@ -307,6 +308,34 @@ sub _create_jobs_in_database ($self, $jobs, $failed_job_info, $skip_chained_deps
     $gru->enqueue_git_clones(\%clones, $successful_job_ids, $minion_ids);
 }
 
+sub checkout_distri {
+    my ($url, $name) = @_;
+    my $res = run_cmd_with_log_return_error(['git', '-C', catdir(OpenQA::Utils::sharedir, 'tests'), 'clone', '--depth', 1, $url, $name]);
+    return "\n" . $res->{stderr} if $res->{stderr};
+}
+
+sub _handle_distri {
+    my ($args) = @_;
+    my $url = Mojo::URL->new($args->{DISTRI});
+    return undef unless $url->scheme;
+    OpenQA::Utils::log_info("distri URL parameter provided: '$url'");
+    $args->{DISTRI_SOURCE} = $url;
+    my $name = $url->fragment;
+    $url->fragment(undef);
+    if (!$name) {
+        die "Cannot find distri name from URL, check URL or supply DISTRI" unless $url->path->parts->[-1];
+        $name = $url->path->parts->[-1] =~ s/\.git$//ri;
+    }
+    $args->{DISTRI} = $name;
+    # check if OPENQA_BASEDIR/share/tests/$distri_last_part already exists
+    # we can reuse it if it exists (hopefully it's related)
+    # clone from URL to OPENQA_BASE_DIR/share/tests/$distri_last_part, e.g.
+    my $ret = checkout_distri($url, $name);
+    die "Error on distri handling: $ret\n" if $ret;
+    # similar to git_log_diff method in lib/OpenQA/Schema/Result/Jobs.pm
+    die("not implemented");
+}
+
 =over 4
 
 =item _schedule_iso()
@@ -348,6 +377,7 @@ sub _schedule_iso ($self, $args, $guard) {
 
     _delete_prefixed_args_storing_info_about_product_itself $args;
 
+    _handle_distri($args);
     my $result;
     my $yaml = delete $args->{SCENARIO_DEFINITIONS_YAML};
     my $yaml_file = delete $args->{SCENARIO_DEFINITIONS_YAML_FILE};
