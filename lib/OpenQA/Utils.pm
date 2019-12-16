@@ -83,6 +83,7 @@ our @EXPORT = qw(
   hashwalker
   read_test_modules
   feature_scaling
+  job_label
   logistic_map_steps
   logistic_map
   rand_range
@@ -1091,6 +1092,14 @@ sub change_sec_to_word {
     }
     $time_word =~ s/\s$//g;
     return $time_word;
+}
+
+sub job_label {
+    my ($job) = @_;
+
+    my $test    = $job->TEST;
+    my $machine = $job->MACHINE;
+    return $machine ? "$test\@$machine" : $test;
 }
 
 1;
