@@ -94,6 +94,7 @@ sub wait_for_result_panel {
     my $timeout = OpenQA::Test::TimeLimit::scale_timeout(ONE_MINUTE * 3) / $check_interval;
     for (my $count = 0; $count < $timeout; $count++) {
         wait_for_ajax(msg => "result panel shows '$result_panel'");
+        diag("wait_for_result_panel: time: " . time);
         my $status_text = find_status_text($driver);
         return 1 if $status_text =~ $result_panel;
         if ($fail_on_incomplete && $status_text =~ qr/Result: (incomplete|timeout_exceeded)/) {
