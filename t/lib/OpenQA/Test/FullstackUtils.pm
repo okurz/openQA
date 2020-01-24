@@ -103,6 +103,7 @@ sub wait_for_result_panel {
 
     for (my $count = 0; $count < (3 * 60 / $check_interval); $count++) {
         wait_for_ajax(msg => "result panel shows '$result_panel'");
+        diag("wait_for_result_panel: time: " . time);
         my $status_text = find_status_text($driver);
         return 1 if $status_text =~ $result_panel;
         if ($fail_on_incomplete && $status_text =~ qr/Result: (incomplete|timeout_exceeded)/) {
