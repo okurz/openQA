@@ -165,6 +165,7 @@ test-heavy:
 .PHONY: test-ui
 test-ui:
 	$(MAKE) test-with-database TIMEOUT_M=25 PROVE_ARGS="$$HARNESS t/ui/*.t" GLOBIGNORE="t/*tidy*:t/*compile*:$(unstables)"
+	$(MAKE) test-with-database STABILITY_TEST=1 TIMEOUT_M=25 PROVE_ARGS="$$HARNESS t/ui/*.t" GLOBIGNORE="t/*tidy*:t/*compile*:$(unstables)"
 
 .PHONY: test-api
 test-api:
