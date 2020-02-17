@@ -38,15 +38,14 @@ sub handle_command {
     my $webui_host         = $client->webui_host;
     my $current_webui_host = $worker->current_webui_host // 'unknown web UI host';
 
+    return log_warning("Ignoring invalid json sent by $current_webui_host") unless ref($json) eq 'HASH';
+
     # ignore responses to our own messages which are indicated by 'result'
-    return undef if ($json->{result});
+    return undef if defined $json->{result};
 
     # handle commands of certain types regarding a specific job (which is supposed to be the job we're working on)
     my $type = $json->{type};
-    if (!$type) {
-        log_warning("Ignoring WS message without type from $webui_host:\n" . pp($json));
-        return undef;
-    }
+    return log_warning("Ignoring WS message without type from $webui_host:\n" . pp($json)) unless defined $type;
 
     # match the specified job
     my $job_id       = $json->{jobid};
@@ -93,7 +92,7 @@ sub handle_command {
         }
         else {
             # ignore messages which belong to a job
-            if ($job_id) {
+            if (defined $job_id) {
                 log_warning("Ignoring WS message from $webui_host with type $type and job ID $job_id "
                       . "(currently not executing a job):\n"
                       . pp($json));
@@ -219,8 +218,9 @@ sub _handle_command_grab_job {
     my ($json, $client, $worker, $webui_host, $current_job) = @_;
 
     my $job_info = $json->{job};
-    return undef unless _can_grab_job($worker, $webui_host, $current_job);
-    return undef unless defined _can_accept_job($webui_host, $job_info);
+    my $job_id   = _can_accept_job($client, $webui_host, $job_info);
+    return undef unless defined $job_id;
+    return undef unless _can_grab_job($client, $worker, $webui_host, $current_job, [$job_id]);
 
     $worker->accept_job($client, $job_info);
 }
@@ -236,7 +236,7 @@ sub _handle_command_grab_jobs {
     my $job_sequence = $job_info->{sequence};
     if (ref($job_data) ne 'HASH' || ref($job_sequence) ne 'ARRAY') {
         log_error(
-            "Refusing to grab job from $webui_host because the provided job info lacks job data or execution sequence: "
+            "Refusing to grab jobs from $webui_host: the provided job info lacks job data or execution sequence: "
               . pp($job_info));
         return undef;
     }

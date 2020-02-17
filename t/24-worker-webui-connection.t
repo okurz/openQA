@@ -514,7 +514,7 @@ qr/Ignoring WS message from http:\/\/test-host with type livelog_stop and job ID
         sub {
             $command_handler->handle_command(undef, {type => 'grab_jobs', job_info => \%job_info});
         },
-        qr/Refusing to grab job.*because job data for job 28 is missing/,
+        qr/Refusing to grab job.*: job data for job 28 is missing/,
         'ignoring grab job if no valid job info provided',
     );
     is_deeply($worker->enqueued_job_info, undef, 'no jobs enqueued if validation failed')
