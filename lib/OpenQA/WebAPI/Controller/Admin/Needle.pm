@@ -74,19 +74,15 @@ sub _prepare_data_table {
     $hash->{last_seen}  = $n->last_seen_time    || 'never';
     $hash->{last_match} = $n->last_matched_time || 'never';
 
-    if (my $last_seen_module_id = $n->last_seen_module_id) {
-        $hash->{last_seen_link} = $self->url_for(
-            'admin_needle_module',
-            module_id => $last_seen_module_id,
-            needle_id => $n->id
-        );
-    }
-    if (my $last_matched_module_id = $n->last_matched_module_id) {
-        $hash->{last_match_link} = $self->url_for(
-            'admin_needle_module',
-            module_id => $last_matched_module_id,
-            needle_id => $n->id
-        );
+    my $disp = {seen => $n->last_seen_module_id, match => $n->last_matched_module_id};
+    for (qw(seen match)) {
+        if (my $id = $disp->{$_}) {
+            $hash->{"last_${_}_link"} = $self->url_for(
+                'admin_needle_module',
+                module_id => $id,
+                needle_id => $n->id
+            );
+        }
     }
     return $hash;
 }
