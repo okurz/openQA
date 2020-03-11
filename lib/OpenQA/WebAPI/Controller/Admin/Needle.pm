@@ -74,19 +74,15 @@ sub _prepare_data_table {
     $hash->{last_seen}  = $n->last_seen_time    || 'never';
     $hash->{last_match} = $n->last_matched_time || 'never';
 
-    if (my $last_seen_module_id = $n->last_seen_module_id) {
-        $hash->{last_seen_link} = $self->url_for(
-            'admin_needle_module',
-            module_id => $last_seen_module_id,
-            needle_id => $n->id
-        );
-    }
-    if (my $last_matched_module_id = $n->last_matched_module_id) {
-        $hash->{last_match_link} = $self->url_for(
-            'admin_needle_module',
-            module_id => $last_matched_module_id,
-            needle_id => $n->id
-        );
+    my $disp = {seen => $n->last_seen_module_id, match => $n->last_matched_module_id};
+    for (qw(seen match)) {
+        if (my $id = $disp->{$_}) {
+            $hash->{"last_${_}_link"} = $self->url_for(
+                'admin_needle_module',
+                module_id => $id,
+                needle_id => $n->id
+            );
+        }
     }
     return $hash;
 }
@@ -100,13 +96,11 @@ sub ajax {
     my @filter_conds;
     my $search_value = $self->param('search[value]');
     push(@filter_conds, {filename => {-like => '%' . $search_value . '%'}}) if $search_value;
-    my $seen_query = $self->param('last_seen');
-    if ($seen_query && $seen_query ne 'none') {
-        push(@filter_conds, {last_seen_time => _translate_cond($seen_query)});
-    }
-    my $match_query = $self->param('last_match');
-    if ($match_query && $match_query ne 'none') {
-        push(@filter_conds, {last_matched_time => _translate_cond($match_query)});
+    for (qw(seen match)) {
+        my $query = $self->param('last_${_}');
+        if ($query && $query ne 'none') {
+            push(@filter_conds, {"last_${_}_time" => _translate_cond($query)});
+        }
     }
 
     OpenQA::WebAPI::ServerSideDataTable::render_response(
