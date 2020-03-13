@@ -411,10 +411,12 @@ sub update_status {
     my $use_assigned_worker;
     if (!$worker && !defined $job->t_finished) {
         if (my $assigned_worker = $job->assigned_worker) {
+            die 'need to reach here FOR FLAKY: 5';
             $worker              = $assigned_worker;
             $use_assigned_worker = 1;
         }
         else {
+            die 'need to reach here FOR FLAKY: 6';
             my $job_status = $job->status_info;
             my $err        = "Got status update for job $job_id and worker $worker_id but there is"
               . " not even a worker assigned to this job (job is $job_status)";
