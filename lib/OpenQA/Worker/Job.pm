@@ -810,9 +810,11 @@ sub _upload_results_step_0_prepare {
             # handle error occurred when posting the status
             if (!$status_post_res) {
                 if ($self->is_stopped_or_stopping) {
+                    die 'need to reach here FOR FLAKY: 6';
                     log_error('Unable to make final image uploads. Maybe the web UI considers this job already dead.');
                 }
                 else {
+                    die 'need to reach here FOR FLAKY: 7';
                     log_error('Aborting job because web UI doesn\'t accept new images anymore'
                           . ' (likely considers this job dead)');
                     $self->stop(WORKER_SR_API_FAILURE);
