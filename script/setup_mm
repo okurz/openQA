@@ -1,0 +1,35 @@
+#!/bin/bash
+set -euo pipefail
+instances="${instances:-"20"}"
+bridge="${bridge:-"br1"}"
+dev="${dev:-"eth0"}"
+arch="${arch:-"$(uname -i)"}"
+zypper -n --no-refresh in --no-recommends firewalld openvswitch os-autoinst-openvswitch libcap-progs
+services="firewalld openvswitch os-autoinst-openvswitch"
+(command -v systemctl 2>/dev/null && systemctl enable --now "$services") || for i in $services; do start_daemon "$i"; done
+echo "OS_AUTOINST_USE_BRIDGE=$bridge" > /etc/sysconfig/os-autoinst-openvswitch
+ovs-vsctl add-br "$bridge"
+cat > /etc/sysconfig/network/ifcfg-tap0 <<EOF
+BOOTPROTO='none'
+IPADDR=''
+NETMASK=''
+PREFIXLEN=''
+STARTMODE='auto'
+TUNNEL='tap'
+TUNNEL_SET_GROUP='nogroup'
+TUNNEL_SET_OWNER='_openqa-worker'
+EOF
+range=$(eval echo {1..$instances} {64..$((64 + $instances - 1))} {128..$((128 + $instances - 1))})
+for i in $range; do
+    echo OVS_BRIDGE_PORT_DEVICE_$i=\'tap$i\'
+done >> /etc/sysconfig/network/ifcfg-$bridge
+for i in $range; do
+    ln -s /etc/sysconfig/network/ifcfg-tap{0,$i}
+done
+firewall-cmd --set-default-zone=trusted
+firewall-cmd --zone=trusted --add-masquerade
+for i in $bridge $dev ovs-system; do
+    firewall-cmd --zone=trusted --change-interface=$i
+done
+firewall-cmd --runtime-to-permanent
+setcap CAP_NET_ADMIN=ep /usr/bin/qemu-system-$arch
