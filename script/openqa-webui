@@ -1,0 +1,2 @@
+#!/bin/sh -e
+exec "$(dirname "$0")"/openqa prefork -m production --proxy -i 100 -H 400 -w 30 -c 1 -G 800 "$@"
