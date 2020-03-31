@@ -183,7 +183,7 @@ subtest 'assign and run jobs' => sub {
         # uncoverable statement
         is_deeply([sort @allocated_worker_ids], [sort @expected_worker_ids], 'all workers allocated');
     }
-    for my $try (1 .. $polling_tries_jobs) {
+    for my $try (1 .. $polling_tries_jobs + 1) {
         last if $jobs->search({state => DONE})->count == $job_count;
         if ($jobs->search({state => SCHEDULED})->count > $remaining_jobs) {
             # uncoverable statement
@@ -209,7 +209,7 @@ subtest 'assign and run jobs' => sub {
 subtest 'stop all workers' => sub {
     stop_service $_ for @workers;
     my @non_offline_workers;
-    for my $try (1 .. $polling_tries_workers) {
+    for my $try (1 .. $polling_tries_workers + 1) {
         @non_offline_workers = ();
         for my $worker ($workers->all) {
             push(@non_offline_workers, $worker->id) unless $worker->dead;
