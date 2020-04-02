@@ -756,6 +756,7 @@ sub _upload_results_step_0_prepare {
         }
         if (!$current_test_module) {    # first test (or already after the last!)
             if (!$test_order) {
+                die "HERE: try to fix coverage";
                 $self->stop('no tests scheduled');
                 return $self->_conclude_upload($callback, {upload_up_to => $upload_up_to});
             }
