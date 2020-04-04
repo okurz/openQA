@@ -319,8 +319,8 @@ sub worker_id {
 }
 
 sub reschedule_state {
-    my $self  = shift;
-    my $state = shift // OpenQA::Jobs::Constants::SCHEDULED;
+    my ($self, $state) = @_;
+    $state //= OpenQA::Jobs::Constants::SCHEDULED;
 
     # cleanup
     $self->set_property('JOBTOKEN');
@@ -339,9 +339,7 @@ sub reschedule_state {
     log_debug('Job ' . $self->id . " reset to state $state");
 
     # free the worker
-    if (my $worker = $self->worker) {
-        $self->worker->update({job_id => undef});
-    }
+    if (my $worker = $self->worker) { worker->update({job_id => undef}) }
 }
 
 sub log_debug_job { log_debug('[Job#' . shift->id . '] ' . shift) }
@@ -444,45 +442,27 @@ sub set_prio {
     $self->update({priority => $prio});
 }
 
+sub _handle_hashref {
+    my $obj_field = shift;
+    my $ref       = ref($obj_field);
+    return $obj_field if $ref =~ /HASH|ARRAY|SCALAR|^$/;
+    # non standard ref, try to stringify
+    return $obj_field->datetime() if $ref eq 'DateTime';
+    die "unknown field type: $ref";
+}
+
 sub _hashref {
-    my $obj    = shift;
-    my @fields = @_;
-
-    my %hashref = ();
-    foreach my $field (@fields) {
-        my $ref = ref($obj->$field);
-        if ($ref =~ /HASH|ARRAY|SCALAR|^$/) {
-            $hashref{$field} = $obj->$field;
-        }
-        elsif ($ref eq 'DateTime') {
-            # non standard ref, try to stringify
-            $hashref{$field} = $obj->$field->datetime();
-        }
-        else {
-            die "unknown field type: $ref";
-        }
-    }
-
-    return \%hashref;
+    my $obj = shift;
+    return \map { $_ => _handle_hashref($obj->$_) } @_;
 }
 
 sub to_hash {
     my ($job, %args) = @_;
     my $j = _hashref($job, qw(id name priority state result clone_id t_started t_finished group_id blocked_by_id));
-    my $job_group;
-    if ($j->{group_id}) {
-        $job_group = $job->group;
-        $j->{group} = $job_group->name;
-    }
-    if ($job->assigned_worker_id) {
-        $j->{assigned_worker_id} = $job->assigned_worker_id;
-    }
-    if (my $origin = $job->origin) {
-        $j->{origin_id} = $origin->id;
-    }
-    if (my $reason = $job->reason) {
-        $j->{reason} = $reason;
-    }
+    $j->{group} = $job->group->name if $j->{group_id};
+    if (my $worker_id = $job->assigned_worker_id) { $j->{assigned_worker_id} = $worker_id }
+    if (my $origin    = $job->origin)             { $j->{origin_id}          = $origin->id }
+    if (my $reason    = $job->reason)             { $j->{reason}             = $reason }
     $j->{settings} = $job->settings_hash;
     # hashes are left for script compatibility with schema version 38
     $j->{test} = $job->TEST;
@@ -498,9 +478,7 @@ sub to_hash {
             }
         }
     }
-    if ($args{deps}) {
-        $j = {%$j, %{$job->dependencies}};
-    }
+    $j = {%$j, %{$job->dependencies}} if $args{deps};
     if ($args{details}) {
         my $test_modules = read_test_modules($job);
         $j->{testresults} = ($test_modules ? $test_modules->{modules} : []);
@@ -642,8 +620,9 @@ sub _create_clones {
     my $rset   = $self->result_source->resultset;
     my %clones = map { $rset->find($_)->_create_clone($jobs->{$_}, $prio, $skip_ok_result_children) } sort keys %$jobs;
 
+    my @jobs = sort keys %$jobs;
     # create dependencies
-    for my $job (sort keys %clones) {
+    for my $job (@jobs) {
         my $info = $jobs->{$job};
         my $res  = $clones{$job};
 
@@ -702,13 +681,10 @@ sub _create_clones {
     }
 
     # calculate blocked_by
-    $clones{$_}->calculate_blocked_by for keys %clones;
+    $clones{$_}->calculate_blocked_by for @jobs;
 
     # add a reference to the clone within $jobs
-    for my $job (keys %clones) {
-        my $clone = $clones{$job};
-        $jobs->{$job}->{clone} = $clone->id if $clone;
-    }
+    $jobs->{$_}->{clone} = $clones{$_}->id for @jobs;
 }
 
 # internal (recursive) function for duplicate - returns hash of all jobs in the
@@ -1034,9 +1010,7 @@ sub calculate_result {
             $overall ||= PASSED;
         }
         elsif ($m->result eq SOFTFAILED) {
-            if (!defined $overall || $overall eq PASSED) {
-                $overall = SOFTFAILED;
-            }
+            $overall = SOFTFAILED if (!defined $overall || $overall eq PASSED);
         }
         elsif ($m->result eq SKIPPED) {
             $overall ||= PASSED;
@@ -1167,10 +1141,9 @@ sub delete_logs {
 
     my $result_dir = $self->result_dir;
     return undef unless $result_dir;
-    my @files = (
-        Mojo::Collection->new(
-            map { path($result_dir, $_) } qw(autoinst-log.txt serial0.txt serial_terminal.txt video_time.vtt)
-        ),
+    my @common_logs = qw(autoinst-log.txt serial0.txt serial_terminal.txt);
+    my @files       = (
+        Mojo::Collection->new(map { path($result_dir, $_) } @common_logs),
         path($result_dir, 'ulogs')->list_tree({hidden => 1}),
         find_video_files($result_dir),
     );
@@ -1202,13 +1175,11 @@ sub create_result_dir {
         $days = $self->group->keep_logs_in_days if $self->group;
         mkdir($dir) || die "can't mkdir $dir: $!";
     }
-    my $sdir = $dir . "/.thumbs";
-    if (!-d $sdir) {
-        mkdir($sdir) || die "can't mkdir $sdir: $!";
-    }
-    $sdir = $dir . "/ulogs";
-    if (!-d $sdir) {
-        mkdir($sdir) || die "can't mkdir $sdir: $!";
+    for (qw(.thumbs ulogs)) {
+        my $sdir = $dir . "/$_";
+        if (!-d $sdir) {
+            mkdir($sdir) || die "can't mkdir $sdir: $!";
+        }
     }
     return $dir;
 }
@@ -1261,8 +1232,7 @@ sub progress_info {
     my $donecount = 0;
     my $modstate  = 'done';
     for my $module (@modules) {
-        my $result = $module->result;
-        if ($result eq 'running') {
+        if ($module->result eq 'running') {
             $modstate = 'current';
         }
         elsif ($modstate eq 'current') {
@@ -1306,12 +1276,7 @@ sub store_image {
 
 sub parse_extra_tests {
     my ($self, $asset, $type, $script) = @_;
-
-    return unless ($type eq 'JUnit'
-        || $type eq 'XUnit'
-        || $type eq 'LTP'
-        || $type eq 'IPA');
-
+    return unless $type =~ /JUnit|XUnit|LTP|IPA/;
 
     local ($@);
     eval {
@@ -1334,10 +1299,7 @@ sub parse_extra_tests {
         $self->account_result_size("$type results", $parser->write_output($self->result_dir));
     };
 
-    if ($@) {
-        log_error("Failed parsing data $type for job " . $self->id . ": " . $@);
-        return;
-    }
+    return log_error("Failed parsing data $type for job " . $self->id . ": " . $@) if $@;
     return 1;
 }
 
@@ -1446,14 +1408,8 @@ sub has_failed_modules {
 
 sub failed_modules {
     my ($self) = @_;
-
     my $fails = $self->modules->search({result => 'failed'}, {order_by => 't_updated'});
-    my @failedmodules;
-
-    while (my $module = $fails->next) {
-        push(@failedmodules, $module->name);
-    }
-    return \@failedmodules;
+    return \map { $_->name } $fails->all;
 }
 
 sub update_status {
@@ -1625,39 +1581,28 @@ sub _find_network {
     my $net = $self->networks->find({name => $name});
     return $net->vlan if $net;
 
-    my $parents = $self->parents->search(
-        {
-            dependency => OpenQA::JobDependencies::Constants::PARALLEL,
-        });
+    my %cond    = (dependency => OpenQA::JobDependencies::Constants::PARALLEL);
+    my $parents = $self->parents->search(\%cond);
     while (my $pd = $parents->next) {
         my $vlan = $pd->parent->_find_network($name, $seen);
         return $vlan if $vlan;
     }
 
-    my $children = $self->children->search(
-        {
-            dependency => OpenQA::JobDependencies::Constants::PARALLEL,
-        });
+    my $children = $self->children->search(\%cond);
     while (my $cd = $children->next) {
         my $vlan = $cd->child->_find_network($name, $seen);
         return $vlan if $vlan;
     }
 }
 
-sub release_networks {
-    my ($self) = @_;
-
-    $self->networks->delete;
-}
+sub release_networks { shift->networks->delete }
 
 sub needle_dir() {
     my ($self) = @_;
-    unless ($self->{_needle_dir}) {
-        my $distri  = $self->DISTRI;
-        my $version = $self->VERSION;
-        $self->{_needle_dir} = OpenQA::Utils::needledir($distri, $version);
-    }
-    return $self->{_needle_dir};
+    return $self->{_needle_dir} if $self->{_needle_dir};
+    my $distri  = $self->DISTRI;
+    my $version = $self->VERSION;
+    $self->{_needle_dir} = OpenQA::Utils::needledir($distri, $version);
 }
 
 # return the last X complete jobs of the same scenario
@@ -1690,18 +1635,12 @@ sub _failure_reason {
             # Look for serial failures which have bug reference
             my @bugrefs = map { find_bugref($_->{title}) || '' } @$details;
             # If bug reference is in title, put it as a failure reason, otherwise use module name
-            if (my $failure_reason = join('', @bugrefs)) {
-                return $failure_reason;
-            }
+            if (my $failure_reason = join('', @bugrefs)) { return $failure_reason }
             push(@failed_modules, $m->name . ':' . $m->result);
         }
     }
 
-    if (@failed_modules) {
-        return join(',', @failed_modules) || $self->result;
-    }
-    # No failed modules found
-    return 'GOOD';
+    return @failed_modules ? (join(',', @failed_modules) || $self->result) : 'GOOD';
 }
 
 sub _carry_over_candidate {
@@ -1735,10 +1674,8 @@ sub _carry_over_candidate {
 
         # if the job changed failures more often, we assume
         # that the carry over is pointless
-        if ($state_changes > $state_changes_limit) {
-            log_debug("changed state more than $state_changes_limit, aborting search");
-            return;
-        }
+        return log_debug("changed state more than $state_changes_limit, aborting search")
+          if ($state_changes > $state_changes_limit);
     }
     return;
 }
@@ -2004,9 +1941,7 @@ sub done {
     # stop other jobs in the cluster
     if (defined $new_val{result} && !grep { $result eq $_ } OK_RESULTS) {
         my $jobs = $self->cluster_jobs(cancelmode => 1);
-        for my $job (sort keys %$jobs) {
-            $self->_job_stop_cluster($job);
-        }
+        $self->_job_stop_cluster($_) for sort keys %$jobs;
     }
 
     # bugrefs are there to mark reasons of failure - the function checks itself though
@@ -2027,9 +1962,7 @@ sub cancel {
         $worker->send_command(command => WORKER_COMMAND_CANCEL, job_id => $self->id);
     }
     my $jobs = $self->cluster_jobs(cancelmode => 1);
-    for my $job (sort keys %$jobs) {
-        $count += $self->_job_stop_cluster($job);
-    }
+    $count += $self->_job_stop_cluster($_) for sort keys %$jobs;
     return $count;
 }
 
@@ -2083,13 +2016,11 @@ sub blocked_by_parent_job {
     my $job_info              = $cluster_jobs->{$self->id};
     my @possibly_blocked_jobs = ($self->id, @{$job_info->{parallel_parents}}, @{$job_info->{parallel_children}});
 
-    my $chained_parents = $self->result_source->schema->resultset('JobDependencies')->search(
-        {
-            dependency   => {-in => [OpenQA::JobDependencies::Constants::CHAINED_DEPENDENCIES]},
-            child_job_id => {-in => \@possibly_blocked_jobs}
-        },
-        {order_by => ['parent_job_id', 'child_job_id']});
-
+    my %conds = (
+        dependency   => {-in => [OpenQA::JobDependencies::Constants::CHAINED_DEPENDENCIES]},
+        child_job_id => {-in => \@possibly_blocked_jobs});
+    my %args            = (order_by => ['parent_job_id', 'child_job_id']);
+    my $chained_parents = $self->result_source->schema->resultset('JobDependencies')->search(\%conds, \%args);
     while (my $pd = $chained_parents->next) {
         my $p     = $pd->parent;
         my $state = $p->state;
@@ -2105,13 +2036,7 @@ sub calculate_blocked_by {
     $self->update({blocked_by_id => $self->blocked_by_parent_job});
 }
 
-sub unblock {
-    my ($self) = @_;
-
-    for my $j ($self->blocking) {
-        $j->calculate_blocked_by;
-    }
-}
+sub unblock { $_->calculate_blocked_by for (shift->blocking) }
 
 sub has_dependencies {
     my ($self) = @_;
