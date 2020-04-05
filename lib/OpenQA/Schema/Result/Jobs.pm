@@ -462,26 +462,18 @@ sub set_prio {
     $self->update({priority => $prio});
 }
 
+sub _handle_hashref {
+    my $obj_field = shift;
+    my $ref = ref($obj_field);
+    return $obj_field if $ref =~ /HASH|ARRAY|SCALAR|^$/;
+    # non standard ref, try to stringify
+    return $obj_field->datetime() if $ref eq 'DateTime';
+    die "unknown field type: $ref";
+}
+
 sub _hashref {
     my $obj = shift;
-    my @fields = @_;
-
-    my %hashref = ();
-    foreach my $field (@fields) {
-        my $ref = ref($obj->$field);
-        if ($ref =~ /HASH|ARRAY|SCALAR|^$/) {
-            $hashref{$field} = $obj->$field;
-        }
-        elsif ($ref eq 'DateTime') {
-            # non standard ref, try to stringify
-            $hashref{$field} = $obj->$field->datetime();
-        }
-        else {
-            die "unknown field type: $ref";
-        }
-    }
-
-    return \%hashref;
+    return {map { $_ => _handle_hashref($obj->$_) } @_};
 }
 
 sub to_hash {
@@ -1188,10 +1180,9 @@ sub delete_logs {
 
     my $result_dir = $self->result_dir;
     return undef unless $result_dir;
+    my @common_logs = qw(autoinst-log.txt serial0.txt serial_terminal.txt);
     my @files = (
-        Mojo::Collection->new(
-            map { path($result_dir, $_) } qw(autoinst-log.txt serial0.txt serial_terminal.txt video_time.vtt)
-        ),
+        Mojo::Collection->new(map { path($result_dir, $_) } @common_logs),
         path($result_dir, 'ulogs')->list_tree({hidden => 1}),
         find_video_files($result_dir),
     );
@@ -1683,30 +1674,21 @@ sub _find_network {
     my $net = $self->networks->find({name => $name});
     return $net->vlan if $net;
 
-    my $parents = $self->parents->search(
-        {
-            dependency => OpenQA::JobDependencies::Constants::PARALLEL,
-        });
+    my %cond = (dependency => OpenQA::JobDependencies::Constants::PARALLEL);
+    my $parents = $self->parents->search(\%cond);
     while (my $pd = $parents->next) {
         my $vlan = $pd->parent->_find_network($name, $seen);
         return $vlan if $vlan;
     }
 
-    my $children = $self->children->search(
-        {
-            dependency => OpenQA::JobDependencies::Constants::PARALLEL,
-        });
+    my $children = $self->children->search(\%cond);
     while (my $cd = $children->next) {
         my $vlan = $cd->child->_find_network($name, $seen);
         return $vlan if $vlan;
     }
 }
 
-sub release_networks {
-    my ($self) = @_;
-
-    $self->networks->delete;
-}
+sub release_networks { shift->networks->delete }
 
 sub needle_dir ($self) {
     unless ($self->{_needle_dir}) {
@@ -2146,13 +2128,11 @@ sub blocked_by_parent_job {
     my $job_info = $cluster_jobs->{$self->id};
     my @possibly_blocked_jobs = ($self->id, @{$job_info->{parallel_parents}}, @{$job_info->{parallel_children}});
 
-    my $chained_parents = $self->result_source->schema->resultset('JobDependencies')->search(
-        {
-            dependency => {-in => [OpenQA::JobDependencies::Constants::CHAINED_DEPENDENCIES]},
-            child_job_id => {-in => \@possibly_blocked_jobs}
-        },
-        {order_by => ['parent_job_id', 'child_job_id']});
-
+    my %conds = (
+        dependency => {-in => [OpenQA::JobDependencies::Constants::CHAINED_DEPENDENCIES]},
+        child_job_id => {-in => \@possibly_blocked_jobs});
+    my %args = (order_by => ['parent_job_id', 'child_job_id']);
+    my $chained_parents = $self->result_source->schema->resultset('JobDependencies')->search(\%conds, \%args);
     while (my $pd = $chained_parents->next) {
         my $p = $pd->parent;
         my $state = $p->state;
