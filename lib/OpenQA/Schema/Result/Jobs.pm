@@ -319,8 +319,8 @@ sub worker_id {
 }
 
 sub reschedule_state {
-    my $self  = shift;
-    my $state = shift // OpenQA::Jobs::Constants::SCHEDULED;
+    my ($self, $state) = @_;
+    $state //= OpenQA::Jobs::Constants::SCHEDULED;
 
     # cleanup
     $self->set_property('JOBTOKEN');
@@ -339,9 +339,7 @@ sub reschedule_state {
     log_debug('Job ' . $self->id . " reset to state $state");
 
     # free the worker
-    if (my $worker = $self->worker) {
-        $self->worker->update({job_id => undef});
-    }
+    if (my $worker = $self->worker) { worker->update({job_id => undef}) }
 }
 
 sub log_debug_job { log_debug('[Job#' . shift->id . '] ' . shift) }
@@ -461,20 +459,10 @@ sub _hashref {
 sub to_hash {
     my ($job, %args) = @_;
     my $j = _hashref($job, qw(id name priority state result clone_id t_started t_finished group_id blocked_by_id));
-    my $job_group;
-    if ($j->{group_id}) {
-        $job_group = $job->group;
-        $j->{group} = $job_group->name;
-    }
-    if ($job->assigned_worker_id) {
-        $j->{assigned_worker_id} = $job->assigned_worker_id;
-    }
-    if (my $origin = $job->origin) {
-        $j->{origin_id} = $origin->id;
-    }
-    if (my $reason = $job->reason) {
-        $j->{reason} = $reason;
-    }
+    $j->{group} = $job->group->name if $j->{group_id};
+    if (my $worker_id = $job->assigned_worker_id) { $j->{assigned_worker_id} = $worker_id }
+    if (my $origin    = $job->origin)             { $j->{origin_id}          = $origin->id }
+    if (my $reason    = $job->reason)             { $j->{reason}             = $reason }
     $j->{settings} = $job->settings_hash;
     # hashes are left for script compatibility with schema version 38
     $j->{test} = $job->TEST;
@@ -490,9 +478,7 @@ sub to_hash {
             }
         }
     }
-    if ($args{deps}) {
-        $j = {%$j, %{$job->dependencies}};
-    }
+    $j = {%$j, %{$job->dependencies}} if $args{deps};
     if ($args{details}) {
         my $test_modules = read_test_modules($job);
         $j->{testresults} = ($test_modules ? $test_modules->{modules} : []);
@@ -636,6 +622,8 @@ sub _create_clones {
 
     # create dependencies
     for my $job (sort keys %clones) {
+    my @jobs = sort keys %$jobs;
+    for my $job (@jobs) {
         my $info = $jobs->{$job};
         my $res  = $clones{$job};
 
@@ -694,13 +682,10 @@ sub _create_clones {
     }
 
     # calculate blocked_by
-    $clones{$_}->calculate_blocked_by for keys %clones;
+    $clones{$_}->calculate_blocked_by for @jobs;
 
     # add a reference to the clone within $jobs
-    for my $job (keys %clones) {
-        my $clone = $clones{$job};
-        $jobs->{$job}->{clone} = $clone->id if $clone;
-    }
+    $jobs->{$_}->{clone} = $clones{$_}->id for @jobs;
 }
 
 # internal (recursive) function for duplicate - returns hash of all jobs in the
@@ -1026,9 +1011,7 @@ sub calculate_result {
             $overall ||= PASSED;
         }
         elsif ($m->result eq SOFTFAILED) {
-            if (!defined $overall || $overall eq PASSED) {
-                $overall = SOFTFAILED;
-            }
+            $overall = SOFTFAILED if (!defined $overall || $overall eq PASSED);
         }
         elsif ($m->result eq SKIPPED) {
             $overall ||= PASSED;
@@ -1250,8 +1233,7 @@ sub progress_info {
     my $donecount = 0;
     my $modstate  = 'done';
     for my $module (@modules) {
-        my $result = $module->result;
-        if ($result eq 'running') {
+        if ($module->result eq 'running') {
             $modstate = 'current';
         }
         elsif ($modstate eq 'current') {
@@ -1295,12 +1277,7 @@ sub store_image {
 
 sub parse_extra_tests {
     my ($self, $asset, $type, $script) = @_;
-
-    return unless ($type eq 'JUnit'
-        || $type eq 'XUnit'
-        || $type eq 'LTP'
-        || $type eq 'IPA');
-
+    return unless $type =~ /JUnit|XUnit|LTP|IPA/;
 
     local ($@);
     eval {
@@ -1323,10 +1300,7 @@ sub parse_extra_tests {
         $self->account_result_size("$type results", $parser->write_output($self->result_dir));
     };
 
-    if ($@) {
-        log_error("Failed parsing data $type for job " . $self->id . ": " . $@);
-        return;
-    }
+    return log_error("Failed parsing data $type for job " . $self->id . ": " . $@) if $@;
     return 1;
 }
 
@@ -1632,12 +1606,10 @@ sub release_networks { shift->networks->delete }
 
 sub needle_dir() {
     my ($self) = @_;
-    unless ($self->{_needle_dir}) {
-        my $distri  = $self->DISTRI;
-        my $version = $self->VERSION;
-        $self->{_needle_dir} = OpenQA::Utils::needledir($distri, $version);
-    }
-    return $self->{_needle_dir};
+    return $self->{_needle_dir} if $self->{_needle_dir};
+    my $distri  = $self->DISTRI;
+    my $version = $self->VERSION;
+    $self->{_needle_dir} = OpenQA::Utils::needledir($distri, $version);
 }
 
 # return the last X complete jobs of the same scenario
@@ -1670,9 +1642,7 @@ sub _failure_reason {
             # Look for serial failures which have bug reference
             my @bugrefs = map { find_bugref($_->{title}) || '' } @$details;
             # If bug reference is in title, put it as a failure reason, otherwise use module name
-            if (my $failure_reason = join('', @bugrefs)) {
-                return $failure_reason;
-            }
+            return join('', @bugrefs) if @bugrefs;
             push(@failed_modules, $m->name . ':' . $m->result);
         }
     }
@@ -1715,10 +1685,8 @@ sub _carry_over_candidate {
 
         # if the job changed failures more often, we assume
         # that the carry over is pointless
-        if ($state_changes > $state_changes_limit) {
-            log_debug("changed state more than $state_changes_limit, aborting search");
-            return;
-        }
+        return log_debug("changed state more than $state_changes_limit, aborting search")
+          if ($state_changes > $state_changes_limit);
     }
     return;
 }
@@ -1984,9 +1952,7 @@ sub done {
     # stop other jobs in the cluster
     if (defined $new_val{result} && !grep { $result eq $_ } OK_RESULTS) {
         my $jobs = $self->cluster_jobs(cancelmode => 1);
-        for my $job (sort keys %$jobs) {
-            $self->_job_stop_cluster($job);
-        }
+        $self->_job_stop_cluster($_) for sort keys %$jobs;
     }
 
     # bugrefs are there to mark reasons of failure - the function checks itself though
@@ -2007,9 +1973,7 @@ sub cancel {
         $worker->send_command(command => WORKER_COMMAND_CANCEL, job_id => $self->id);
     }
     my $jobs = $self->cluster_jobs(cancelmode => 1);
-    for my $job (sort keys %$jobs) {
-        $count += $self->_job_stop_cluster($job);
-    }
+    $count += $self->_job_stop_cluster($_) for sort keys %$jobs;
     return $count;
 }
 
@@ -2083,13 +2047,7 @@ sub calculate_blocked_by {
     $self->update({blocked_by_id => $self->blocked_by_parent_job});
 }
 
-sub unblock {
-    my ($self) = @_;
-
-    for my $j ($self->blocking) {
-        $j->calculate_blocked_by;
-    }
-}
+sub unblock { $_->calculate_blocked_by for (shift->blocking) }
 
 sub has_dependencies {
     my ($self) = @_;
