@@ -101,6 +101,8 @@ sub wait_for_result_panel {
     my $looking_for_result = $result_panel =~ qr/Result: /;
     $check_interval //= 0.5;
 
+    # Report failure at the callsite instead of the test function
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
     for (my $count = 0; $count < (3 * 60 / $check_interval); $count++) {
         wait_for_ajax(msg => "result panel shows '$result_panel'");
         my $status_text = find_status_text($driver);
