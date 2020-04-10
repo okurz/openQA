@@ -86,6 +86,8 @@ sub wait_for_result_panel {
 
     prevent_reload($driver);
 
+    # Report failure at the callsite instead of the test function
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
     for (my $count = 0; $count < ((3 * 60) / $refresh_interval); $count++) {
         my $status_text = find_status_text($driver);
         last if ($status_text =~ $result_panel);
