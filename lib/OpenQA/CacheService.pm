@@ -95,6 +95,18 @@ sub startup {
     $self->helper(downloads => sub { state $dl = OpenQA::CacheService::Model::Downloads->new(cache => $cache) });
     $cache->init;
 
+    $DB::step = 1;
+    # XXX: the following silently dies
+    # when perl-Minion-Backend-SQLite is not installed
+    # but following the trace that should
+    # Mojo::Loader::load_class((eval 1673)[/usr/lib/perl5/vendor_perl/5.26.1/Mojo/Loader.pm:44]:1):
+    # 1:      require Minion::Backend::SQLite; 1
+    # Mojo::Loader::load_class(/usr/lib/perl5/vendor_perl/5.26.1/Mojo/Loader.pm:47):
+    # call croak in Minion::new(/usr/lib/perl5/vendor_perl/5.26.1/Minion.pm:90):
+    #  90:       croak ref $e ? $e : qq{Backend "$class" missing} if $e;
+    #
+    use Carp qw(cluck);
+    cluck "XXX: before plugin, Minion, SQLite\n";
     $self->plugin(Minion => {SQLite => $sqlite});
     $self->plugin('Minion::Admin');
     $self->plugin('OpenQA::CacheService::Task::Asset');
