@@ -60,17 +60,12 @@ unless (can_load(modules => {'Selenium::Remote::WDKeys' => undef})) {
     exit(0);
 }
 
+# TODO turn into our, pass to helper methods or put into FullstackUtils or
+# into a base class?
 my $workerpid;
 my $wspid;
 my $livehandlerpid;
 my $schedulerpid;
-sub turn_down_stack {
-    stop_service($_) for ($workerpid, $wspid, $livehandlerpid, $schedulerpid);
-}
-sub stop_worker {
-    is(stop_service($workerpid), $workerpid, 'WORKER is done');
-    $workerpid = undef;
-}
 
 # skip if appropriate modules aren't available
 unless (check_driver_modules) {

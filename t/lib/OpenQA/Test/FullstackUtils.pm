@@ -105,6 +105,8 @@ sub wait_for_result_panel {
 
 sub wait_for_job_running {
     my ($driver, $fail_on_incomplete) = @_;
+    # Report failure at the callsite instead of the test function
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
     wait_for_result_panel($driver, qr/State: running/, 'job is running', $fail_on_incomplete);
     $driver->find_element_by_link_text('Live View')->click();
 }
@@ -208,6 +210,25 @@ sub verify_one_job_displayed_as_scheduled {
     my $msg = 'test displayed as scheduled';
     wait_for_ajax(msg => $msg);
     is $driver->find_element_by_id('scheduled_jobs_heading')->get_text(), '1 scheduled jobs', $msg;
+}
+
+sub turn_down_stack {
+    stop_service($_) for ($workerpid, $wspid, $livehandlerpid, $schedulerpid);
+}
+
+sub cleanup {
+    my ($tempdir) = @_;
+    kill_driver;
+    turn_down_stack;
+    session->clean;
+    $? = 0;
+    $tempdir->list_tree->grep(qr/\.txt$/)->each(sub { print "$_:\n" . $_->slurp }) if defined $tempdir;
+}
+
+sub stop_worker {
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+    is(stop_service($workerpid), $workerpid, 'WORKER is done');
+    $workerpid = undef;
 }
 
 1;

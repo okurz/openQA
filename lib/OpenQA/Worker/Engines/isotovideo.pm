@@ -295,7 +295,7 @@ sub engine_workit {
     my $shared_cache;
     my $assetkeys = detect_asset_keys(\%vars);
     if (my $cache_dir = $global_settings->{CACHEDIRECTORY}) {
-        $shared_cache = do_asset_caching($job, \%vars, $cache_dir, $webui_host);
+        $shared_cache = do_asset_caching($job, \%vars, $cache_dir, $assetkeys, $webui_host);
     }
     else {
         my $error = locate_local_assets(\%vars, $assetkeys);
