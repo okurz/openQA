@@ -302,8 +302,8 @@ subtest 'Cache tests' => sub {
     my $filename = $cache_location->child('test.file')->spurt('Hello World');
     path($cache_location, 'test_directory')->make_path;
 
-    $worker_cache_service->restart->restart;
-    $cache_service->restart->restart;
+    $worker_cache_service->restart;
+    $cache_service->restart;
 
     my $cache_client = OpenQA::CacheService::Client->new;
     my $supposed_cache_service_host = $cache_client->host;

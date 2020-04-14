@@ -69,7 +69,7 @@ my $server_instance = process sub {
 
 sub start_server {
     $server_instance->set_pipes(0)->separate_err(0)->blocking_stop(1)->channels(0)->restart;
-    $cache_service->set_pipes(0)->separate_err(0)->blocking_stop(1)->channels(0)->restart->restart;
+    $cache_service->set_pipes(0)->separate_err(0)->blocking_stop(1)->channels(0)->restart;
     $worker_cache_service->restart;
     wait_for_or_bail_out { $cache_client->info->available } 'cache service';
 }
