@@ -279,8 +279,7 @@ stop_worker;    # Ensure that the worker can be killed with TERM signal
 my $cache_location = path($ENV{OPENQA_BASEDIR}, 'cache')->make_path;
 ok(-e $cache_location, "Setting up Cache directory");
 
-open(my $conf, '>', path($ENV{OPENQA_CONFIG})->child("workers.ini")->to_string);
-print $conf <<EOC;
+path($ENV{OPENQA_CONFIG})->child("workers.ini")->spurt(<<EOC);
 [global]
 CACHEDIRECTORY = $cache_location
 CACHELIMIT = 50
@@ -291,9 +290,7 @@ WORKER_CLASS = qemu_i386,qemu_x86_64
 [http://localhost:$mojoport]
 TESTPOOLSERVER = $sharedir/tests
 EOC
-close($conf);
-
-ok(-e path($ENV{OPENQA_CONFIG})->child("workers.ini"), "Config file created.");
+ok(-e path($ENV{OPENQA_CONFIG})->child("workers.ini"), 'Config file created');
 
 # For now let's repeat the cache tests before extracting to separate test
 subtest 'Cache tests' => sub {
@@ -303,11 +300,7 @@ subtest 'Cache tests' => sub {
     my $db_file = $cache_location->child('cache.sqlite');
     ok(!-e $db_file, "cache.sqlite is not present");
 
-    my $filename;
-    open($filename, '>', $cache_location->child("test.file"));
-    print $filename "Hello World";
-    close($filename);
-
+    my $filename = $cache_location->child("test.file")->spurt('Hello World');
     path($cache_location, "test_directory")->make_path;
 
     $worker_cache_service->restart->restart;
