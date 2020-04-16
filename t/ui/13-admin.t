@@ -392,8 +392,7 @@ subtest 'job property editor' => sub() {
         $groupname->clear();
         is $driver->find_element('#properties p.buttons button.btn-primary')->get_attribute('disabled'),
           'true', 'group properties save button is disabled if name is left empty';
-        is
-          $driver->find_element('#editor-name')->get_attribute('class'),
+        is $driver->find_element('#editor-name')->get_attribute('class'),
           'form-control is-invalid',
           'editor name input marked as invalid';
         $driver->refresh();
@@ -405,8 +404,7 @@ subtest 'job property editor' => sub() {
         $groupname->send_keys('   ');
         is $driver->find_element('#properties p.buttons button.btn-primary')->get_attribute('disabled'),
           'true', 'group properties save button is disabled if name is blank';
-        is
-          $driver->find_element('#editor-name')->get_attribute('class'),
+        is $driver->find_element('#editor-name')->get_attribute('class'),
           'form-control is-invalid',
           'editor name input marked as invalid';
         $driver->refresh();
