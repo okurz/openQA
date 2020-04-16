@@ -375,13 +375,12 @@ subtest 'job property editor' => sub() {
         # update group name with empty
         $groupname->send_keys(Selenium::Remote::WDKeys->KEYS->{control}, 'a');
         $groupname->send_keys(Selenium::Remote::WDKeys->KEYS->{backspace});
-        is($driver->find_element('#properties p.buttons button.btn-primary')->get_attribute('disabled'),
-            'true', 'group properties save button is disabled if name is left empty');
-        is(
-            $driver->find_element('#editor-name')->get_attribute('class'),
-            'form-control is-invalid',
-            'editor name input marked as invalid'
-        );
+        $DB::single = 1;
+        wait_for_ajax_and_animations;
+        ok wait_for_element(selector => '#properties p.buttons button.btn-primary[disabled]'),
+            'group properties save button is disabled if name is left empty';
+        ok wait_for_element(selector => '#editor-name.form-control.is-invalid'),
+            'editor name input marked as invalid';
         $driver->refresh();
         $driver->find_element_by_id('toggle-group-properties')->click();
 
@@ -389,13 +388,11 @@ subtest 'job property editor' => sub() {
         $groupname = $driver->find_element_by_id('editor-name');
         $groupname->send_keys(Selenium::Remote::WDKeys->KEYS->{control}, 'a');
         $groupname->send_keys('   ');
-        is($driver->find_element('#properties p.buttons button.btn-primary')->get_attribute('disabled'),
-            'true', 'group properties save button is disabled if name is blank');
-        is(
-            $driver->find_element('#editor-name')->get_attribute('class'),
-            'form-control is-invalid',
-            'editor name input marked as invalid'
-        );
+        ok wait_for_element(selector => '#properties p.buttons button.btn-primary[disabled]'),
+            'group properties save button is disabled if name is blank';
+        ok wait_for_element(selector => '#editor-name.form-control.is-invalid'),
+            'editor name input marked as invalid for blank name';
+        disable_timeout;
         $driver->refresh();
         $driver->find_element_by_id('toggle-group-properties')->click();
     };
