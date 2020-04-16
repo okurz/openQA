@@ -301,14 +301,8 @@ sub wait_until ($check_function, $check_description, $timeout = undef, $check_in
     $timeout //= 100;
     $check_interval //= .1;
     while (1) {
-        if ($check_function->()) {
-            pass($check_description);
-            return 1;
-        }
-        if ($timeout <= 0) {
-            fail($check_description);    # uncoverable statement
-            return 0;    # uncoverable statement
-        }
+        return 1 if $check_function->();  # uncoverable statement
+        return 0 if $timeout <= 0;  # uncoverable statement
         $timeout -= $check_interval;
         wait_for_ajax(msg => $check_description) or sleep $check_interval;
     }
