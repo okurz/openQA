@@ -23,6 +23,55 @@ my %params = (
     'Batch1' => ['191216_150610', 'containers', 'BatchedProj', '470.2, 469.1'],
 );
 
+<<<<<<< HEAD
+||||||| parent of 18af4d2cc... WIP -- more aggressive tries to fix flaky, unstable ui tests
+sub _wait_for_change ($selector, $break_cb, $refresh_cb = undef) {
+    my $text;
+    my $limit = int OpenQA::Test::TimeLimit::scale_timeout(10);
+    for my $i (0 .. $limit) {
+
+        # sometimes gru is not fast enough, so let's refresh the page and see if that helped
+        if ($i > 0) {
+            sleep 1;
+            note qq{Refreshing page, waiting for "$selector" to change};
+            $refresh_cb ? $refresh_cb->() : $driver->refresh;
+        }
+
+        wait_for_element(selector => $selector);
+        $text = $driver->find_element($selector)->get_text();
+        return $text if $break_cb->(local $_ = $text);
+    }
+
+    BAIL_OUT qq{Wait limit of $limit seconds exceeded for "$selector", no change: $text};    # uncoverable statement
+}
+
+=======
+sub _wait_for_change ($selector, $break_cb, $refresh_cb = undef) {
+    my $text;
+    my $limit = int OpenQA::Test::TimeLimit::scale_timeout(10);
+    for my $i (0 .. $limit) {
+
+        # sometimes gru is not fast enough, so let's refresh the page and see if that helped
+        if ($i > 0) {
+            sleep 1;
+            note qq{Refreshing page, waiting for "$selector" to change};
+            $refresh_cb ? $refresh_cb->() : $driver->refresh;
+        }
+
+        wait_for_element(selector => $selector);
+        $text = $driver->find_element($selector)->get_text();
+        return $text if $break_cb->(local $_ = $text);
+    }
+
+    BAIL_OUT qq{Wait limit of $limit seconds exceeded for "$selector", no change: $text};    # uncoverable statement
+}
+
+# the following code is unreliable without relying on a longer timeout in
+# the web driver as the timing behaviour of background tasks has not been
+# mocked away
+enable_timeout;
+
+>>>>>>> 18af4d2cc... WIP -- more aggressive tries to fix flaky, unstable ui tests
 foreach my $proj (sort keys %params) {
     my $ident = $proj;
     $ident =~ s/\W//g;    # remove special characters to refer UI, the same way as in template
@@ -46,6 +95,7 @@ foreach my $proj (sort keys %params) {
     is $driver->find_element("tr#folder_$ident .lastsyncbuilds")->get_text, $builds_text, "$proj sync builds";
 
     # at start no project fetches builds from obs
+<<<<<<< HEAD
     is($driver->find_element("tr#folder_$ident .obsbuilds")->get_text, '', "$proj obs builds empty");
     my $status = $driver->find_element("tr#folder_$ident .dirtystatuscol .dirtystatus")->get_text;
     like $status, qr/dirty/, "$proj dirty status";
@@ -59,6 +109,50 @@ foreach my $proj (sort keys %params) {
           'builds update response shown';
 
         $driver->find_element("tr#folder_$ident .lastsyncforget")->click;
+||||||| parent of 18af4d2cc... WIP -- more aggressive tries to fix flaky, unstable ui tests
+    is($driver->find_element("tr#folder_$ident .obsbuilds")->get_text(), '', "$proj obs builds empty");
+    my $status = $driver->find_element("tr#folder_$ident .dirtystatuscol .dirtystatus")->get_text();
+    like($status, qr/dirty/, "$proj dirty status");
+    like($status, qr/$repo/, "$proj repo in dirty status ($status)");
+    like($status, qr/$repo/, "$proj dirty has repo");
+
+    # the following code is unreliable without relying on a longer timeout in
+    # the web driver as the timing behaviour of background tasks has not been
+    # mocked away
+    enable_timeout;
+
+    $builds_text = ($builds_text ? $builds_text : 'No data');
+    # now request fetching builds from obs
+    $driver->find_element("tr#folder_$ident .obsbuildsupdate")->click();
+    my $obsbuilds = _wait_for_change(
+        "tr#folder_$ident .obsbuilds",
+        sub { $_ eq $builds_text },
+        sub { $driver->find_element("tr#folder_$ident .obsbuildsupdate")->click() });
+    is($obsbuilds, $builds_text, "$proj obs builds");
+
+    if ($dt ne 'no data') {
+        # now we call forget_run_last() and refresh_last_run() and check once again corresponding columns
+        $driver->find_element("tr#folder_$ident .lastsyncforget")->click();
+=======
+    is($driver->find_element("tr#folder_$ident .obsbuilds")->get_text(), '', "$proj obs builds empty");
+    my $status = $driver->find_element("tr#folder_$ident .dirtystatuscol .dirtystatus")->get_text();
+    like($status, qr/dirty/, "$proj dirty status");
+    like($status, qr/$repo/, "$proj repo in dirty status ($status)");
+    like($status, qr/$repo/, "$proj dirty has repo");
+
+    $builds_text = ($builds_text ? $builds_text : 'No data');
+    # now request fetching builds from obs
+    $driver->find_element("tr#folder_$ident .obsbuildsupdate")->click();
+    my $obsbuilds = _wait_for_change(
+        "tr#folder_$ident .obsbuilds",
+        sub { $_ eq $builds_text },
+        sub { $driver->find_element("tr#folder_$ident .obsbuildsupdate")->click() });
+    is($obsbuilds, $builds_text, "$proj obs builds");
+
+    if ($dt ne 'no data') {
+        # now we call forget_run_last() and refresh_last_run() and check once again corresponding columns
+        $driver->find_element("tr#folder_$ident .lastsyncforget")->click();
+>>>>>>> 18af4d2cc... WIP -- more aggressive tries to fix flaky, unstable ui tests
         $driver->accept_alert;
         is $driver->find_element("tr#folder_$ident .lastsync")->get_text, 'fake response', 'forget response shown';
 
