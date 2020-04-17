@@ -272,6 +272,10 @@ $src_needle->copy_to($dir->child('inst-timezone-text.png'));
 
 # the actual test starts here
 
+# the following code is unreliable without relying on a longer timeout in the
+# web driver
+enable_timeout;
+
 subtest 'Open needle editor for installer_timezone' => sub {
     $driver->title_is('openQA', 'on main page');
     $driver->find_element_by_link_text('Login')->click();
@@ -398,7 +402,7 @@ subtest 'Create new needle' => sub {
 
     # create new needle by clicked save button
     $driver->find_element_by_id('save')->click();
-    wait_for_ajax(with_minion => $minion);
+    wait_for_ajax_and_animations(with_minion => $minion);
 
     # check state highlight appears with valid content
     is
