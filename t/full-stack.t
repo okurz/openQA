@@ -321,9 +321,9 @@ subtest 'Cache tests' => sub {
 
     my $link = path($ENV{OPENQA_BASEDIR}, 'openqa', 'pool', '1')->child('Core-7.2.iso');
     wait_for_or_bail_out { -e $link } 'finished download';
-
     my $cached = $cache_location->child('localhost', 'Core-7.2.iso');
-    is $cached->stat->ino, $link->stat->ino, 'iso is hardlinked to cache';
+    ok $cached->stat, 'iso in cache';
+    ok($link->stat && $cached->stat, 'iso in cache+pool') && is $cached->stat->ino, $link->stat->ino, 'iso hardlinked';
 
     ok wait_for_result_panel($driver, qr/Result: passed/, 'job 5'), 'job 5 passed' or show_job_info 5;
     stop_worker;
