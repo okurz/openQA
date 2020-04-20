@@ -275,10 +275,15 @@ subtest 'Cache tests' => sub {
     ok !-e $cache_location->child("test.file"), 'File within cache, not present after deploy';
 
     my $link = path($ENV{OPENQA_BASEDIR}, 'openqa', 'pool', '1')->child('Core-7.2.iso');
-    sleep 5 and note "Waiting for cache service to finish the download" until -e $link;
-
+    for (1 .. 3 * 60 * 10) {
+        last if -e $link;
+        note "Waiting for cache service to finish the download, try: $_";
+        sleep .1;
+    }
+    ok $link->stat, 'iso in pool';
     my $cached = $cache_location->child('localhost', 'Core-7.2.iso');
-    is $cached->stat->ino, $link->stat->ino, 'iso is hardlinked to cache';
+    ok $cached->stat, 'iso in cache';
+    ok($link->stat && $cached->stat, 'iso in cache+pool') && is $cached->stat->ino, $link->stat->ino, 'iso hardlinked';
 
     ok wait_for_result_panel($driver, qr/Result: passed/), 'test 5 is passed';
     stop_worker;
