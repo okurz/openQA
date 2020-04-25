@@ -371,10 +371,12 @@ subtest 'job property editor' => sub() {
     };
 
     subtest 'update group name with empty or blank' => sub {
+        ok $driver->find_element('#properties p.buttons button.btn-primary'), 'save button exists';
         my $groupname = $driver->find_element_by_id('editor-name');
         # update group name with empty
         $groupname->send_keys(Selenium::Remote::WDKeys->KEYS->{control}, 'a');
         $groupname->send_keys(Selenium::Remote::WDKeys->KEYS->{backspace});
+        wait_for_ajax_and_animations;
         is($driver->find_element('#properties p.buttons button.btn-primary')->get_attribute('disabled'),
             'true', 'group properties save button is disabled if name is left empty');
         is(
