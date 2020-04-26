@@ -124,6 +124,8 @@ sub start_worker_and_schedule {
 
 sub autoinst_log { path($resultdir, '00000', sprintf("%08d", shift) . "-$job_name")->child('autoinst-log.txt') }
 
+sub no_error_in_log { !grep { /\[error\]/ } shift }
+
 start_worker_and_schedule;
 ok wait_for_job_running($driver), 'test 1 is running';
 
@@ -161,6 +163,7 @@ like $log_content, qr/Uploading autoinst-log\.txt/,                        'auto
 like $log_content, qr/Uploading worker-log\.txt/,                          'worker log uploaded';
 like $log_content, qr/core-hdd\.qcow2: local upload \(no chunks needed\)/, 'local upload feature used';
 ok -s path($sharedir, 'factory', 'hdd')->make_path->child('core-hdd.qcow2'), 'image of hdd uploaded';
+ok no_error_in_log($autoinst_log->slurp), 'no errors in autoinst-log of test 1';
 my $core_hdd_path = path($sharedir, 'factory', 'hdd')->child('core-hdd.qcow2');
 my @core_hdd_stat = stat($core_hdd_path);
 ok @core_hdd_stat, 'can stat ' . $core_hdd_path;
@@ -290,6 +293,7 @@ subtest 'Cache tests' => sub {
     like $log_content,   qr/Uploading autoinst-log\.txt/,       'autoinst log uploaded';
     like $log_content,   qr/Uploading worker-log\.txt/,         'worker log uploaded';
     unlike $log_content, qr/local upload \(no chunks needed\)/, 'local upload feature not used';
+    ok no_error_in_log($log_content), 'no errors in autoinst-log of test 5';
     my $dbh
       = DBI->connect("dbi:SQLite:dbname=$db_file", undef, undef, {RaiseError => 1, PrintError => 1, AutoCommit => 1});
     my $sql    = "SELECT * from assets order by last_use asc";
@@ -330,6 +334,7 @@ subtest 'Cache tests' => sub {
     stop_worker;
     $autoinst_log = autoinst_log(6);
     ok -s $autoinst_log, 'Test 6 autoinst-log.txt file created';
+    ok no_error_in_log($autoinst_log->slurp), 'no errors in autoinst-log of test 6';
 
     ok !-e $result->{filename}, 'asset 5.qcow2 removed during cache init';
 
@@ -350,6 +355,7 @@ subtest 'Cache tests' => sub {
     like $log_content, qr/\+\+\+\ worker notes \+\+\+/, 'Test 7 has worker notes';
     like((split(/\n/, $log_content))[0],  qr/\+\+\+ setup notes \+\+\+/,   'Test 7 has setup notes');
     like((split(/\n/, $log_content))[-1], qr/uploading autoinst-log.txt/i, 'Test 7 uploaded autoinst-log (as last)');
+    ok no_error_in_log($log_content), 'no errors in autoinst-log of test 7';
     client_call('-X POST jobs ' . OpenQA::Test::FullstackUtils::job_setup(HDD_1 => 'non-existent.qcow2'));
     schedule_one_job;
     $driver->get('/tests/8');
