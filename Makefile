@@ -147,7 +147,7 @@ test-unstable:
 
 .PHONY: test-fullstack
 test-fullstack:
-	$(MAKE) test-with-database FULLSTACK=1 TIMEOUT_M=20 PROVE_ARGS="$$HARNESS t/full-stack.t" RETRY=3
+	$(MAKE) test-with-database FULLSTACK=1 TIMEOUT_M=6 PROVE_ARGS="$$HARNESS t/full-stack.t" RETRY=3
 
 .PHONY: test-scheduler
 test-scheduler:
