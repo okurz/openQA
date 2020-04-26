@@ -163,6 +163,10 @@ sub bail_with_log ($job_id, $message) {
     BAIL_OUT $message;    # uncoverable statement
 }
 
+sub no_error_in_log {
+    !grep { /\[error\]/ } shift;
+}
+
 start_worker_and_assign_jobs;
 ok wait_for_job_running($driver, 1), 'test 1 is running' or bail_with_log 1, 'unable to run test 1';
 
@@ -342,6 +346,7 @@ subtest 'Cache tests' => sub {
     like $log_content, qr/Uploading autoinst-log\.txt/, 'autoinst log uploaded';
     like $log_content, qr/Uploading worker-log\.txt/, 'worker log uploaded';
     unlike $log_content, qr/local upload \(no chunks needed\)/, 'local upload feature not used';
+    ok no_error_in_log($log_content), 'no errors in autoinst-log of test 5';
     my $dbh
       = DBI->connect("dbi:SQLite:dbname=$db_file", undef, undef, {RaiseError => 1, PrintError => 1, AutoCommit => 1});
     my $sql = "SELECT * from assets order by last_use asc";
@@ -402,6 +407,7 @@ subtest 'Cache tests' => sub {
     like $log_content, qr/\+\+\+\ worker notes \+\+\+/, 'Test 7 has worker notes';
     like((split(/\n/, $log_content))[0], qr/\+\+\+ setup notes \+\+\+/, 'Test 7 has setup notes');
     like((split(/\n/, $log_content))[-1], qr/uploading autoinst-log.txt/i, 'Test 7 uploaded autoinst-log (as last)');
+    ok no_error_in_log($log_content), 'no errors in autoinst-log of test 7';
     client_call('-X POST jobs ' . OpenQA::Test::FullstackUtils::job_setup(HDD_1 => 'non-existent.qcow2'));
     assign_jobs;
     $driver->get('/tests/8');
