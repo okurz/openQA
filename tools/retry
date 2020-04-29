@@ -1,16 +1,50 @@
 #!/bin/sh -e
 # shellcheck disable=SC2048,SC2086
 
+set -exo pipefail
+
+#if  [ $$ = $(ps -o pgid -hp $$) ]; then
+#   echo already a process group leader;
+#else
+#   set -m
+#   $0 "$@" #optionally with &
+#   set +m
+#fi
+
+env | grep '\(RETRY\|STABILITY_TEST\|TIMEOUT\)' ||:
+
 RETRY="${RETRY:-3}"
 STABILITY_TEST="${STABILITY_TEST:-0}"
 # Pass a hook command which is executed if a retry occurs
 HOOK="${HOOK:-}"
+#TIMEOUT="${TIMEOUT
+
+trap
+
+# Ensure subprocesses are terminated if only this program receives signals
+#trap "exit" INT
+#trap "exit" INT
+#trap "echo CAUGHT signal in $$; ps Tf -o '%p %P %r %y %a' | tail -n 10; kill -- -$$; exit" EXIT
+#trap "echo CAUGHT signal in $$; ps Tf -o '%p %P %r %y %a' | tail -n 10; exit" TERM INT
+#trap 'echo caught interrupt and exiting;exit' INT
+#trap "echo CAUGHT signal in $$; ps Tf -o '%p %P %r %y %x %a'; kill $(jobs -p)&>/dev/null; kill -- -$$; exit" EXIT
+#trap 'kill $(jobs -p) 2>/dev/null' EXIT
+#trap 'kill $(jobs -p) 2>/dev/null' INT
+#trap "trap - SIGTERM && kill -- -$$" INT TERM EXIT
+#trap "exit \$exit_code" INT TERM
+#trap "exit_code=\$?; kill 0" EXIT
+#trap 'echo TRAP: kill -- -$BASHPID' INT TERM
+#trap 'echo "IN TRAP"; kill 0' INT
 
 run_once() {
-    $*
+    if [ -n "$TIMEOUT" ]; then
+        prefix="timeout --foreground -v $TIMEOUT"
+    fi
+    $prefix $*
 }
 
 if [ "$RETRY" = "0" ]; then
+    #echo run_once $*
     run_once $*
 else
     n=1
