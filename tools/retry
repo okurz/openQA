@@ -4,6 +4,9 @@
 RETRY="${RETRY:-3}"
 STABILITY_TEST="${STABILITY_TEST:-0}"
 
+# Ensure subprocesses are terminated if only this program receives signals
+trap 'kill 0' EXIT
+
 run_once() {
     $*
 }
