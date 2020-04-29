@@ -195,15 +195,11 @@ sub wait_for_ajax_and_animations {
 sub javascript_console_has_no_warnings_or_errors {
     my ($test_name_suffix) = @_;
     $test_name_suffix //= '';
+    my $suffix = $test_name_suffix ? " '$test_name_suffix'" : '';
 
-    my $log = $_driver->get_log('browser');
     my @errors;
-    for my $log_entry (@$log) {
-        my $level = $log_entry->{level};
-        if ($level eq 'DEBUG' or $level eq 'INFO') {
-            next;
-        }
-
+    for my $log_entry (@{$_driver->get_log('browser')}) {
+        next if $log_entry->{level} =~ /DEBUG|INFO/;
         my $source = $log_entry->{source};
         my $msg = $log_entry->{message};
         if ($source eq 'network') {
@@ -212,9 +208,8 @@ sub javascript_console_has_no_warnings_or_errors {
 
             # ignore that needle editor in 33-developer_mode.t is not instantly available
             next if ($msg =~ qr/tests\/1\/edit.*404/);    # uncoverable statement
-
-            # FIXME: loading thumbs during live run causes 404. ignore for now
-            # (',' is a quotation mark here and '/' part of expression to match)
+                                                          # loading thumbs during live run causes 404. ignore for now
+                # (',' is a quotation mark here and '/' part of expression to match)
             next if ($msg =~ qr,/thumb/, || $msg =~ qr,/.thumbs/,);    # uncoverable statement
 
             # ignore error responses in 13-admin.t testing YAML errors
@@ -228,18 +223,15 @@ sub javascript_console_has_no_warnings_or_errors {
             # ignore "connection establishment" ws errors in ws_console.js; the ws server might just not be running yet
             # and ws_console.js will retry
             next if ($msg =~ qr/ws_console.*Error in connection establishment/);    # uncoverable statement
-
-            # FIXME: find the reason why Chromium says we are trying to send something over an already closed
-            # WebSocket connection
+                # find the reason why Chromium says we're trying to send something
+                # over an already closed WebSocket connection
             next if ($msg =~ qr/Data frame received after close/);    # uncoverable statement
         }
         push(@errors, $log_entry);
     }
-
-    if (@errors) {
-        diag('javascript console output' . $test_name_suffix . ': ' . pp(\@errors));
-    }
-    return scalar @errors eq 0;
+    return 1 unless @errors;
+    diag("javascript console output$suffix: " . pp(\@errors));
+    return @errors;
 }
 
 # mocks the specified JavaScript functions (reverted when navigating to another page)
