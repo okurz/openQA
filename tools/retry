@@ -6,6 +6,9 @@ STABILITY_TEST="${STABILITY_TEST:-0}"
 # Pass a hook command which is executed if a retry occurs
 HOOK="${HOOK:-}"
 
+# Ensure subprocesses are terminated if only this program receives signals
+trap 'kill 0' EXIT
+
 run_once() {
     $*
 }
