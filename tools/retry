@@ -7,13 +7,20 @@ STABILITY_TEST="${STABILITY_TEST:-0}"
 HOOK="${HOOK:-}"
 
 # Ensure subprocesses are terminated if only this program receives signals
-trap 'kill 0' EXIT
+#trap "exit" INT
+trap 'kill $(jobs -p) 2>/dev/null' EXIT
+#trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+#trap "exit \$exit_code" INT TERM
+#trap "exit_code=\$?; kill 0" EXIT
+#trap 'echo TRAP: kill -- -$BASHPID' INT TERM
+#trap 'kill 0' INT TERM
 
 run_once() {
-    $*
+    setsid $*
 }
 
 if [ "$RETRY" = "0" ]; then
+    #echo run_once $*
     run_once $*
 else
     n=1
