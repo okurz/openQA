@@ -219,7 +219,7 @@ sub schedule ($self) {
         my $worker_id = $allocated->{worker};
         my $worker;
         try {
-            $worker = $schema->resultset('Workers')->find({id => $worker_id});
+            $worker = $workers->find({id => $worker_id});
         }
         catch ($e) {
             log_debug("Failed to retrieve worker ($worker_id) in the DB, reason: $e");    # uncoverable statement
