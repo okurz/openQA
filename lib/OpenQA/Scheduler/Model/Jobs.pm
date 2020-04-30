@@ -481,9 +481,7 @@ sub _update_scheduled_jobs ($self) {
         $info->{one_host_only} = any { $_->{one_host_only} } values %$cluster_jobs;
         $scheduled_jobs->{$job->id} = $info;
     }
-    # fetch worker classes
-    my $settings
-      = $schema->resultset('JobSettings')->search({key => 'WORKER_CLASS', job_id => {-in => \@missing_worker_class}});
+#    my $settings = _fetch_worker_classes(\@missing_worker_class);
     while (my $line = $settings->next) {
         push @{$scheduled_jobs->{$line->job_id}->{worker_classes}}, $line->value;
     }
