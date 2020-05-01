@@ -260,10 +260,7 @@ sub javascript_console_has_no_warnings_or_errors {
         push(@errors, $log_entry);
     }
 
-    if (@errors) {
-        diag('javascript console output' . $test_name_suffix . ': ' . pp(\@errors));
-    }
-    return scalar @errors eq 0;
+    diag('javascript console output' . $test_name_suffix . ': ' . pp(\@errors)) if @errors;
 }
 
 # mocks the specified JavaScript functions (reverted when navigating to another page)
