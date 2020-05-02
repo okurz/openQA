@@ -51,19 +51,4 @@ sub login {
     return 1;
 }
 
-## test helpers
-sub trim_whitespace {
-    my ($str) = @_;
-    return $str =~ s/\s+/ /gr =~ s/(^\s)|(\s$)//gr;
-}
-
-sub find_most_recent_event {
-    my ($schema, $event) = @_;
-
-    my $result
-      = $schema->resultset('AuditEvents')->find({event => $event}, {rows => 1, order_by => {-desc => 'id'}});
-    return undef unless $result;
-    return decode_json($result->event_data);
-}
-
 1;

@@ -54,7 +54,8 @@ our (@EXPORT, @EXPORT_OK);
     qw(stop_service start_worker unstable_worker fake_asset_server),
     qw(cache_minion_worker cache_worker_service shared_hash embed_server_for_testing),
     qw(run_cmd test_cmd wait_for wait_for_or_bail_out perform_minion_jobs),
-    qw(prepare_clean_needles_dir prepare_default_needle mock_io_loop assume_all_assets_exist)
+    qw(prepare_clean_needles_dir prepare_default_needle mock_io_loop assume_all_assets_exist),
+    qw(trim_whitespace find_most_recent_event)
 );
 
 # The function OpenQA::Utils::service_port method hardcodes ports in a
@@ -649,5 +650,22 @@ sub mock_io_loop (%args) {
 }
 
 sub assume_all_assets_exist { OpenQA::Schema->singleton->resultset('Assets')->search({})->update({size => 0}) }
+
+sub trim_whitespace {
+    my ($str) = @_;
+    return $str =~ s/\s+/ /gr =~ s/(^\s)|(\s$)//gr;
+}
+
+sub find_most_recent_event {
+    my ($schema, $event) = @_;
+
+    my $results
+      = $schema->resultset('AuditEvents')->search({event => $event}, {limit => 1, order_by => {-desc => 'id'}});
+    return undef unless $results;
+    if (my $result = $results->next) {
+        return decode_json($result->event_data);
+    }
+    return undef;
+}
 
 1;
