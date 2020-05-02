@@ -54,6 +54,7 @@ our (@EXPORT, @EXPORT_OK);
     qw(collect_coverage_of_gru_jobs stop_service start_worker unstable_worker fake_asset_server),
     qw(cache_minion_worker cache_worker_service shared_hash embed_server_for_testing),
     qw(run_cmd test_cmd wait_for_or_bail_out)
+    qw(trim_whitespace find_most_recent_event)
 );
 
 # The function OpenQA::Utils::service_port method hardcodes ports in a
@@ -636,6 +637,23 @@ sub wait_for_or_bail_out(&*;*) {
         $timeout -= sleep $interval;
     }
     BAIL_OUT "$description not available";
+}
+
+sub trim_whitespace {
+    my ($str) = @_;
+    return $str =~ s/\s+/ /gr =~ s/(^\s)|(\s$)//gr;
+}
+
+sub find_most_recent_event {
+    my ($schema, $event) = @_;
+
+    my $results
+      = $schema->resultset('AuditEvents')->search({event => $event}, {limit => 1, order_by => {-desc => 'id'}});
+    return undef unless $results;
+    if (my $result = $results->next) {
+        return decode_json($result->event_data);
+    }
+    return undef;
 }
 
 1;
