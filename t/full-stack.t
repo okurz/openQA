@@ -119,13 +119,13 @@ ok javascript_console_has_no_warnings_or_errors, 'no javascript warnings or erro
 sub start_worker_and_schedule {
     $worker = start_worker(get_connect_args());
     ok($worker, "Worker started as $worker");
-    schedule_one_job;
+    schedule_one_job $worker;
 }
 
 sub autoinst_log { path($resultdir, '00000', sprintf("%08d", shift) . "-$job_name")->child('autoinst-log.txt') }
 
 start_worker_and_schedule;
-ok wait_for_job_running($driver), 'test 1 is running';
+ok wait_for_job_running($driver, undef, $workerpid), 'test 1 is running';
 
 subtest 'wait until developer console becomes available' => sub {
     # open developer console

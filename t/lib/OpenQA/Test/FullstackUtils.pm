@@ -28,6 +28,7 @@ our @EXPORT = qw(get_connect_args client_output client_call prevent_reload
 
 use Mojolicious;
 use Mojo::Home;
+use POSIX ':sys_wait_h';
 use Time::HiRes 'sleep';
 use OpenQA::SeleniumTest;
 use OpenQA::Scheduler::Model::Jobs;
@@ -97,14 +98,15 @@ sub _log_result_panel_contents {
 }
 
 sub wait_for_result_panel {
-    my ($driver, $result_panel, $fail_on_incomplete, $check_interval) = @_;
+    my ($driver, $result_panel, $fail_on_incomplete, $check_interval, $workerpid) = @_;
     my $looking_for_result = $result_panel =~ qr/Result: /;
     $check_interval //= 0.5;
 
     for (my $count = 0; $count < (3 * 60 / $check_interval); $count++) {
         wait_for_ajax(msg => "result panel shows '$result_panel'");
         my $status_text = find_status_text($driver);
-        return 1 if $status_text =~ $result_panel;
+        return diag("worker with PID '$workerpid' gone while waiting for result")
+          if $workerpid && waitpid($workerpid, WNOHANG) != 0;
         if ($fail_on_incomplete && $status_text =~ qr/Result: (incomplete|timeout_exceeded)/) {
             diag('test result is incomplete but shouldn\'t');
             return _log_result_panel_contents $status_text;
@@ -122,8 +124,8 @@ sub wait_for_result_panel {
 }
 
 sub wait_for_job_running {
-    my ($driver, $fail_on_incomplete) = @_;
-    my $success = wait_for_result_panel($driver, qr/State: running/, $fail_on_incomplete);
+    my ($driver, $fail_on_incomplete, $workerpid) = @_;
+    my $success = wait_for_result_panel($driver, qr/State: running/, $fail_on_incomplete, undef, $workerpid);
     return unless $success;
     $driver->find_element_by_link_text('Live View')->click();
 }
@@ -200,7 +202,11 @@ sub wait_for_developer_console_available {
 }
 
 sub schedule_one_job {
-    wait_for_or_bail_out { OpenQA::Scheduler::Model::Jobs->singleton->schedule } 'job';
+    wait_for_or_bail_out {
+        OpenQA::Scheduler::Model::Jobs->singleton->schedule;
+        return diag("worker with PID '$workerpid' gone while scheduling")
+            if $workerpid && waitpid($workerpid, WNOHANG) != 0;
+    } 'job';
 }
 
 sub verify_one_job_displayed_as_scheduled {
