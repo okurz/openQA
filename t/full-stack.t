@@ -140,7 +140,10 @@ ok javascript_console_has_no_warnings_or_errors, 'no javascript warnings or erro
 sub assign_jobs ($worker_class = undef) {
     check_scheduled_job_and_wait_for_free_worker $worker_class // 'qemu_i386';
     OpenQA::Scheduler::Model::Jobs->singleton->schedule;
+    return diag("worker with PID '$workerpid' gone while scheduling")
+      if $workerpid && waitpid($workerpid, WNOHANG) != 0;
 }
+
 sub start_worker_and_assign_jobs ($worker_class = undef) {
     $worker = start_worker get_connect_args;
     ok $worker, "Worker started as $worker";
