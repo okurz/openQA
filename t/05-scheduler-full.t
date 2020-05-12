@@ -33,6 +33,7 @@ use OpenQA::Test::Utils qw(
   setup_mojo_app_with_default_worker_timeout
   setup_fullstack_temp_dir create_user_for_workers
   create_webapi setup_share_dir create_websocket_server
+  start_worker
   stop_service unstable_worker
   unresponsive_worker broken_worker rejective_worker
   wait_for simulate_load
@@ -64,21 +65,6 @@ my $sharedir = setup_share_dir($ENV{OPENQA_BASEDIR});
 my $resultdir = path($ENV{OPENQA_BASEDIR}, 'openqa', 'testresults')->make_path;
 ok -d $resultdir, "results directory created under $resultdir";
 
-sub create_worker {
-    my ($apikey, $apisecret, $host, $instance, $log) = @_;
-    # Prevent worker retrying endlessly on failed tests while trying to
-    # reconnect
-    $ENV{OPENQA_WORKER_RECONNECT_ENABLED} = 0;
-    my @connect_args = ("--instance=${instance}", "--apikey=${apikey}", "--apisecret=${apisecret}", "--host=${host}");
-    note "Starting standard worker. Instance: $instance for host $host";
-    # save testing time as we do not test a webUI host being down for
-    # multiple minutes
-    $ENV{OPENQA_WORKER_CONNECT_RETRIES} = 1;
-    my @cmd = qw(perl ./script/worker --isotovideo=../os-autoinst/isotovideo --verbose);
-    push @cmd, @connect_args;
-    return $log ? start \@cmd, \undef, '>&', $log : start \@cmd;
-}
-
 sub stop_workers { stop_service($_, 1) for @workers }
 
 sub dead_workers {
@@ -101,6 +87,13 @@ sub wait_for_worker {
 
 my $job_model = OpenQA::Scheduler::Model::Jobs->singleton;
 my $worker_settings = [$api_key, $api_secret, "http://localhost:$mojoport"];
+
+sub create_worker {
+    my ($apikey, $apisecret, $host, $instance, $log) = @_;
+    my @connect_args = ("--instance=${instance}", "--apikey=${apikey}", "--apisecret=${apisecret}", "--host=${host}");
+    note("Starting standard worker. Instance: $instance for host $host");
+    start_worker(\@connect_args, $log);
+}
 
 subtest 'Scheduler worker job allocation' => sub {
     note 'try to allocate to previous worker (supposed to fail)';

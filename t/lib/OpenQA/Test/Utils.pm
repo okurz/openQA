@@ -413,10 +413,13 @@ sub setup_worker {    # uncoverable statement
     $worker->log_setup_info;    # uncoverable statement
 }
 
-sub start_worker ($connect_args) {
+sub start_worker ($connect_args, $log) {
     my $os_autoinst_path = $ENV{OS_AUTOINST_BASEDIR};
     my $isotovideo_path = $os_autoinst_path . '/isotovideo';
 
+    # Prevent worker retrying endlessly on failed tests while trying to
+    # reconnect
+    $ENV{OPENQA_WORKER_RECONNECT_ENABLED} = 0;
     # save testing time as we do not test a webUI host being down for
     # multiple minutes
     $ENV{OPENQA_WORKER_CONNECT_RETRIES} = 1;
@@ -424,7 +427,7 @@ sub start_worker ($connect_args) {
     $ENV{DEBUG_JSON} = 1;
     my @cmd = ('perl', './script/worker', "--isotovideo=$isotovideo_path", '--verbose');
     push @cmd, @$connect_args;
-    start \@cmd;
+    return $log ? start \@cmd, \undef, '>&', $log : start \@cmd;
 }
 
 sub unstable_worker ($apikey, $apisecret, $host, $instance, $ticks, $sleep = undef) {
