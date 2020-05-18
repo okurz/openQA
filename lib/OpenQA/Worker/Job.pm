@@ -128,18 +128,9 @@ sub _set_status {
     $self->emit(status_changed => $event_data);
 }
 
-sub is_stopped_or_stopping {
-    my ($self) = @_;
+sub is_stopped_or_stopping { shift->status =~ /stopped|stopping/ }
 
-    my $status = $self->status;
-    return $status eq 'stopped' || $status eq 'stopping';
-}
-
-sub is_uploading_results {
-    my ($self) = @_;
-
-    return $self->{_is_uploading_results};
-}
+sub is_uploading_results { shift->{_is_uploading_results} }
 
 sub accept {
     my ($self) = @_;
@@ -1053,8 +1044,7 @@ sub _upload_asset {
       for qw(upload_local.prepare upload_local.response upload_chunk.request_err upload_chunk.error upload_chunk.fail),
       qw( upload_chunk.response upload_chunk.start upload_chunk.finish upload_chunk.prepare);
 
-    return 0 if $@ || $error;
-    return 1;
+    return $@ || $error;
 }
 
 sub _upload_log_file ($self, $upload_parameter) {
@@ -1087,8 +1077,7 @@ sub _upload_log_file ($self, $upload_parameter) {
         log_warning "$msg (attempts remaining: $retry_counter/$retry_limit)";
     }
 
-    return 0 if $self->_log_upload_error($filename, $tx);
-    return 1;
+    return _log_upload_error($filename, $res);
 }
 
 sub _read_json_file {
