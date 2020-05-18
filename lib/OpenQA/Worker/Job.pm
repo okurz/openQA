@@ -122,10 +122,12 @@ sub _set_status ($self, $status, $event_data) {
     $self->emit(status_changed => $event_data);
 }
 
-sub is_stopped_or_stopping ($self) {
-    my $status = $self->status;
-    return $status eq 'stopped' || $status eq 'stopping';
-}
+use constant STOPPING_OR_STOPPED => {
+    'stopping' => 1,
+    'stopped' => 1,
+};
+
+sub is_stopped_or_stopping ($self) { exists STOPPING_OR_STOPPED()->{$self->status} }
 
 sub is_uploading_results ($self) { $self->{_is_uploading_results} }
 
@@ -352,11 +354,9 @@ sub _stop_step_2_post_status ($self, $reason, $callback) {
     );
 }
 
+# skip if isotovideo not running anymore (e.g. when isotovideo just exited on its own)
 sub _stop_step_3_announce ($self, $reason, $callback) {
-
-    # skip if isotovideo not running anymore (e.g. when isotovideo just exited on its own)
     return Mojo::IOLoop->next_tick($callback) unless $self->is_backend_running;
-
     $self->isotovideo_client->stop_gracefully($reason, $callback);
 }
 
@@ -1062,8 +1062,7 @@ sub _upload_asset ($self, $upload_parameter) {
       for qw(upload_local.prepare upload_local.response upload_chunk.request_err upload_chunk.error upload_chunk.fail),
       qw( upload_chunk.response upload_chunk.start upload_chunk.finish upload_chunk.prepare);
 
-    return 0 if $error;
-    return 1;
+    return ! $error;
 }
 
 sub _upload_log_file ($self, $upload_parameter) {
@@ -1096,8 +1095,7 @@ sub _upload_log_file ($self, $upload_parameter) {
         log_warning "$msg (attempts remaining: $retry_counter/$retry_limit)";
     }
 
-    return 0 if $self->_log_upload_error($filename, $tx);
-    return 1;
+    return _log_upload_error($filename, $res);
 }
 
 sub _read_json_file ($self, $name) {
