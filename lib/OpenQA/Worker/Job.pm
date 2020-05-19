@@ -745,6 +745,8 @@ sub _upload_results_step_0_prepare {
             $self->{_test_order_fsize} = $file_info[7];
         }
         if (!$current_test_module) {    # first test (or already after the last!)
+                 use Carp;
+                 confess "HERE, we wanted to reach HERE";
             if (!$test_order) {
                 # FIXME: It would still make sense to upload other files.
                 $self->stop('no tests scheduled');    # will be delayed until upload has been concluded
