@@ -24,6 +24,7 @@ BEGIN {
     $ENV{FULLSTACK}                           = 1 if $ENV{SCHEDULER_FULLSTACK};
 }
 
+use Test::Warnings;
 use Test::MockModule;
 use DateTime;
 use IPC::Run qw(start);
