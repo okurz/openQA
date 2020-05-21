@@ -125,6 +125,19 @@ subtest 'Scheduler worker job allocation' => sub {
     dead_workers($schema);
 };
 
+sub diag_all_workers {
+    diag "workers: "
+      . join(
+        ", ",
+        (
+            'id: ' . $_->id,
+            'dead:' . $_->dead,
+            'instance: ' . $_->instance,
+            't_updated: ' . $_->t_updated,
+            't_created: ' . $_->t_created
+        )) for $schema->resultset('Workers')->all();
+}
+
 subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes offline' => sub {
     # avoid wasting time waiting for status updates
     my $web_ui_connection_mock = Test::MockModule->new('OpenQA::Worker::WebUIConnection');
@@ -165,7 +178,11 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
 
     # simulate a worker in idle state that rejects all jobs assigned to it
     @workers = rejective_worker(@$worker_settings, 3, 'rejection reason');
+    # TODO I have the suspicion that `wait_for_worker` returns too early when the
+    # worker is actually still not fully ready
+    diag_all_workers;
     wait_for_worker($schema, 5);
+    diag_all_workers;
 
     note 'waiting for job to be assigned and set back to re-scheduled';
     # the loop is needed as the scheduler sometimes needs a second
@@ -200,6 +217,9 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
     # assignments)
     @workers = unstable_worker(@$worker_settings, 3, -1);
     wait_for_worker($schema, 5);
+    diag_all_workers;
+    # TODO same as above the following is most likely a problem of worker not being "fully"
+    # up, check if this can be removed again after fixing that
     for (1 .. 2) {
         $allocated = scheduler_step();
         last if $allocated && @$allocated >= 1;
