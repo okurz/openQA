@@ -134,7 +134,11 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
     # simulate a worker in broken state; it will register itself but declare itself as broken
     @workers = broken_worker($api_key, $api_secret, "http://localhost:$mojoport", 3, 'out of order');
     wait_for_worker($schema, 5);
-    $allocated = scheduler_step();
+    for (1 .. 10) {
+        $allocated = scheduler_step();
+        last if @$allocated == 0;
+        note "scheduler assigned to broken worker, waiting for unallocation, try: $_";
+    }
     is(@$allocated, 0, 'scheduler does not consider broken worker for allocating job');
     stop_workers;
     dead_workers($schema);
