@@ -26,6 +26,10 @@ BEGIN {
 
 use Test::MockModule;
 use DateTime;
+# TODO Test::Mock::Time sounds like it could speedup our tests big time but
+# makes test fail early, probably a lot of work would be needed to fix this
+# properly
+#use Test::Mock::Time;
 use IPC::Run qw(start);
 use Mojolicious;
 use Mojo::IOLoop::Server;
