@@ -65,6 +65,13 @@ my $ws       = create_websocket_server(undef, 0, 1, 1);
 my $webapi   = create_webapi($mojoport, sub { });
 my @workers;
 
+END {
+    stop_workers;
+    stop_service($_, 1) for ($ws, $webapi);
+    $ENV{CI} and note "### all processes: " . qx{ps auxf} . "\n";
+    note "### processes in tree: " . qx{ps Tf} . "\n";
+}
+
 # setup share and result dir
 my $sharedir  = setup_share_dir($ENV{OPENQA_BASEDIR});
 my $resultdir = path($ENV{OPENQA_BASEDIR}, 'openqa', 'testresults')->make_path;
@@ -91,6 +98,7 @@ sub dead_workers {
 }
 
 sub scheduler_step { OpenQA::Scheduler::Model::Jobs->singleton->schedule() }
+
 
 subtest 'Scheduler worker job allocation' => sub {
     note('try to allocate to previous worker (supposed to fail)');
@@ -283,12 +291,5 @@ subtest 'Websocket server - close connection test' => sub {
     stop_workers;
     stop_service($ws);
 };
-
-END {
-    stop_workers;
-    stop_service($_, 1) for ($ws, $webapi);
-    $ENV{CI} and note "### all processes: " . qx{ps auxf} . "\n";
-    note "### processes in tree: " . qx{ps Tf} . "\n";
-}
 
 done_testing;
