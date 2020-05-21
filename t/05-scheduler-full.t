@@ -158,12 +158,16 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
     # simulate a worker in broken state; it will register itself but declare itself as broken
     @workers = broken_worker(@$worker_settings, 3, 'out of order');
     wait_for_worker($schema, 5);
-    $allocated = scheduler_step();
-    # next failed on local `nice -n 19 ionice -c 3 env runs=100
-    # count_fail_ratio nice -n 19 ionice -c 3 env SCHEDULER_FULLSTACK=1
-    # FULLSTACK=1 DIE_ON_FAIL=1 timeout --foreground -v 180 prove -l
-    # t/05-scheduler-full.t` at least twice
-    is @$allocated, 0, 'scheduler does not consider broken worker for allocating job';
+    # we do need the loop even after ensuring older workers
+    # are not considered with the `dead_workers` call in before as the just
+    # started worker can still be used as allocation target and needs a second
+    # cycle before the scheduler sees it as unusable
+    for (1 .. 2) {
+        $allocated = scheduler_step();
+        last if !$allocated || @$allocated == 0;
+        note "scheduler assigned to broken worker, waiting for unallocation, try: $_";
+    }
+    is(@$allocated, 0, 'scheduler does not consider broken worker for allocating job');
     stop_workers;
     dead_workers($schema);
 
