@@ -16,6 +16,7 @@ use Time::Moment;
 use File::Spec::Functions 'catfile';
 use Sys::Hostname;
 use Feature::Compat::Try;
+use Term::ANSIColor;
 
 our @EXPORT_OK = qw(
   log_debug
@@ -36,6 +37,17 @@ our @EXPORT_OK = qw(
 
 my %CHANNELS;
 my %LOG_DEFAULTS = (LOG_TO_STANDARD_CHANNEL => 1, CHANNELS => []);
+
+my $log_module = "Mojo::Log";
+eval 'use Mojo::Log::Colored; $log_module = "Mojo::Log::Colored"';
+
+my %colors = (
+    debug => 'white',
+    info => 'yellow',
+    warn => 'red',
+    error => 'magenta',
+    fatal => 'yellow on_red',
+);
 
 # logging helpers - _log_msg wrappers
 
@@ -93,30 +105,30 @@ sub _log_msg ($level, $msg, %options) {
     my $wrote_to_at_least_one_channel = 0;
     if (my $channels = $options{channels}) {
         for my $channel (ref($channels) eq 'ARRAY' ? @$channels : $channels) {
-            $wrote_to_at_least_one_channel |= _log_to_channel_by_name($level, $msg, $channel);
+            $wrote_to_at_least_one_channel |= _log_to_channel_by_name($level, $msg, $channel, %options);
         }
     }
 
     # log to standard (as fallback or when explicitly requested)
     # use Mojolicious app if available and otherwise just STDERR/STDOUT
-    _log_via_mojo_app($level, $msg)
-      or _log_to_stderr_or_stdout($level, $msg)
+    _log_via_mojo_app($level, $msg, %options)
+      or _log_to_stderr_or_stdout($level, $msg, %options)
       if !$wrote_to_at_least_one_channel || ($options{standard} // $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL});
 }
 
-sub _log_to_channel_by_name ($level, $msg, $channel_name) {
+sub _log_to_channel_by_name ($level, $msg, $channel_name, %options) {
     return 0 unless ($channel_name);
     my $channel = $CHANNELS{$channel_name} or return 0;
-    return _try_logging_to_channel($level, $msg, $channel);
+    return _try_logging_to_channel($level, $msg, $channel, %options);
 }
 
-sub _log_via_mojo_app ($level, $msg) {
+sub _log_via_mojo_app ($level, $msg, %options) {
     return 0 unless my $app = OpenQA::App->singleton;
     return 0 unless my $log = $app->log;
-    return _try_logging_to_channel($level, $msg, $log);
+    return _try_logging_to_channel($level, $msg, $log, %options);
 }
 
-sub _try_logging_to_channel ($level, $msg, $channel) {
+sub _try_logging_to_channel ($level, $msg, $channel, %options) {
     try {
         $channel->$level($msg);
         return 1
@@ -124,12 +136,12 @@ sub _try_logging_to_channel ($level, $msg, $channel) {
     catch ($e) { return 0 }
 }
 
-sub _log_to_stderr_or_stdout ($level, $msg) {
+sub _log_to_stderr_or_stdout ($level, $msg, %options) {
     if ($level =~ /warn|error|fatal/) {
-        STDERR->printflush("[@{[uc $level]}] $msg\n");
+        STDERR->printflush($str);
     }
     else {
-        STDOUT->printflush("[@{[uc $level]}] $msg\n");
+        STDOUT->printflush($str);
     }
 }
 
