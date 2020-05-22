@@ -26,6 +26,7 @@ use Time::HiRes 'gettimeofday';
 use POSIX 'strftime';
 use File::Spec::Functions 'catfile';
 use Sys::Hostname;
+use Term::ANSIColor;
 
 our $VERSION   = '0.0.1';
 our @EXPORT_OK = qw(
@@ -46,6 +47,14 @@ my %LOG_DEFAULTS = (LOG_TO_STANDARD_CHANNEL => 1, CHANNELS => []);
 
 my $log_module = "Mojo::Log";
 eval 'use Mojo::Log::Colored; $log_module = "Mojo::Log::Colored"';
+
+my %colors = (
+    debug => 'white',
+    info  => 'yellow',
+    warn  => 'red',
+    error => 'magenta',
+    fatal => 'yellow on_red',
+);
 
 # logging helpers - _log_msg wrappers
 
@@ -106,47 +115,50 @@ sub _log_msg {
     my $wrote_to_at_least_one_channel = 0;
     if (my $channels = $options{channels}) {
         for my $channel (ref($channels) eq 'ARRAY' ? @$channels : $channels) {
-            $wrote_to_at_least_one_channel |= _log_to_channel_by_name($level, $msg, $channel);
+            $wrote_to_at_least_one_channel |= _log_to_channel_by_name($level, $msg, $channel, %options);
         }
     }
 
     # log to standard (as fallback or when explicitely requested)
     if (!$wrote_to_at_least_one_channel || ($options{standard} // $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL})) {
         # use Mojolicious app if available and otherwise just STDERR/STDOUT
-        _log_via_mojo_app($level, $msg) or _log_to_stderr_or_stdout($level, $msg);
+        _log_via_mojo_app($level, $msg, %options) or _log_to_stderr_or_stdout($level, $msg, %options);
     }
 }
 
 sub _log_to_channel_by_name {
-    my ($level, $msg, $channel_name) = @_;
+    my ($level, $msg, $channel_name, %options) = @_;
 
     return 0 unless ($channel_name);
     my $channel = $CHANNELS{$channel_name} or return 0;
-    return _try_logging_to_channel($level, $msg, $channel);
+    return _try_logging_to_channel($level, $msg, $channel, %options);
 }
 
 sub _log_via_mojo_app {
-    my ($level, $msg) = @_;
+    my ($level, $msg, %options) = @_;
 
     return 0 unless my $app = OpenQA::App->singleton;
     return 0 unless my $log = $app->log;
-    return _try_logging_to_channel($level, $msg, $log);
+    return _try_logging_to_channel($level, $msg, $log, %options);
 }
 
 sub _try_logging_to_channel {
-    my ($level, $msg, $channel) = @_;
+    my ($level, $msg, $channel, %options) = @_;
 
-    eval { $channel->$level($msg); };
+    $channel->append(color($options{color})) if $options{color};
+    eval { $channel->$level($msg)->append(color('reset')); };
     return ($@ ? 0 : 1);
 }
 
 sub _log_to_stderr_or_stdout {
-    my ($level, $msg) = @_;
+    my ($level, $msg, %options) = @_;
+    my $str = "[@{[uc $level]}] $msg\n";
+    $str = color($options{color}) . $str . color('reset') if $options{color};
     if ($level =~ /warn|error|fatal/) {
-        STDERR->printflush("[@{[uc $level]}] $msg\n");
+        STDERR->printflush($str);
     }
     else {
-        STDOUT->printflush("[@{[uc $level]}] $msg\n");
+        STDOUT->printflush($str);
     }
 }
 
@@ -170,7 +182,7 @@ sub add_log_channel {
         }
         delete $options{default};
     }
-    $CHANNELS{$channel} = $log_module->new(%options);
+    $CHANNELS{$channel} = Mojo::Log->new(%options);
     $CHANNELS{$channel}->format(\&log_format_callback);
 }
 
@@ -236,11 +248,11 @@ sub setup_log {
         # So each worker from each host get its own log (as the folder can be shared).
         # Hopefully the machine hostname is already sanitized. Otherwise we need to check
         $logfile //= catfile($logdir, hostname() . (defined $app->instance ? "-${\$app->instance}" : '') . ".log");
-        $log = $log_module->new(%settings, handle => path($logfile)->open('>>'));
+        $log = Mojo::Log->new(%settings, handle => path($logfile)->open('>>'));
         $log->format(\&log_format_callback);
     }
     else {
-        $log = $log_module->new(%settings, handle => \*STDOUT);
+        $log = Mojo::Log->new(%settings, handle => \*STDOUT);
         $log->format(
             sub {
                 my ($time, $level, @lines) = @_;
