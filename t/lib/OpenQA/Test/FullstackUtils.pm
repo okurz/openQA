@@ -105,6 +105,7 @@ sub wait_for_result_panel {
             return _fail_with_result_panel_contents($status_text, $msg);    # uncoverable statement
         }
         javascript_console_has_no_warnings_or_errors;
+        note "wait_for_result_panel: Current status text '$status_text', waiting";
         sleep $check_interval if $check_interval;
     }
     my $final_status_text = find_status_text($driver);    # uncoverable statement
