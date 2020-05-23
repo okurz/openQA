@@ -32,6 +32,9 @@ our @EXPORT_OK = qw(
 my %CHANNELS;
 my %LOG_DEFAULTS = (LOG_TO_STANDARD_CHANNEL => 1, CHANNELS => []);
 
+my $log_module = "Mojo::Log";
+eval 'use Mojo::Log::Colored; $log_module = "Mojo::Log::Colored"';
+
 # logging helpers - _log_msg wrappers
 
 # log_debug("message"[, param1=>val1, param2=>val2]);
@@ -66,9 +69,25 @@ sub _current_log_level() {
     return $log->can('level') && $log->level;
 }
 
+sub _settings {
+    my ($level) = @_;
+    $level //= 'debug';
+    return (
+        level  => $level,
+        # select a color selection that is compatible with reverse video terminals
+        # as well as standard
+        colors => {
+            debug => "white",
+            info  => "yellow",
+            warn  => "red",
+            error => "magenta",
+            fatal => "yellow on_red",
+        });
+}
+
 sub _logger {
     return $logger if $logger;
-    $logger = $log_module->new(level => 'debug');
+    $logger = $log_module->new(_settings, level => 'debug');
     $logger->format(\&log_format_callback_short);
     return $logger;
 }
@@ -188,7 +207,7 @@ sub setup_log ($app, $logfile = undef, $logdir = undef, $level = undef) {
         # So each worker from each host get its own log (as the folder can be shared).
         # Hopefully the machine hostname is already sanitized. Otherwise we need to check
         $logfile //= catfile($logdir, hostname() . (defined $app->instance ? "-${\$app->instance}" : '') . ".log");
-        $log = Mojo::Log->new(%settings, handle => path($logfile)->open('>>'));
+        $log = $log_module->new(_settings($level), handle => path($logfile)->open('>>'));
         $log->format(\&log_format_callback);
     }
     else {
