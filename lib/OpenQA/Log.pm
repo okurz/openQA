@@ -75,11 +75,8 @@ sub _current_log_level() {
 # default it is $app). The standard option need to be set to true. Please check the function
 # add_log_channel to learn on how to set a channel as default.
 sub _log_msg ($level, $msg, %options) {
-    # use default options
-    return _log_msg(
-        $level, $msg,
-        channels => $LOG_DEFAULTS{CHANNELS},
-        standard => $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL}) unless %options;
+    $options{channels} //= $LOG_DEFAULTS{CHANNELS},
+    $options{standard} //= $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL};
 
     # prepend process ID on debug level
     $msg = "[pid:$$] $msg" if _current_log_level eq 'debug';
