@@ -511,17 +511,13 @@ subtest 'Fallback to stderr/stdout' => sub {
     my $logging_test_file1 = tempfile;
     add_log_channel('channel 1', path => $logging_test_file1, level => undef, default => 'set');
 
-    # write some messages which should be printed to stdout/stderr
-    stdout_like {
+    stderr_like {
         log_debug('debug message');
         log_info('info message');
-    }
-    qr/.*debug message.*\n.*info message.*/, 'debug/info written to stdout';
-    stderr_like {
         log_warning('warning message');
         log_error('error message');
     }
-    qr/.*warning message.*\n.*error message.*/, 'warning/error written to stderr';
+    qr/debug.*\n.*info.*\n.*warning.*\n.*error message.*/, 'warning/error written to stderr';
 
     # check whether _log_msg attempted to use all ways to log before falling back
     is($log_via_channel_tried, 4, 'tried to log all four messages via the default channel');
@@ -543,22 +539,27 @@ subtest 'Fallback to stderr/stdout' => sub {
 
     # check fallback when logging to channel throws an exception
     $utils_mock->unmock('_log_to_channel_by_name');
-    my $log_mock = Test::MockModule->new('Mojo::Log');
-    $log_mock->redefine(
-        error => sub {
-            ++$log_via_channel_tried;
-            die 'not enough disk space or whatever';
-        });
+    #my $log_mock = Test::MockModule->new('Mojo::Log');
+    #$log_mock->redefine(
+    #    error => sub {
+    #        ++$log_via_channel_tried;
+    #        return $log_mock->original('error')->(@_);
+    #    });
+    #stderr_like {
+    #    log_error('goes to stderr after all');
+    #}
+    #qr/.*goes to stderr after all.*/, 'logging to invalid channel ends up on stderr';
+    #is($log_via_channel_tried,  7, 'tried to log via the default channel');
+    #is($log_via_mojo_app_tried, 6, 'tried to log via Mojolicious app');
+
     stderr_like {
         log_error('goes to stderr after all');
     }
-    qr/.*goes to stderr after all.*/, 'logging to invalid channel ends up on stderr';
-    is($log_via_channel_tried, 7, 'tried to log via the default channel');
-    is($log_via_mojo_app_tried, 6, 'tried to log via Mojolicious app');
+    qr/goes to stderr after all/, 'logging without channel ends up on stderr';
 
     # clear the system
     $utils_mock->unmock_all();
-    $log_mock->unmock_all();
+    #$log_mock->unmock_all();
     remove_log_channel('channel 1');
 };
 

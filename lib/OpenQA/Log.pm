@@ -32,6 +32,11 @@ our @EXPORT_OK = qw(
 my %CHANNELS;
 my %LOG_DEFAULTS = (LOG_TO_STANDARD_CHANNEL => 1, CHANNELS => []);
 
+my $log_module = "Mojo::Log";
+eval 'use Mojo::Log::Colored; $log_module = "Mojo::Log::Colored"';
+
+my $logger;
+
 # logging helpers - _log_msg wrappers
 
 # log_debug("message"[, param1=>val1, param2=>val2]);
@@ -66,6 +71,13 @@ sub _current_log_level() {
     return $log->can('level') && $log->level;
 }
 
+sub _logger {
+    return $logger if $logger;
+    $logger = $log_module->new(level => 'debug');
+    $logger->format(\&log_format_callback_short);
+    return $logger;
+}
+
 # The %options parameter is used to control which destinations the message should go.
 # Accepted parameters: channels, standard.
 #  - channels. Scalar or a arrayref containing the name of the channels to log to.
@@ -75,11 +87,7 @@ sub _current_log_level() {
 # default it is $app). The standard option need to be set to true. Please check the function
 # add_log_channel to learn on how to set a channel as default.
 sub _log_msg ($level, $msg, %options) {
-    # use default options
-    return _log_msg(
-        $level, $msg,
-        channels => $LOG_DEFAULTS{CHANNELS},
-        standard => $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL}) unless %options;
+    $options{channels} //= $LOG_DEFAULTS{CHANNELS}, $options{standard} //= $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL};
 
     # prepend process ID on debug level
     $msg = "[pid:$$] $msg" if _current_log_level eq 'debug';
@@ -88,41 +96,21 @@ sub _log_msg ($level, $msg, %options) {
     my $wrote_to_at_least_one_channel = 0;
     if (my $channels = $options{channels}) {
         for my $channel (ref($channels) eq 'ARRAY' ? @$channels : $channels) {
-            $wrote_to_at_least_one_channel |= _log_to_channel_by_name($level, $msg, $channel);
+            $wrote_to_at_least_one_channel |= _log_to_channel_by_name($level, $msg, $channel, %options);
         }
     }
-
-    # log to standard (as fallback or when explicitly requested)
-    # use Mojolicious app if available and otherwise just STDERR/STDOUT
-    _log_via_mojo_app($level, $msg)
-      or _log_to_stderr_or_stdout($level, $msg)
-      if !$wrote_to_at_least_one_channel || ($options{standard} // $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL});
+    _log_to_channel_by_name($level, $msg, undef, %options) unless $wrote_to_at_least_one_channel;
 }
 
 sub _log_to_channel_by_name ($level, $msg, $channel_name) {
-    return 0 unless ($channel_name);
-    my $channel = $CHANNELS{$channel_name} or return 0;
-    return _try_logging_to_channel($level, $msg, $channel);
-}
-
-sub _log_via_mojo_app ($level, $msg) {
-    return 0 unless my $app = OpenQA::App->singleton;
-    return 0 unless my $log = $app->log;
-    return _try_logging_to_channel($level, $msg, $log);
-}
-
-sub _try_logging_to_channel ($level, $msg, $channel) {
-    eval { $channel->$level($msg); };
-    return ($@ ? 0 : 1);
-}
-
-sub _log_to_stderr_or_stdout ($level, $msg) {
-    if ($level =~ /warn|error|fatal/) {
-        STDERR->printflush("[@{[uc $level]}] $msg\n");
-    }
-    else {
-        STDOUT->printflush("[@{[uc $level]}] $msg\n");
-    }
+    my $channel = $channel_name && $CHANNELS{$channel_name};
+    # log to standard (as fallback or when explicitly requested)
+    return unless $options{standard} // $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL};
+    # use Mojolicious app if available and otherwise just STDERR/STDOUT
+    my $app = OpenQA::App->singleton;
+    $channel //= $app && $app->log;
+    $channel //= _logger;
+    return $channel->$level($msg);
 }
 
 # When a developer wants to log constantly to a channel he can either constantly pass the parameter
@@ -151,6 +139,11 @@ sub add_log_channel ($channel, %options) {
 # The default format for logging
 sub log_format_callback ($time, $level, @lines) { '[' . Time::Moment->now . "] [$level] " . join(' ', @lines) . "\n" }
 
+sub log_format_callback_short {
+    my ($time, $level, @lines) = @_;
+    return sprintf("[@{[uc $level]}] " . join("\n", @lines, ''));
+}
+
 # Removes a channel from defaults.
 sub _remove_channel_from_defaults ($channel) {
     $LOG_DEFAULTS{CHANNELS} = [grep { $_ ne $channel } @{$LOG_DEFAULTS{CHANNELS}}];
@@ -163,9 +156,13 @@ sub remove_log_channel ($channel) {
 }
 
 sub get_channel_handle ($channel = undef) {
-    return $CHANNELS{$channel} ? $CHANNELS{$channel}->handle : undef if $channel;
-    return undef unless my $app = OpenQA::App->singleton;
-    return $app->log->handle;
+    if ($channel) {
+        return $CHANNELS{$channel}->handle if $channel && $CHANNELS{$channel};
+    }
+    elsif (my $app = OpenQA::App->singleton) {
+        return $app->log->handle;
+    }
+    return undef;
 }
 
 sub setup_log ($app, $logfile = undef, $logdir = undef, $level = undef) {
@@ -174,8 +171,8 @@ sub setup_log ($app, $logfile = undef, $logdir = undef, $level = undef) {
         die 'Please point the logs to a valid folder!' unless -d $logdir;
     }
 
-    $level //= $app->config->{logging}->{level} // 'info';
-    $logfile = $ENV{OPENQA_LOGFILE} || $app->config->{logging}->{file};
+    $level //= $app->config->{logging}->{level} // 'info' if $app;
+    $logfile = $ENV{OPENQA_LOGFILE} || $app && $app->config->{logging}->{file};
 
     my %settings = (level => $level);
 
@@ -184,8 +181,9 @@ sub setup_log ($app, $logfile = undef, $logdir = undef, $level = undef) {
         $logfile = catfile($logdir, $logfile) if $logfile && $logdir;
         # So each worker from each host get its own log (as the folder can be shared).
         # Hopefully the machine hostname is already sanitized. Otherwise we need to check
-        $logfile //= catfile($logdir, hostname() . (defined $app->instance ? "-${\$app->instance}" : '') . ".log");
-        $log = Mojo::Log->new(%settings, handle => path($logfile)->open('>>'));
+        $logfile
+          //= catfile($logdir, hostname() . ($app && defined $app->instance ? "-${\$app->instance}" : '') . ".log");
+        $log = $log_module->new(%settings, handle => path($logfile)->open('>>'));
         $log->format(\&log_format_callback);
     }
     else {
@@ -193,7 +191,7 @@ sub setup_log ($app, $logfile = undef, $logdir = undef, $level = undef) {
         $log->format(sub ($time, $level, @parts) { "[$level] " . join(' ', @parts) . "\n" });
     }
 
-    $app->log($log);
+    $app->log($log) if $app;
     if ($ENV{OPENQA_SQL_DEBUG} // $app->config->{logging}->{sql_debug} // 'false' eq 'true') {
         require OpenQA::Schema::Profiler;
         # avoid enabling the SQL debug unless we really want to see it
@@ -201,7 +199,7 @@ sub setup_log ($app, $logfile = undef, $logdir = undef, $level = undef) {
         OpenQA::Schema::Profiler->enable_sql_debugging;
     }
 
-    OpenQA::App->set_singleton($app);
+    OpenQA::App->set_singleton($app) if $app;
 }
 
 1;
