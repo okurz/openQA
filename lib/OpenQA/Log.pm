@@ -75,8 +75,7 @@ sub _current_log_level() {
 # default it is $app). The standard option need to be set to true. Please check the function
 # add_log_channel to learn on how to set a channel as default.
 sub _log_msg ($level, $msg, %options) {
-    $options{channels} //= $LOG_DEFAULTS{CHANNELS},
-    $options{standard} //= $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL};
+    $options{channels} //= $LOG_DEFAULTS{CHANNELS}, $options{standard} //= $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL};
 
     # prepend process ID on debug level
     $msg = "[pid:$$] $msg" if _current_log_level eq 'debug';
@@ -90,10 +89,10 @@ sub _log_msg ($level, $msg, %options) {
     }
 
     # log to standard (as fallback or when explicitly requested)
-    # use Mojolicious app if available and otherwise just STDERR/STDOUT
-    _log_via_mojo_app($level, $msg)
-      or _log_to_stderr_or_stdout($level, $msg)
-      if !$wrote_to_at_least_one_channel || ($options{standard} // $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL});
+    if (!$wrote_to_at_least_one_channel || ($options{standard} // $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL})) {
+        # use Mojolicious app if available and otherwise just STDERR/STDOUT
+        _log_via_mojo_app($level, $msg) or _log_to_stderr($level, $msg);
+    }
 }
 
 sub _log_to_channel_by_name ($level, $msg, $channel_name) {
@@ -114,12 +113,7 @@ sub _try_logging_to_channel ($level, $msg, $channel) {
 }
 
 sub _log_to_stderr_or_stdout ($level, $msg) {
-    if ($level =~ /warn|error|fatal/) {
-        STDERR->printflush("[@{[uc $level]}] $msg\n");
-    }
-    else {
-        STDOUT->printflush("[@{[uc $level]}] $msg\n");
-    }
+    STDERR->printflush("[@{[uc $level]}] $msg\n");
 }
 
 # When a developer wants to log constantly to a channel he can either constantly pass the parameter

@@ -511,17 +511,13 @@ subtest 'Fallback to stderr/stdout' => sub {
     my $logging_test_file1 = tempfile;
     add_log_channel('channel 1', path => $logging_test_file1, level => undef, default => 'set');
 
-    # write some messages which should be printed to stdout/stderr
-    stdout_like {
+    stderr_like {
         log_debug('debug message');
         log_info('info message');
-    }
-    qr/.*debug message.*\n.*info message.*/, 'debug/info written to stdout';
-    stderr_like {
         log_warning('warning message');
         log_error('error message');
     }
-    qr/.*warning message.*\n.*error message.*/, 'warning/error written to stderr';
+    qr/debug.*\n.*info.*\n.*warning.*\n.*error message.*/, 'warning/error written to stderr';
 
     # check whether _log_msg attempted to use all ways to log before falling back
     is($log_via_channel_tried, 4, 'tried to log all four messages via the default channel');
