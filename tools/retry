@@ -1,33 +1,35 @@
-#!/bin/sh -e
-# shellcheck disable=SC2048,SC2086
+#!/usr/bin/env perl
 
-RETRY="${RETRY:-3}"
-STABILITY_TEST="${STABILITY_TEST:-0}"
-# Pass a hook command which is executed if a retry occurs
-HOOK="${HOOK:-}"
+use strict;
+use warnings;
+use IPC::Run qw(timeout);
 
-run_once() {
-    $*
+my $timeout = $ENV{TIMEOUT};
+
+sub run {
+   my ($cmd, %args) = @_;
+   my ($out, $err) = ('', '');
+   $args{timeout} //= $ENV{TIMEOUT} // 4;
+   print "RUN: @$cmd, timeout: $args{timeout}\n";
+   # this fails now as timeout argument is non-numeric with "60m". Should I
+   # parse the values or use numeric only or again use GNU timeout?
+   IPC::Run::run $cmd, \undef, \$out, \$err, timeout($args{timeout})
 }
 
-if [ "$RETRY" = "0" ]; then
-    run_once $*
-else
-    n=1
-    while :; do
-        if [ "$STABILITY_TEST" = "0" ]; then
-            [ $n -le "$RETRY" ] || exit 1
-            [ $n -eq 0 ] || echo "Retry $n of $RETRY …"
-            run_once $* && break
-        else
-            [ $n -le "$RETRY" ] || exit 0
-            run_once $* || exit
-            echo "Rerun $n of $RETRY …"
-        fi
-        if [ -n "$HOOK" ]; then
-            echo "Calling retry hook $HOOK"
-            RETRY_ATTEMPT=$n "$HOOK"
-        fi
-        n=$((n+1))
-    done
-fi
+my @cmd = @ARGV;
+run(\@cmd) ? exit 0 : exit 1 unless $ENV{RETRY};
+my $ret;
+for my $n (1 .. $ENV{RETRY}) {
+    if ($ENV{STABILITY_TEST}) {
+        run \@ARGV || exit;
+        $ret = 1;
+        print "Rerun $n of $ENV{RETRY} …\n";
+    }
+    else {
+        run \@ARGV && last;
+        print "Retry $n of $ENV{RETRY} …\n";
+    }
+}
+exit $ret;
+
+1;
