@@ -89,18 +89,11 @@ sub _current_log_level {
 sub _log_msg {
     my ($level, $msg, %options) = @_;
 
-    # use default options
-    if (!%options) {
-        return _log_msg(
-            $level, $msg,
-            channels => $LOG_DEFAULTS{CHANNELS},
-            standard => $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL});
-    }
+    $options{channels} //= $LOG_DEFAULTS{CHANNELS},
+    $options{standard} //= $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL};
 
     # prepend process ID on debug level
-    if (_current_log_level eq 'debug') {
-        $msg = "[pid:$$] $msg";
-    }
+    $msg = "[pid:$$] $msg" if _current_log_level eq 'debug';
 
     # log to channels
     my $wrote_to_at_least_one_channel = 0;
