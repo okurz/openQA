@@ -32,6 +32,11 @@ our @EXPORT_OK = qw(
 my %CHANNELS;
 my %LOG_DEFAULTS = (LOG_TO_STANDARD_CHANNEL => 1, CHANNELS => []);
 
+my $log_module = "Mojo::Log";
+eval 'use Mojo::Log::Colored; $log_module = "Mojo::Log::Colored"';
+
+my $logger;
+
 # logging helpers - _log_msg wrappers
 
 # log_debug("message"[, param1=>val1, param2=>val2]);
@@ -64,6 +69,13 @@ sub _current_log_level() {
     return 0 unless defined $app && $app->can('log');
     return 0 unless my $log = $app->log;
     return $log->can('level') && $log->level;
+}
+
+sub _logger {
+    return $logger if $logger;
+    $logger = $log_module->new(level => 'debug');
+    $logger->format(\&log_format_callback_short);
+    return $logger;
 }
 
 # The %options parameter is used to control which destinations the message should go.
@@ -113,7 +125,7 @@ sub _try_logging_to_channel ($level, $msg, $channel) {
 }
 
 sub _log_to_stderr_or_stdout ($level, $msg) {
-    STDERR->printflush("[@{[uc $level]}] $msg\n");
+    return _logger->$level($msg);
 }
 
 # When a developer wants to log constantly to a channel he can either constantly pass the parameter
@@ -141,6 +153,11 @@ sub add_log_channel ($channel, %options) {
 
 # The default format for logging
 sub log_format_callback ($time, $level, @lines) { '[' . Time::Moment->now . "] [$level] " . join(' ', @lines) . "\n" }
+
+sub log_format_callback_short {
+    my ($time, $level, @lines) = @_;
+    return sprintf("[@{[uc $level]}] " . join("\n", @lines, ''));
+}
 
 # Removes a channel from defaults.
 sub _remove_channel_from_defaults ($channel) {
