@@ -66,6 +66,13 @@ sub _current_log_level() {
     return $log->can('level') && $log->level;
 }
 
+sub _logger {
+    return $logger if $logger;
+    $logger = $log_module->new(level => 'debug');
+    $logger->format(\&log_format_callback_short);
+    return $logger;
+}
+
 # The %options parameter is used to control which destinations the message should go.
 # Accepted parameters: channels, standard.
 #  - channels. Scalar or a arrayref containing the name of the channels to log to.
@@ -113,7 +120,7 @@ sub _try_logging_to_channel ($level, $msg, $channel) {
 }
 
 sub _log_to_stderr_or_stdout ($level, $msg) {
-    STDERR->printflush("[@{[uc $level]}] $msg\n");
+    return _logger->$level($msg);
 }
 
 # When a developer wants to log constantly to a channel he can either constantly pass the parameter
@@ -141,6 +148,11 @@ sub add_log_channel ($channel, %options) {
 
 # The default format for logging
 sub log_format_callback ($time, $level, @lines) { '[' . Time::Moment->now . "] [$level] " . join(' ', @lines) . "\n" }
+
+sub log_format_callback_short {
+    my ($time, $level, @lines) = @_;
+    return sprintf("[@{[uc $level]}] " . join("\n", @lines, ''));
+}
 
 # Removes a channel from defaults.
 sub _remove_channel_from_defaults ($channel) {
