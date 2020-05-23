@@ -417,15 +417,9 @@ subtest 'Job aborted, broken state file' => sub {
         'terminated prematurely: Encountered corrupted state file, see log output for details',
         'reason propagated'
     ) or diag explain $client->sent_messages;
-    combined_like {
-        is(
-            $job->_format_reason(PASSED, 'done'),
-            'done: terminated with corrupted state file',
-            'reason in case the job is nevertheless done'
-          )
-          or diag explain $client->sent_messages
-    }
-    qr/but failed to parse the JSON/, 'JSON error logged';
+    combined_like { $out = $job->_format_reason(PASSED, 'done') } qr/failed to parse the JSON/, 'JSON parse error';
+    is($out, 'done: terminated with corrupted state file', 'reason in case the job is nevertheless done')
+      or diag explain $client->sent_messages;
 
     $state_file->remove;
     $client->sent_messages([]);
