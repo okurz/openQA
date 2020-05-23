@@ -187,16 +187,26 @@ test-fullstack-unstable:
 # only works with one and Fedora's build system only works with the other
 .PHONY: test-with-database
 test-with-database:
-	test -d $(TEST_PG_PATH) && (pg_ctl -D $(TEST_PG_PATH) -s status >&/dev/null || pg_ctl -D $(TEST_PG_PATH) -s start) || ./t/test_postgresql $(TEST_PG_PATH)
+	@test -d $(TEST_PG_PATH) && (pg_ctl -D $(TEST_PG_PATH) -s status >&/dev/null || pg_ctl -D $(TEST_PG_PATH) -s start) || ./t/test_postgresql $(TEST_PG_PATH)
 	$(MAKE) test-unit-and-integration TEST_PG="DBI:Pg:dbname=openqa_test;host=$(TEST_PG_PATH)"
-	-[ $(KEEP_DB) = 1 ] || pg_ctl -D $(TEST_PG_PATH) stop
+	@-[ $(KEEP_DB) = 1 ] || pg_ctl -D $(TEST_PG_PATH) stop
 
 .PHONY: test-unit-and-integration
+# 'timeout --foreground' to still pass signals to subprocesses, e.g. ctrl-c
 test-unit-and-integration:
 	export GLOBIGNORE="$(GLOBIGNORE)";\
+	#timeout -s SIGINT -k 5 -v ${TIMEOUT_RETRIES} tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	#timeout -v ${TIMEOUT_RETRIES} tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	#tools/retry timeout --foreground -v ${TIMEOUT_RETRIES} prove --trap ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	# TODO setting timeout internal in tools/retry seems promising but this
+	# unfortunately leaves child processes behind, maybe prove with --trap?
+	#TIMEOUT=${TIMEOUT_RETRIES} bash -ex tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	#TIMEOUT=${TIMEOUT_RETRIES} bash -ex tools/retry prove --trap ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 	export DEVEL_COVER_DB_FORMAT=JSON;\
 	export PERL5OPT="$(COVEROPT)$(PERL5OPT) -It/lib -I$(PWD)/t/lib -MOpenQA::Test::PatchDeparse";\
 	RETRY=${RETRY} HOOK=./tools/delete-coverdb-folder timeout -s SIGINT -k 5 -v ${TIMEOUT_RETRIES} tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	#timeout --foreground -v ${TIMEOUT_RETRIES} setsid tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	#timeout --foreground -v 3 tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 
 # prepares running the tests within a container (eg. pulls os-autoinst) and then runs the tests considering
 # the test matrix environment variables

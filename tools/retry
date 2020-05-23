@@ -1,16 +1,78 @@
 #!/bin/sh -e
 # shellcheck disable=SC2048,SC2086
 
+env | grep '\(RETRY\|STABILITY_TEST\|TIMEOUT\)' ||:
+
 RETRY="${RETRY:-3}"
 STABILITY_TEST="${STABILITY_TEST:-0}"
 # Pass a hook command which is executed if a retry occurs
 HOOK="${HOOK:-}"
+#TIMEOUT="${TIMEOUT
+
+# Ensure subprocesses are terminated if only this program receives signals
+#trap "exit" INT
+#trap 'kill $(jobs -p) 2>/dev/null' EXIT
+#trap 'kill $(jobs -p) 2>/dev/null' INT
+#trap "trap - SIGTERM && kill -- -$$" INT TERM EXIT
+#trap "exit \$exit_code" INT TERM
+#trap "exit_code=\$?; kill 0" EXIT
+#trap 'echo TRAP: kill -- -$BASHPID' INT TERM
+#trap 'echo "IN TRAP"; kill 0' INT
 
 run_once() {
-    $*
+    #setsid $*
+    if [ -n "$TIMEOUT" ]; then
+        #prefix="timeout --foreground -v $TIMEOUT"
+        pid=$$
+        (
+            sleep "$TIMEOUT" || exit
+            echo "Timed out after $TIMEOUT seconds"
+            ps Tf -o '%p %P %r %y %x %a'
+            #trap "echo That is me" TERM
+            trap - TERM
+            # this gives me kill: (-11393) - No such process
+            # for $$ == 11393
+            #kill -TERM -- -$pid
+			# TODO this kills too much as also the parent prove is killed.
+			# Probably I still need setsid
+            kill 0
+            # this terminates children but not grandchildren, probably need to
+            # use process group properly
+            #pkill -P $pid &>/dev/null
+            #kill $(jobs -p) 2>/dev/null
+            #kill $(ps -s $$ -o pid=)
+            #exit 124
+        ) &
+        timeout_pid=$!
+        "$@"
+        ps Tf -o '%p %P %r %y %x %a'
+		#kill -HUP %%
+        #ps Tf -o '%p %P %r %y %x %a'
+        #kill --help ||:
+		# this gives "no such process" as there is no PGID, just a PID and
+		# PPID
+        #kill -- -$timeout_pid ||:
+        #ps Tf -o '%p %P %r %y %x %a'
+		ps Tf -o '%p %P %r %y %x %a'
+		# kill sleep within subshell. A simple kill on the subshell pid would
+		# kill only the subshell but not the sleep within
+		pkill -P $timeout_pid
+		ps Tf -o '%p %P %r %y %x %a'
+        # this kills a bash session that is running the subshell but not the
+        # sleep within
+        #kill $timeout_pid &>/dev/null
+		#kill $pid
+        # With "kill 0" this seems to also kill parents like prove some layers
+        # above in t/50-make-retry.t, bad
+        #kill 0
+    else
+        "$@"
+    fi
+    #$prefix $*
 }
 
 if [ "$RETRY" = "0" ]; then
+    #echo run_once $*
     run_once $*
 else
     n=1
