@@ -49,7 +49,6 @@ eval 'use Mojo::Log::Colored; $log_module = "Mojo::Log::Colored"';
 
 my $logger;
 
-
 # logging helpers - _log_msg wrappers
 
 # log_debug("message"[, param1=>val1, param2=>val2]);
@@ -81,9 +80,25 @@ sub _current_log_level {
     return $log->can('level') && $log->level;
 }
 
+sub _settings {
+    my ($level) = @_;
+    $level //= 'debug';
+    return (
+        level  => $level,
+        # select a color selection that is compatible with reverse video terminals
+        # as well as standard
+        colors => {
+            debug => "white",
+            info  => "yellow",
+            warn  => "red",
+            error => "magenta",
+            fatal => "yellow on_red",
+        });
+}
+
 sub _logger {
     return $logger if $logger;
-    $logger = $log_module->new(level => 'debug');
+    $logger = $log_module->new(_settings, level => 'debug');
     $logger->format(\&log_format_callback_short);
     return $logger;
 }
@@ -221,28 +236,16 @@ sub setup_log {
     $level //= $app->config->{logging}->{level} // 'info';
     $logfile = $ENV{OPENQA_LOGFILE} || $app->config->{logging}->{file};
 
-    # select a color selection that is compatible with reverse video terminals
-    # as well as standard
-    my %settings = (
-        level  => $level,
-        colors => {
-            debug => "white",
-            info  => "yellow",
-            warn  => "red",
-            error => "magenta",
-            fatal => "yellow on_red",
-        });
-
     if ($logfile || $logdir) {
         $logfile = catfile($logdir, $logfile) if $logfile && $logdir;
         # So each worker from each host get its own log (as the folder can be shared).
         # Hopefully the machine hostname is already sanitized. Otherwise we need to check
         $logfile //= catfile($logdir, hostname() . (defined $app->instance ? "-${\$app->instance}" : '') . ".log");
-        $log = $log_module->new(%settings, handle => path($logfile)->open('>>'));
+        $log = $log_module->new(_settings($level), handle => path($logfile)->open('>>'));
         $log->format(\&log_format_callback);
     }
     else {
-        $log = $log_module->new(%settings, handle => \*STDOUT);
+        $log = $log_module->new(_settings($level), handle => \*STDOUT);
         $log->format(
             sub {
                 my ($time, $level, @lines) = @_;
