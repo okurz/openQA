@@ -89,8 +89,7 @@ sub _current_log_level {
 sub _log_msg {
     my ($level, $msg, %options) = @_;
 
-    $options{channels} //= $LOG_DEFAULTS{CHANNELS},
-    $options{standard} //= $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL};
+    $options{channels} //= $LOG_DEFAULTS{CHANNELS}, $options{standard} //= $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL};
 
     # prepend process ID on debug level
     $msg = "[pid:$$] $msg" if _current_log_level eq 'debug';
@@ -106,7 +105,7 @@ sub _log_msg {
     # log to standard (as fallback or when explicitely requested)
     if (!$wrote_to_at_least_one_channel || ($options{standard} // $LOG_DEFAULTS{LOG_TO_STANDARD_CHANNEL})) {
         # use Mojolicious app if available and otherwise just STDERR/STDOUT
-        _log_via_mojo_app($level, $msg) or _log_to_stderr_or_stdout($level, $msg);
+        _log_via_mojo_app($level, $msg) or _log_to_stderr($level, $msg);
     }
 }
 
@@ -133,14 +132,9 @@ sub _try_logging_to_channel {
     return ($@ ? 0 : 1);
 }
 
-sub _log_to_stderr_or_stdout {
+sub _log_to_stderr {
     my ($level, $msg) = @_;
-    if ($level =~ /warn|error|fatal/) {
-        STDERR->printflush("[@{[uc $level]}] $msg\n");
-    }
-    else {
-        STDOUT->printflush("[@{[uc $level]}] $msg\n");
-    }
+    STDERR->printflush("[@{[uc $level]}] $msg\n");
 }
 
 # When a developer wants to log constantly to a channel he can either constantly pass the parameter
