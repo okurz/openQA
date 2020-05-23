@@ -539,11 +539,9 @@ subtest 'Fallback to stderr/stdout' => sub {
 
     # check fallback when logging to channel throws an exception
     $utils_mock->unmock('_log_to_channel_by_name');
-    my $log_mock = Test::MockModule->new('Mojo::Log');
-    $log_mock->redefine(
-        error => sub {
+    $utils_mock->redefine(_try_logging_to_channel => sub {
             ++$log_via_channel_tried;
-            die 'not enough disk space or whatever';
+            0
         });
     stderr_like {
         log_error('goes to stderr after all');
@@ -554,7 +552,6 @@ subtest 'Fallback to stderr/stdout' => sub {
 
     # clear the system
     $utils_mock->unmock_all();
-    $log_mock->unmock_all();
     remove_log_channel('channel 1');
 };
 
