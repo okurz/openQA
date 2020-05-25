@@ -200,13 +200,14 @@ test-unit-and-integration:
 	#tools/retry timeout --foreground -v ${TIMEOUT_RETRIES} prove --trap ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 	# TODO setting timeout internal in tools/retry seems promising but this
 	# unfortunately leaves child processes behind, maybe prove with --trap?
-	TIMEOUT=${TIMEOUT_RETRIES} bash -ex tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	TIMEOUT=${TIMEOUT_RETRIES} tools/retry prove --trap ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 	#TIMEOUT=${TIMEOUT_RETRIES} bash -ex tools/retry prove --trap ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 	export DEVEL_COVER_DB_FORMAT=JSON;\
 	export PERL5OPT="$(COVEROPT)$(PERL5OPT) -It/lib -I$(PWD)/t/lib -MOpenQA::Test::PatchDeparse";\
 	#RETRY=${RETRY} HOOK=./tools/delete-coverdb-folder timeout -s SIGINT -k 5 -v ${TIMEOUT_RETRIES} tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 	#timeout --foreground -v ${TIMEOUT_RETRIES} setsid tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
-	#timeout --foreground -v ${TIMEOUT_RETRIES} tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	#unbuffer timeout --foreground -v ${TIMEOUT_RETRIES} tools/retry /usr/bin/prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	#timeout -v ${TIMEOUT_RETRIES} tools/retry /usr/bin/prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 	#timeout --foreground -v 3 tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 
 # prepares running the tests within a container (eg. pulls os-autoinst) and then runs the tests considering

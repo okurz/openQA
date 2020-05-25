@@ -1,6 +1,16 @@
 #!/bin/sh -e
 # shellcheck disable=SC2048,SC2086
 
+set -exo pipefail
+
+#if  [ $$ = $(ps -o pgid -hp $$) ]; then
+#   echo already a process group leader;
+#else
+#   set -m
+#   $0 "$@" #optionally with &
+#   set +m
+#fi
+
 env | grep '\(RETRY\|STABILITY_TEST\|TIMEOUT\)' ||:
 
 RETRY="${RETRY:-3}"
@@ -9,9 +19,14 @@ STABILITY_TEST="${STABILITY_TEST:-0}"
 HOOK="${HOOK:-}"
 #TIMEOUT="${TIMEOUT
 
+trap
+
 # Ensure subprocesses are terminated if only this program receives signals
 #trap "exit" INT
 #trap "exit" INT
+#trap "echo CAUGHT signal in $$; ps Tf -o '%p %P %r %y %a' | tail -n 10; kill -- -$$; exit" EXIT
+#trap "echo CAUGHT signal in $$; ps Tf -o '%p %P %r %y %a' | tail -n 10; exit" TERM INT
+trap 'echo caught interrupt and exiting;exit' INT
 #trap "echo CAUGHT signal in $$; ps Tf -o '%p %P %r %y %x %a'; kill $(jobs -p)&>/dev/null; kill -- -$$; exit" EXIT
 #trap 'kill $(jobs -p) 2>/dev/null' EXIT
 #trap 'kill $(jobs -p) 2>/dev/null' INT
@@ -23,55 +38,55 @@ HOOK="${HOOK:-}"
 
 run_once() {
     #setsid $*
-    if [ -n "$TIMEOUT" ]; then
-        #prefix="timeout --foreground -v $TIMEOUT"
-        pid=$$
-        (
-            sleep "$TIMEOUT" || exit
-            echo "Timed out after $TIMEOUT seconds"
-            ps Tf -o '%p %P %r %y %x %a'
-            #trap "echo That is me" TERM
-            trap - TERM
-            # this gives me kill: (-11393) - No such process
-            # for $$ == 11393
-            #kill -TERM -- -$pid
-			# TODO this kills too much as also the parent prove is killed.
-			# Probably I still need setsid
-            kill 0
-            # this terminates children but not grandchildren, probably need to
-            # use process group properly
-            #pkill -P $pid &>/dev/null
-            #kill $(jobs -p) 2>/dev/null
-            #kill $(ps -s $$ -o pid=)
-            #exit 124
-        ) &
-        timeout_pid=$!
-        "$@"
-        ps Tf -o '%p %P %r %y %x %a'
-		#kill -HUP %%
-        #ps Tf -o '%p %P %r %y %x %a'
-        #kill --help ||:
-		# this gives "no such process" as there is no PGID, just a PID and
-		# PPID
-        #kill -- -$timeout_pid ||:
-        #ps Tf -o '%p %P %r %y %x %a'
-		ps Tf -o '%p %P %r %y %x %a'
-		# kill sleep within subshell. A simple kill on the subshell pid would
-		# kill only the subshell but not the sleep within
-		pkill -P $timeout_pid
-		ps Tf -o '%p %P %r %y %x %a'
-        # this kills a bash session that is running the subshell but not the
-        # sleep within
-        #kill $timeout_pid &>/dev/null
-		#kill $pid
-        # With "kill 0" this seems to also kill parents like prove some layers
-        # above in t/50-make-retry.t, bad
-        #kill 0
-    else
-        "$@"
-    fi
-    #$prefix $*
-    $*
+   if [ -n "$TIMEOUT" ]; then
+       prefix="timeout --foreground -v $TIMEOUT"
+#        pid=$$
+#        (
+#            sleep "$TIMEOUT" || exit
+#            echo "Timed out after $TIMEOUT seconds"
+#            ps Tf -o '%p %P %r %y %x %a' | tail -n 10
+#            #trap "echo That is me" TERM
+#            trap - TERM
+#            # this gives me kill: (-11393) - No such process
+#            # for $$ == 11393
+#            #kill -TERM -- -$pid
+#			# TODO this kills too much as also the parent prove is killed.
+#			# Probably I still need setsid
+#            kill 0
+#            # this terminates children but not grandchildren, probably need to
+#            # use process group properly
+#            #pkill -P $pid &>/dev/null
+#            #kill $(jobs -p) 2>/dev/null
+#            #kill $(ps -s $$ -o pid=)
+#            #exit 124
+#        ) &
+#        timeout_pid=$!
+#        "$@"
+#        ps Tf -o '%p %P %r %y %x %a' | tail -n 10
+#		#kill -HUP %%
+#        #ps Tf -o '%p %P %r %y %x %a'
+#        #kill --help ||:
+#		# this gives "no such process" as there is no PGID, just a PID and
+#		# PPID
+#        #kill -- -$timeout_pid ||:
+#        #ps Tf -o '%p %P %r %y %x %a'
+#		ps Tf -o '%p %P %r %y %x %a' | tail -n 10
+#		# kill sleep within subshell. A simple kill on the subshell pid would
+#		# kill only the subshell but not the sleep within
+#		pkill -P $timeout_pid
+#		ps Tf -o '%p %P %r %y %x %a' | tail -n 10
+#        # this kills a bash session that is running the subshell but not the
+#        # sleep within
+#        #kill $timeout_pid &>/dev/null
+#		#kill $pid
+#        # With "kill 0" this seems to also kill parents like prove some layers
+#        # above in t/50-make-retry.t, bad
+#        #kill 0
+#    else
+#        "$@"
+   fi
+   $prefix $*
+    #$*
 }
 
 if [ "$RETRY" = "0" ]; then
