@@ -175,10 +175,11 @@ test-unit-and-integration:
 	#tools/retry timeout --foreground -v ${TIMEOUT_RETRIES} prove --trap ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 	# TODO setting timeout internal in tools/retry seems promising but this
 	# unfortunately leaves child processes behind, maybe prove with --trap?
-	#TIMEOUT=${TIMEOUT_RETRIES} bash -ex tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	TIMEOUT=${TIMEOUT_RETRIES} bash -ex tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 	#TIMEOUT=${TIMEOUT_RETRIES} bash -ex tools/retry prove --trap ${PROVE_LIB_ARGS} ${PROVE_ARGS}
-	RETRY=${RETRY} TIMEOUT=${TIMEOUT_RETRIES} setsid bash -ex tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	#RETRY=${RETRY} TIMEOUT=${TIMEOUT_RETRIES} setsid bash -ex tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 	#timeout --foreground -v ${TIMEOUT_RETRIES} setsid tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
+	#timeout --foreground -v ${TIMEOUT_RETRIES} tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 	#timeout --foreground -v 3 tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 
 # prepares running the tests within Docker (eg. pulls os-autoinst) and then runs the tests considering
