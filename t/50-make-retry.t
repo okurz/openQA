@@ -34,7 +34,7 @@ sub start_once {
 }
 
 ok run(qw(tools/retry true)), 'tools/retry can be called with success';
-ok run(qw(make help)), 'make can be called with success';
+#ok run(qw(make help)), 'make can be called with success';
 my @simple_test = qw(make test KEEP_DB=1 TESTS=t/config.t);
 # if I remove "unbuffer" then this test is hard aborted as soon as
 # long_test_1s is aborted on timeout. If I keep it then unbuffer is left
@@ -45,6 +45,7 @@ ok $h->finish, 'simple test with make successful';
 like $out, qr/All tests successful/, 'internal test successful';
 my @long_test_1s = (@long_test, qw(TIMEOUT_RETRIES=1s));
 $h = start_once \@long_test_1s;
+ok $h, 'long test started';
 ok ! $h->finish, 'test could not succeed within given time' or diag "out: $out\nerr: $err";
 note "out: $out\nerr: $err";
 is $h->result, 2, 'test exceeding timeout is aborted with timeout failure';
@@ -52,7 +53,7 @@ is $h->result, 2, 'test exceeding timeout is aborted with timeout failure';
 # with Ctrl-C
 #like $out, qr/timeout: sending signal TERM/, 'timeout terminated test';
 like $out, qr/Timed out/, 'timeout terminated test';
-note "ps: " . qx{ps Tf};
+note "ps: " . qx{ps Tf | tail -n 10};
 #$h = start_once \@long_test, timeout => 10;
 # TODO check first if the low-level tools/retry call can be aborted with
 # ctrl-c
@@ -88,6 +89,6 @@ is $h->result, 2, 'test with make aborted with corresponding exit code';
 done_testing;
 
 END {
-note "ps: " . qx{ps Tf -o '%p %P %r %y %x %a'};
+note "ps: " . qx{ps Tf -o '%p %P %r %y %x %a' | tail -n 10};
     
     defined $h and kill_kill $h, grace => 1 }
