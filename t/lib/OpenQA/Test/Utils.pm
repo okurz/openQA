@@ -338,7 +338,7 @@ sub create_websocket_server {
         OpenQA::WebSockets::run;
         Devel::Cover::report() if !$no_cover && Devel::Cover->can('report');
     };
-    elsif (!defined $nowait) {
+    if (!defined $nowait) {
         note('Waiting until websocket server is up');
         my $limit = 20;
         my $wait = time + $limit;
