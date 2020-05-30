@@ -32,6 +32,7 @@ use Mojolicious;
 use Mojo::IOLoop::Server;
 use Mojo::File qw(path tempfile);
 use Time::HiRes 'sleep';
+use Try::Tiny;
 use FindBin;
 use lib "$FindBin::Bin/lib", "$FindBin::Bin/../external/os-autoinst-common/lib";
 use OpenQA::Constants qw(DEFAULT_WORKER_TIMEOUT DB_TIMESTAMP_ACCURACY);
@@ -94,20 +95,29 @@ sub dead_workers {
 }
 
 sub wait_for_worker {
-    my ($schema, $id) = @_;
+    my (%args) = @_;
+    my $id = $args{id};
+    $args{nonblocking} //= 0;
 
     note "Waiting for worker with ID $id";    # uncoverable statement
     for (0 .. 40) {
         my $worker = $schema->resultset('Workers')->find($id);
-        return undef if defined $worker && !$worker->dead;
+        return $worker if defined $worker && !$worker->dead || $args{nonblocking};
         sleep .5;
     }
-    note "No worker with ID $id active";      # uncoverable statement
+    die "No worker with ID $id active";      # uncoverable statement
 }
 
 sub scheduler_step { OpenQA::Scheduler::Model::Jobs->singleton->schedule() }
 
 my $worker_settings = [$api_key, $api_secret, "http://localhost:$mojoport"];
+
+sub worker_alive {
+    my ($process) = @_;
+    return 0 unless $process;
+    try { $process->pump_nb } catch { return 0 };
+    return 1;
+}
 
 subtest 'Scheduler worker job allocation' => sub {
     note 'try to allocate to previous worker (supposed to fail)';
@@ -116,8 +126,8 @@ subtest 'Scheduler worker job allocation' => sub {
 
     note 'starting two workers';
     @workers = map { create_worker(@$worker_settings, $_) } (1, 2);
-    wait_for_worker($schema, 3);
-    wait_for_worker($schema, 4);
+    wait_for_worker(id => 3);
+    wait_for_worker(id => 4);
 
     note 'assigning one job to each worker';
     $allocated = scheduler_step();
@@ -151,20 +161,26 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
 
     # simulate a worker in broken state; it will register itself but declare itself as broken
     @workers = broken_worker(@$worker_settings, 3, 'out of order');
-    wait_for_worker($schema, 5);
+    wait_for_worker(id => 5);
     $allocated = scheduler_step();
     is @$allocated, 0, 'scheduler does not consider broken worker for allocating job';
+    # next failed on local `nice -n 19 ionice -c 3 env runs=100
+    # count_fail_ratio nice -n 19 ionice -c 3 env SCHEDULER_FULLSTACK=1
+    # FULLSTACK=1 DIE_ON_FAIL=1 timeout --foreground -v 180 prove -l
+    # t/05-scheduler-full.t` at least twice
+    # then again after many successful runs this failed for multiple runs
+    # until it worked again
     stop_workers;
     dead_workers($schema);
 
     # simulate a worker in idle state that rejects all jobs assigned to it
     @workers = rejective_worker(@$worker_settings, 3, 'rejection reason');
-    wait_for_worker($schema, 5);
+    wait_for_worker(id => 5);
 
     note 'waiting for job to be assigned and set back to re-scheduled';
     # the loop is needed as the scheduler sometimes needs a second
     # cycle before the worker is seen as unusable
-    for (1 .. 2) {
+    for (1 .. 3) {
         $allocated = scheduler_step();
         last if $allocated && @$allocated >= 1;
         note "scheduler could not yet assign to rejective worker, try: $_";    # uncoverable statement
@@ -193,7 +209,7 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
     # start an unstable worker; it will register itself but ignore any job assignment (also not explicitely reject
     # assignments)
     @workers = unstable_worker(@$worker_settings, 3, -1);
-    wait_for_worker($schema, 5);
+    wait_for_worker(id => 5);
     for (1 .. 2) {
         $allocated = scheduler_step();
         last if $allocated && @$allocated >= 1;
@@ -208,7 +224,7 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
     $jobs->find(99982)->update({state => OpenQA::Jobs::Constants::RUNNING});
 
     @workers = unstable_worker(@$worker_settings, 3, -1);
-    wait_for_worker($schema, 5);
+    wait_for_worker(id => 5);
 
     note 'waiting for job to be incompleted';
     for (0 .. 100) {
@@ -229,13 +245,14 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
 
 subtest 'Simulation of heavy unstable load' => sub {
     dead_workers($schema);
+    my ($i, $allocated);
 
     # duplicate latest jobs ignoring failures
     my @duplicated = map { my $dup = $_->auto_duplicate; ref $dup ? $dup : () } $schema->resultset('Jobs')->latest_jobs;
     my $nr         = $ENV{OPENQA_SCHEDULER_TEST_UNRESPONSIVE_COUNT} // 50;
     @workers = map { unresponsive_worker(@$worker_settings, $_) } (1 .. $nr);
     my $i = 2;
-    wait_for_worker($schema, ++$i) for 1 .. $nr;
+    wait_for_worker(id => ++$i) for 1 .. $nr;
 
     my $allocated = scheduler_step();    # Will try to allocate to previous worker and fail!
     is @$allocated, 10, 'Allocated maximum number of jobs that could have been allocated' or die;
@@ -260,8 +277,13 @@ subtest 'Simulation of heavy unstable load' => sub {
 
     my $unstable_workers = $ENV{OPENQA_SCHEDULER_TEST_UNSTABLE_COUNT} // 30;
     @workers = map { unstable_worker(@$worker_settings, $_, 3) } (1 .. $unstable_workers);
-    $i       = 5;
-    wait_for_worker($schema, ++$i) for 0 .. 12;
+    $i       = 2;
+    # As in the previous test we spawned many more workers which might
+    # register in random order the instance numbers do not relate to specific
+    # worker ids, check all worker processes if they are alive and check for
+    # their entry in the database non-blocking as the result does not matter
+    # for the next step.
+    worker_alive($workers[$_]) && wait_for_worker(id => ++$i, nonblocking => 1) for 0 .. $nr;
 
     $allocated = scheduler_step();    # Will try to allocate to previous worker and fail!
     is @$allocated, 0, 'All failed allocation on second step - workers were killed';
@@ -273,10 +295,18 @@ subtest 'Simulation of heavy unstable load' => sub {
         is $dup->state, OpenQA::Jobs::Constants::SCHEDULED, "Job(" . $dup->id . ") is still in scheduled state";
     }
 
+    #note 'before stop workers';
     stop_workers;
+    #note 'before stop service';
+    stop_service($ws, 1);
+    #note 'before pump';
+    #$_->pump_nb for (@workers, $ws, $webapi);
+    #1;
 };
 
 subtest 'Websocket server - close connection test' => sub {
+    # causes Unable to flush stdout:
+    $ws->pump_nb;
     stop_service($ws);
 
     local $ENV{OPENQA_LOGFILE};
@@ -299,17 +329,23 @@ subtest 'Websocket server - close connection test' => sub {
         }
     }
     is $found_connection_closed_in_log, 1, 'closed ws connection logged by worker';
-    stop_workers;
-    stop_service($ws);
 };
 
 END {
     stop_workers;
+    #$_->pump_nb for @workers;
     stop_service($_, 1) for ($ws, $webapi);
-    if (which 'ps') {
-        $ENV{CI} and note "### all processes: " . qx{ps auxf} . "\n";
-        note "### processes in tree: " . qx{ps Tf} . "\n";
-    }
+    #    if (which 'ps') {
+    #        $ENV{CI} and note "### all processes: " . qx{ps auxf} . "\n";
+    #        note "### processes in tree: " . qx{ps Tf} . "\n";
+    #    }
+    #    $_->pump_nb for (@workers, $ws, $webapi);
+    #    for (@workers, $ws, $webapi) {
+    #        note "pump: $_";
+    #        $_->pump_nb
+    #    }
+    #    note 'services stopped';
+    #    print "print: services stopped\n";
 }
 
 done_testing;
