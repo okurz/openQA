@@ -1,7 +1,19 @@
 #!/usr/bin/env perl
 
 # Copyright 2014-2021 SUSE LLC
-# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <http://www.gnu.org/licenses/>.
 
 use Test::Most;
 
@@ -22,7 +34,14 @@ use Time::HiRes 'sleep';
 use FindBin;
 use lib "$FindBin::Bin/lib", "$FindBin::Bin/../external/os-autoinst-common/lib";
 use OpenQA::Constants qw(DEFAULT_WORKER_TIMEOUT DB_TIMESTAMP_ACCURACY);
-use OpenQA::Jobs::Constants;
+# https://app.circleci.com/pipelines/github/os-autoinst/openQA/3092/workflows/7f45c7f4-44ca-40c4-9629-2c8342e23fee/jobs/29471/steps
+# shows to be quite stable with 13 runs passed in succession if I disable the
+# TimeLimit. Maybe "alarm" is not that safe and I should use instead:
+# ```
+# use Mojo::IOLoop;
+# Mojo::IOLoop->timer(shift => sub { die 'timed out' }); Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+# ```
+use OpenQA::Test::TimeLimit '180';
 use OpenQA::Scheduler::Client;
 use OpenQA::Scheduler::Model::Jobs;
 use OpenQA::Worker::WebUIConnection;
@@ -35,7 +54,7 @@ use OpenQA::Test::Utils qw(
   start_worker
   stop_service unstable_worker
   unresponsive_worker broken_worker rejective_worker
-  wait_for
+  wait_for_or_bail_out
 );
 use OpenQA::Test::TimeLimit '150';
 
@@ -140,6 +159,10 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
     @workers = broken_worker(@$worker_settings, 3, 'out of order');
     wait_for_worker($schema, 5);
     $allocated = scheduler_step();
+    # next failed on local `nice -n 19 ionice -c 3 env runs=100
+    # count_fail_ratio nice -n 19 ionice -c 3 env SCHEDULER_FULLSTACK=1
+    # FULLSTACK=1 DIE_ON_FAIL=1 timeout --foreground -v 180 prove -l
+    # t/05-scheduler-full.t` at least twice
     is @$allocated, 0, 'scheduler does not consider broken worker for allocating job';
     stop_workers;
     dead_workers($schema);
@@ -149,9 +172,9 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
     wait_for_worker($schema, 5);
 
     note 'waiting for job to be assigned and set back to re-scheduled';
-    # the loop is needed as the scheduler sometimes needs a second
+    # the loop is needed as the scheduler sometimes needs a second or third
     # cycle before the worker is seen as unusable
-    for (1 .. 2) {
+    for (1 .. 3) {
         $allocated = scheduler_step();
         last if $allocated && @$allocated >= 1;
         note "scheduler could not yet assign to rejective worker, try: $_";    # uncoverable statement
@@ -163,11 +186,11 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
     my $job_scheduled = 0;
     for (0 .. 100) {
         my $job_state = $jobs->find(99982)->state;
-        if ($job_state eq ASSIGNED) {
+        if ($job_state eq OpenQA::Jobs::Constants::ASSIGNED) {
             note 'job is assigned' unless $job_assigned;    # uncoverable statement
             $job_assigned = 1;    # uncoverable statement
         }
-        elsif ($job_state eq SCHEDULED) {
+        elsif ($job_state eq OpenQA::Jobs::Constants::SCHEDULED) {
             $job_scheduled = 1;
             last;
         }
@@ -191,17 +214,20 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
       and is @{$allocated}[0]->{worker}, 5, 'job allocated to expected worker';
 
     # kill the worker but assume the job has been actually started and is running
-    # note: Also setting back assigned_worker_id and result because the worker might have actually picked up the job.
     stop_workers;
-    $jobs->find(99982)->update({assigned_worker_id => 5, state => RUNNING, result => NONE});
+    $jobs->find(99982)->update({state => OpenQA::Jobs::Constants::RUNNING});
 
     @workers = unstable_worker(@$worker_settings, 3, -1);
     wait_for_worker($schema, 5);
-    wait_for { $jobs->find(99982)->state eq DONE } 'job 99982 is incompleted', {timeout => 20};
+
+    note 'waiting for job to be incompleted';
+    wait_for_or_bail_out { $jobs->find(99982)->state eq OpenQA::Jobs::Constants::DONE } 'Job 99982 is done';
 
     my $job = $jobs->find(99982);
-    is $job->state, DONE, 'running job set to done if its worker re-connects claiming not to work on it anymore';
-    is $job->result, INCOMPLETE, 'running job incompleted if its worker re-connects claiming not to work on it anymore';
+    is $job->state, OpenQA::Jobs::Constants::DONE,
+      'running job set to done if its worker re-connects claiming not to work on it anymore';
+    is $job->result, OpenQA::Jobs::Constants::INCOMPLETE,
+      'running job incompleted if its worker re-connects claiming not to work on it anymore';
     like $job->reason, qr/abandoned: associated worker .+:\d+ re-connected but abandoned the job/, 'reason is set';
 
     stop_workers;
@@ -223,18 +249,18 @@ subtest 'Simulation of heavy unstable load' => sub {
     my %jobs;
     my %w;
     foreach my $j (@$allocated) {
-        ok !$jobs{$j->{job}}, "Job ($j->{job}) allocated only once";
-        ok !$w{$j->{worker}}, "Worker ($j->{worker}) used only once";
+        ok !$jobs{$j->{job}}, "Job (" . $j->{job} . ") allocated only once";
+        ok !$w{$j->{worker}}, "Worker (" . $j->{worker} . ") used only once";
         $w{$j->{worker}}++;
         $jobs{$j->{job}}++;
     }
 
     for my $dup (@duplicated) {
         for (0 .. 2000) {
-            last if $dup->state eq SCHEDULED;
+            last if $dup->state eq OpenQA::Jobs::Constants::SCHEDULED;
             sleep .1;    # uncoverable statement
         }
-        is $dup->state, SCHEDULED, "Job(" . $dup->id . ") back in scheduled state";
+        is $dup->state, OpenQA::Jobs::Constants::SCHEDULED, "Job(" . $dup->id . ") back in scheduled state";
     }
     stop_workers;
     dead_workers($schema);
@@ -242,16 +268,23 @@ subtest 'Simulation of heavy unstable load' => sub {
     my $unstable_workers = $ENV{OPENQA_SCHEDULER_TEST_UNSTABLE_COUNT} // 30;
     @workers = map { unstable_worker(@$worker_settings, $_, 3) } (1 .. $unstable_workers);
     $i = 5;
+    # TODO here we unnecessarily wait for workers that already crashed or
+    # something. We could extend wait_for_worker to state if we actually
+    # expect the worker to be there or not and make any check fatal in case we
+    # expect a worker or non-blocking in case we only expected crashed workers
+    # anyway. But better merge with "the other branch" where I already
+    # extended `wait_for_worker` with a return value that gives back the
+    # actual worker
     wait_for_worker($schema, ++$i) for 0 .. 12;
 
     $allocated = scheduler_step();    # Will try to allocate to previous worker and fail!
     is @$allocated, 0, 'All failed allocation on second step - workers were killed';
     for my $dup (@duplicated) {
         for (0 .. 2000) {
-            last if $dup->state eq SCHEDULED;
+            last if $dup->state eq OpenQA::Jobs::Constants::SCHEDULED;
             sleep .1;    # uncoverable statement
         }
-        is $dup->state, SCHEDULED, "Job(" . $dup->id . ") is still in scheduled state";
+        is $dup->state, OpenQA::Jobs::Constants::SCHEDULED, "Job(" . $dup->id . ") is still in scheduled state";
     }
 
     stop_workers;
