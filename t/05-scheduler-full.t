@@ -35,6 +35,14 @@ use Time::HiRes 'sleep';
 use FindBin;
 use lib "$FindBin::Bin/lib", "$FindBin::Bin/../external/os-autoinst-common/lib";
 use OpenQA::Constants qw(DEFAULT_WORKER_TIMEOUT DB_TIMESTAMP_ACCURACY);
+# https://app.circleci.com/pipelines/github/os-autoinst/openQA/3092/workflows/7f45c7f4-44ca-40c4-9629-2c8342e23fee/jobs/29471/steps
+# shows to be quite stable with 13 runs passed in succession if I disable the
+# TimeLimit. Maybe "alarm" is not that safe and I should use instead:
+# ```
+# use Mojo::IOLoop;
+# Mojo::IOLoop->timer(shift => sub { die 'timed out' }); Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+# ```
+use OpenQA::Test::TimeLimit '180';
 use OpenQA::Scheduler::Client;
 use OpenQA::Scheduler::Model::Jobs;
 use OpenQA::Worker::WebUIConnection;
@@ -151,6 +159,10 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
     @workers = broken_worker(@$worker_settings, 3, 'out of order');
     wait_for_worker($schema, 5);
     $allocated = scheduler_step();
+    # next failed on local `nice -n 19 ionice -c 3 env runs=100
+    # count_fail_ratio nice -n 19 ionice -c 3 env SCHEDULER_FULLSTACK=1
+    # FULLSTACK=1 DIE_ON_FAIL=1 timeout --foreground -v 180 prove -l
+    # t/05-scheduler-full.t` at least twice
     is @$allocated, 0, 'scheduler does not consider broken worker for allocating job';
     stop_workers;
     dead_workers($schema);
@@ -160,9 +172,9 @@ subtest 're-scheduling and incompletion of jobs when worker rejects jobs or goes
     wait_for_worker($schema, 5);
 
     note 'waiting for job to be assigned and set back to re-scheduled';
-    # the loop is needed as the scheduler sometimes needs a second
+    # the loop is needed as the scheduler sometimes needs a second or third
     # cycle before the worker is seen as unusable
-    for (1 .. 2) {
+    for (1 .. 3) {
         $allocated = scheduler_step();
         last if $allocated && @$allocated >= 1;
         note "scheduler could not yet assign to rejective worker, try: $_";    # uncoverable statement
@@ -259,6 +271,13 @@ subtest 'Simulation of heavy unstable load' => sub {
     my $unstable_workers = $ENV{OPENQA_SCHEDULER_TEST_UNSTABLE_COUNT} // 30;
     @workers = map { unstable_worker(@$worker_settings, $_, 3) } (1 .. $unstable_workers);
     $i       = 5;
+    # TODO here we unnecessarily wait for workers that already crashed or
+    # something. We could extend wait_for_worker to state if we actually
+    # expect the worker to be there or not and make any check fatal in case we
+    # expect a worker or non-blocking in case we only expected crashed workers
+    # anyway. But better merge with "the other branch" where I already
+    # extended `wait_for_worker` with a return value that gives back the
+    # actual worker
     wait_for_worker($schema, ++$i) for 0 .. 12;
 
     $allocated = scheduler_step();    # Will try to allocate to previous worker and fail!
