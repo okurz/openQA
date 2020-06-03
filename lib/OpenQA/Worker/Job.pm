@@ -128,18 +128,9 @@ sub _set_status {
     $self->emit(status_changed => $event_data);
 }
 
-sub is_stopped_or_stopping {
-    my ($self) = @_;
+sub is_stopped_or_stopping { shift->status =~ qr/stop/ }
 
-    my $status = $self->status;
-    return $status eq 'stopped' || $status eq 'stopping';
-}
-
-sub is_uploading_results {
-    my ($self) = @_;
-
-    return $self->{_is_uploading_results};
-}
+sub is_uploading_results { shift->{_is_uploading_results} }
 
 sub accept {
     my ($self) = @_;
@@ -318,7 +309,7 @@ sub skip {
     die "attempt to skip $status job; only new jobs can be skipped" unless $status eq 'new';
 
     $reason //= 'skipped';
-    $self->_set_status(stopping => {reason => $reason});
+    $self->_set_status(STOPPING => {reason => $reason});
     $self->_stop_step_5_finalize($reason, {result => OpenQA::Jobs::Constants::SKIPPED});
     return 1;
 }
@@ -334,7 +325,7 @@ sub stop ($self, $reason = undef) {
     $self->_set_status(stopped => {reason => $reason}) and return undef
       unless $status eq 'setup' || $status eq 'running';
 
-    $self->_set_status(stopping => {reason => $reason});
+    $self->_set_status(STOPPING => {reason => $reason});
     $self->_remove_timer(['_timeout_timer']);
 
     $self->_stop_step_2_post_status(
@@ -611,7 +602,7 @@ sub _set_job_done ($self, $reason, $params, $callback) {
 }
 
 sub _stop_step_5_finalize ($self, $reason, $params) {
-    $self->_set_job_done($reason, $params, sub { $self->_set_status(stopped => {reason => $reason}) });
+    $self->_set_job_done($reason, $params, sub { $self->_set_status(STOPPED => {reason => $reason}) });
 
     # note: The worker itself will react the the changed status and unassign this job object
     #       from its current_job property and will clean the pool directory.
