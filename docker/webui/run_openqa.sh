@@ -34,9 +34,9 @@ function all_together_apache() {
   start_daemon -u geekotest /usr/share/openqa/script/openqa-scheduler &
   start_daemon -u geekotest /usr/share/openqa/script/openqa-websockets &
   start_daemon -u geekotest /usr/share/openqa/script/openqa-livehandler &
-  start_daemon -u geekotest /usr/share/openqa/script/openqa gru -m production run &
+  start_daemon -u geekotest /usr/share/openqa/script/openqa-gru &
   apache2ctl start
-  start_daemon -u geekotest /usr/share/openqa/script/openqa prefork -m production --proxy
+  start_daemon -u geekotest /usr/share/openqa/script/openqa-webui-daemon
 }
 
 # run services

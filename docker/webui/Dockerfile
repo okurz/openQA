@@ -1,22 +1,17 @@
 #!BuildTag: openqa_webui
 FROM opensuse/leap:15.2
 LABEL maintainer Jan Sedlak <jsedlak@redhat.com>, Josef Skladanka <jskladan@redhat.com>, wnereiz <wnereiz@eienteiland.org>, Sergio Lindo Mansilla <slindomansilla@suse.com>
-LABEL version="0.3"
+LABEL version="0.4"
 
 RUN zypper ar -p 95 -f http://download.opensuse.org/repositories/devel:openQA/openSUSE_Leap_15.2 devel_openQA && \
     zypper ar -p 90 -f http://download.opensuse.org/repositories/devel:openQA:Leap:15.2/openSUSE_Leap_15.2 devel_openQA_Leap && \
     zypper --gpg-auto-import-keys ref && \
-    zypper --non-interactive in ca-certificates-mozilla curl && \
-    zypper --non-interactive in --force-resolution openQA-local-db apache2 hostname which w3m
+    zypper --non-interactive --no-refresh in --force-resolution --no-recommends openQA-local-db apache2 hostname ca-certificates-mozilla curl
 
-# setup apache
+RUN /usr/share/openqa/script/configure-web-proxy
+# setup apache for SSL
 RUN gensslcert && \
-    a2enmod headers && \
-    a2enmod proxy && \
-    a2enmod proxy_http && \
-    a2enmod proxy_wstunnel && \
     a2enmod ssl && \
-    a2enmod rewrite && \
     a2enflag SSL
 ADD openqa-ssl.conf /etc/apache2/vhosts.d/openqa-ssl.conf
 ADD openqa.conf /etc/apache2/vhosts.d/openqa.conf
