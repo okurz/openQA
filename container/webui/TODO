@@ -1,0 +1,1 @@
+test containers with "cd docker/webui && podman build ." and run
