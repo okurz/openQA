@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 package OpenQA::WebAPI::Controller::Admin::Influxdb;
-use Mojo::Base 'Mojolicious::Controller';
+use Mojo::Base 'OpenQA::Influxdb';
 
 use 5.018;
 
@@ -100,25 +100,6 @@ sub jobs {
             $text .= _queue_output_measure($url, $key, $tag, $result->{$key}->{$tag});
         }
     }
-
-    $self->render(text => $text);
-}
-
-sub minion {
-    my $self = shift;
-
-    my $stats = $self->app->minion->stats;
-    my $jobs  = {
-        active   => $stats->{active_jobs},
-        delayed  => $stats->{delayed_jobs},
-        failed   => $stats->{failed_jobs},
-        inactive => $stats->{inactive_jobs}};
-    my $workers = {active => $stats->{active_workers}, inactive => $stats->{inactive_workers}};
-
-    my $url  = $self->app->config->{global}->{base_url} || $self->req->url->base->to_string;
-    my $text = '';
-    $text .= _queue_output_measure($url, 'openqa_minion_jobs',    undef, $jobs);
-    $text .= _queue_output_measure($url, 'openqa_minion_workers', undef, $workers);
 
     $self->render(text => $text);
 }
