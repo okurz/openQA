@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package OpenQA::WebAPI::Controller::Admin::Influxdb;
-use Mojo::Base 'Mojolicious::Controller';
+use Mojo::Base 'OpenQA::Influxdb';
 
 use 5.018;
 
@@ -88,28 +88,6 @@ sub jobs {
             $text .= _queue_output_measure($url, $key, $tag, $result->{$key}->{$tag});
         }
     }
-
-    $self->render(text => $text);
-}
-
-sub minion {
-    my $self = shift;
-
-    my $stats = $self->app->minion->stats;
-    my $block_list = $self->app->config->{influxdb}->{ignored_failed_minion_jobs} || [];
-    my $filter_jobs_num = $self->app->minion->jobs({states => ['failed'], tasks => $block_list})->total;
-
-    my $jobs = {
-        active => $stats->{active_jobs},
-        delayed => $stats->{delayed_jobs},
-        failed => $stats->{failed_jobs} - $filter_jobs_num,
-        inactive => $stats->{inactive_jobs}};
-    my $workers = {active => $stats->{active_workers}, inactive => $stats->{inactive_workers}};
-
-    my $url = $self->app->config->{global}->{base_url} || $self->req->url->base->to_string;
-    my $text = '';
-    $text .= _queue_output_measure($url, 'openqa_minion_jobs', undef, $jobs);
-    $text .= _queue_output_measure($url, 'openqa_minion_workers', undef, $workers);
 
     $self->render(text => $text);
 }
