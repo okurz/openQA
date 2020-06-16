@@ -152,7 +152,7 @@ sub create {
     my $scheduled_product_id = $scheduled_product->id;
     $self->emit_event(openqa_iso_create => {scheduled_product_id => $scheduled_product_id});
 
-    # only spwan Minion job and return IDs if async flag has been passed
+    # only spawn Minion job and return IDs if async flag has been passed
     if ($async) {
         my %minion_job_args = (
             scheduled_product_id => $scheduled_product_id,
