@@ -628,7 +628,7 @@ sub _create_clone {
     # not be created, somebody else was faster at cloning)
     my $orig_id       = $self->id;
     my $affected_rows = $rset->search({id => $orig_id, clone_id => undef})->update({clone_id => $new_job->id});
-    die "Job $orig_id has already been cloned as " . $self->clone_id . "\n" unless $affected_rows == 1;
+    die "Unable to clone: Job $orig_id already has clone " . $self->clone_id . "\n" unless $affected_rows == 1;
 
     # Needed to load default values from DB
     $new_job->discard_changes;
