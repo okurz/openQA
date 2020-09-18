@@ -46,8 +46,7 @@ subtest 'Perl modules' => sub {
 
     like $driver->get_title(), qr/Search/, 'search shown' or return;
     my $header  = $driver->find_element_by_id('results-heading');
-    my $results = $driver->find_element_by_id('results');
-    my @entries = $results->children('.list-group-item');
+    my @entries = $driver->find_elements('#results .list-group-item');
     is $header->get_text(), 'Search results: ' . scalar @entries . ' matches found', 'number of results in header';
     is scalar @entries, 2, '2 elements' or return;
 
