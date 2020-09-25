@@ -12,6 +12,7 @@ use Mojo::File 'path';
 use OpenQA::Test::TimeLimit '8';
 use OpenQA::Test::Case;
 
+OpenQA::Test::Case::create_testresults_dir;
 my $schema = OpenQA::Test::Case->new->init_data(fixtures_glob => '01-jobs.pl 05-job_modules.pl 07-needles.pl');
 $schema->resultset('Assets')->search({size => undef})->update({size => 0});
 
