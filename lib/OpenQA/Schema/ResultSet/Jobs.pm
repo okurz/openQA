@@ -123,22 +123,19 @@ sub create_from_settings {
 
     my %settings     = %$settings;
     my %new_job_args = (TEST => $settings{TEST});
-
     my $result_source = $self->result_source;
     my $schema        = $result_source->schema;
     my $job_settings  = $schema->resultset('JobSettings');
     my $txn_guard     = $result_source->storage->txn_scope_guard;
 
     my @invalid_keys = grep { $_ =~ /^(PUBLISH_HDD|FORCE_PUBLISH_HDD|STORE_HDD)\S+(\d+)$/ && $settings{$_} =~ /\// }
-      keys %settings;
+    keys %settings;
     die 'The ' . join(',', @invalid_keys) . ' cannot include / in value' if @invalid_keys;
 
     # assign group ID
     my $group;
     my %group_args;
-    if ($settings{_GROUP_ID}) {
-        $group_args{id} = delete $settings{_GROUP_ID};
-    }
+    $group_args{id} = delete $settings{_GROUP_ID} if $settings{_GROUP_ID};
     if ($settings{_GROUP}) {
         my $group_name = delete $settings{_GROUP};
         $group_args{name} = $group_name unless $group_args{id};
@@ -175,22 +172,19 @@ sub create_from_settings {
         $ids = [split(/\s*,\s*/, $ids)] if (ref($ids) ne 'ARRAY');
 
         my $dependency_type = $dependency_definition->{dependency_type};
+        # note: "id" here is expected to be a "job ID" as number in case of
+        # "directly-chained" and strings in other cases
         for my $id (@$ids) {
-            if ($dependency_type eq OpenQA::JobDependencies::Constants::DIRECTLY_CHAINED) {
-                my $parent_worker_class = $job_settings->find({job_id => $id, key => 'WORKER_CLASS'});
-                if ($parent_worker_class = $parent_worker_class ? $parent_worker_class->value : '') {
-                    if (!$settings{WORKER_CLASS}) {
-                        # assume we want to use the worker class from the parent here (and not the default which
-                        # is otherwise assumed)
-                        $settings{WORKER_CLASS} = $parent_worker_class;
-                    }
-                    elsif ($settings{WORKER_CLASS} ne $parent_worker_class) {
-                        die "Specified WORKER_CLASS ($settings{WORKER_CLASS}) does not match the one from"
-                          . " directly chained parent $id ($parent_worker_class)";
-                    }
-                }
-            }
             push(@{$new_job_args{parents}}, {parent_job_id => $id, dependency => $dependency_type});
+            next unless $dependency_type eq OpenQA::JobDependencies::Constants::DIRECTLY_CHAINED;
+            my $parent_worker_class = $job_settings->find({job_id => $id, key => 'WORKER_CLASS'});
+            if ($parent_worker_class = $parent_worker_class ? $parent_worker_class->value : '') {
+                die "Specified WORKER_CLASS ($settings{WORKER_CLASS}) does not match the one from"
+                . " directly chained parent $id ($parent_worker_class)" if $settings{WORKER_CLASS} && $settings{WORKER_CLASS} ne $parent_worker_class;
+                # assume we want to use the worker class from the parent here (and not the default which
+                # is otherwise assumed)
+                $settings{WORKER_CLASS} = $parent_worker_class unless $settings{WORKER_CLASS};
+            }
         }
     }
 
@@ -202,9 +196,7 @@ sub create_from_settings {
     }
 
     # assign default for WORKER_CLASS
-    if (!$settings{WORKER_CLASS}) {
-        $settings{WORKER_CLASS} = 'qemu_' . ($new_job_args{ARCH} // 'x86_64');
-    }
+    $settings{WORKER_CLASS} //= 'qemu_' . ($new_job_args{ARCH} // 'x86_64');
 
     # assign scheduled product
     $new_job_args{scheduled_product_id} = $scheduled_product_id;
@@ -216,30 +208,13 @@ sub create_from_settings {
     my $now = now;
     for my $key (keys %settings) {
         my $concatenated_value = $settings{$key};
-
-        my @values;
-        if ($key eq 'WORKER_CLASS') {
-            @values = split(m/,/, $concatenated_value);
-        }
-        else {
-            @values = ($concatenated_value);
-        }
-
-        for my $value (@values) {
-            push(@job_settings, {t_created => $now, t_updated => $now, key => $key, value => $value});
-        }
+        my @values = $key eq 'WORKER_CLASS' ? split(m/,/, $concatenated_value) : ($concatenated_value);
+        push(@job_settings, {t_created => $now, t_updated => $now, key => $key, value => $_}) for (@values);
     }
     $job->settings->populate(\@job_settings);
-
-    # associate currently available assets with job
-    $job->register_assets_from_settings;
-
-    if (%group_args && !$group) {
-        log_warning('Ignoring invalid group ' . encode_json(\%group_args) . ' when creating new job ' . $job->id);
-    }
-
+    $job->register_assets_from_settings;  # associate currently available assets with job
+    log_warning('Ignoring invalid group ' . encode_json(\%group_args) . ' when creating new job ' . $job->id) if %group_args && !$group;
     $job->calculate_blocked_by;
-
     $txn_guard->commit;
     return $job;
 }

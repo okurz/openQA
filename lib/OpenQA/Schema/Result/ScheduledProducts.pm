@@ -220,7 +220,7 @@ sub _schedule_iso {
         return {error => "Failed to register asset $name."}        unless $assets->register($type, $name, 1);
     }
 
-    # read arguments for deprioritization and obsoleten
+    # read arguments for deprioritization and obsoleting
     my $deprioritize       = delete $args->{_DEPRIORITIZEBUILD} // 0;
     my $deprioritize_limit = delete $args->{_DEPRIORITIZE_LIMIT};
     my $obsolete           = delete $args->{_OBSOLETE}                 // 0;
@@ -444,6 +444,8 @@ sub _sort_dep {
         for my $job (@$list) {
             next if $done{$job};
             my @parents;
+            # TODO this looks very similar to what we do in _generate_jobs,
+            # DRY?
             push @parents, _parse_dep_variable($job->{START_AFTER_TEST}, $job),
               _parse_dep_variable($job->{START_DIRECTLY_AFTER_TEST}, $job),
               _parse_dep_variable($job->{PARALLEL_WITH},             $job);
@@ -535,9 +537,7 @@ sub _generate_jobs {
     for my $product (@products) {
         # find job templates
         my $templates = $product->job_templates;
-        if (defined $group_id) {
-            $templates = $templates->search({group_id => $group_id});
-        }
+        $templates = $templates->search({group_id => $group_id}) if defined $group_id;
         my @templates = $templates->all;
 
         unless (@templates) {
@@ -565,16 +565,15 @@ sub _generate_jobs {
             $settings{GROUP_ID} = $job_template->group_id;
 
             if (!$args->{MACHINE} || $args->{MACHINE} eq $settings{MACHINE}) {
-                if (!@tests) {
-                    $wanted{_settings_key(\%settings)} = 1;
+                if (@tests) {
+                    foreach my $test (@tests) {
+                        next unless $test eq $settings{TEST};
+                        $wanted{_settings_key(\%settings)} = 1;
+                        last;
+                    }
                 }
                 else {
-                    foreach my $test (@tests) {
-                        if ($test eq $settings{TEST}) {
-                            $wanted{_settings_key(\%settings)} = 1;
-                            last;
-                        }
-                    }
+                    $wanted{_settings_key(\%settings)} = 1;
                 }
             }
             push @$ret, \%settings;
