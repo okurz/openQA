@@ -1,5 +1,16 @@
-# Copyright 2012-2021 SUSE LLC
-# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2012-2021 SUSE LLC
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
 
 package OpenQA::Utils;
 
@@ -34,6 +45,8 @@ my $FRAG_REGEX = FRAGMENT_REGEX;
 
 our $VERSION = sprintf "%d.%03d", q$Revision: 1.12 $ =~ /(\d+)/g;
 our @EXPORT = qw(
+  address_ipv4
+  address_ipv6
   locate_needle
   needledir
   productdir
@@ -165,7 +178,10 @@ sub is_in_tests {
       || index($file, catdir($abs_projdir, 'tests')) == 0;
 }
 
-sub needledir { productdir(@_) . '/needles' }
+sub needledir {
+    my ($distri, $version) = @_;
+    return productdir($distri, $version) . '/needles';
+}
 
 sub locate_needle {
     my ($relative_needle_path, $needles_dir) = @_;
@@ -796,15 +812,17 @@ sub logistic_map_steps {
 }
 sub rand_range { $_[0] + rand($_[1] - $_[0]) }
 sub in_range { $_[0] >= $_[1] && $_[0] <= $_[2] ? 1 : 0 }
+sub address_ipv4 { $ENV{OPENQA_IPV4_LISTEN_ADDRESS} // 'http://127.0.0.1' }
+sub address_ipv6 { $ENV{OPENQA_IPV6_LISTEN_ADDRESS} // 'http://[::1]' }
 
 sub set_listen_address {
     my $port = shift;
 
     return if $ENV{MOJO_LISTEN};
-    my @listen_addresses = ("http://127.0.0.1:$port");
+    my @listen_addresses = (address_ipv4() . ":$port");
 
     # Check for IPv6
-    push @listen_addresses, "http://[::1]:$port" if IO::Socket::IP->new(Listen => 5, LocalAddr => '::1');
+    push @listen_addresses, address_ipv6() . ":$port" if IO::Socket::IP->new(Listen => 5, LocalAddr => '::1');
 
     $ENV{MOJO_LISTEN} = join ',', @listen_addresses;
 }
