@@ -801,10 +801,12 @@ sub set_listen_address {
     my $port = shift;
 
     return if $ENV{MOJO_LISTEN};
-    my @listen_addresses = ("http://127.0.0.1:$port");
+    my $address_ipv4     = $ENV{OPENQA_IPV4_LISTEN_ADDRESS} // 'http://127.0.0.1';
+    my @listen_addresses = ("$address_ipv4:$port");
 
+    my $address_ipv6 = $ENV{OPENQA_IPV6_LISTEN_ADDRESS} // 'http://[::1]';
     # Check for IPv6
-    push @listen_addresses, "http://[::1]:$port" if IO::Socket::IP->new(Listen => 5, LocalAddr => '::1');
+    push @listen_addresses, "$address_ipv6:$port" if IO::Socket::IP->new(Listen => 5, LocalAddr => '::1');
 
     $ENV{MOJO_LISTEN} = join ',', @listen_addresses;
 }
