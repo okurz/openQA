@@ -35,6 +35,7 @@ common_requires:
   perl(Data::Dumper):
   perl(Digest::MD5):
   perl(Getopt::Long):
+  perl(Getopt::Long::Descriptive):
   perl(Minion): '>= 10.12'
   perl(Mojolicious): '>= 8.55'
   perl(Regexp::Common):
