@@ -10,6 +10,7 @@ libjq1-1.6
 libonig4-6.7.0
 libssh2-1-1.9.0
 lsof-4.91
+make
 optipng-0.7.7
 perl-Algorithm-C3-0.10
 perl-Algorithm-Diff-1.1903
@@ -223,7 +224,7 @@ perl-Test-Differences-0.64
 perl-Test-Exception-0.430000
 perl-Test-Fatal-0.014
 perl-Test-LongString-0.17
-perl-Test-MockModule-0.177.0
+perl-Test-MockModule-0.13
 perl-Test-MockObject-1.20161202
 perl-Test-MockRandom-1.01
 perl-Test-Mock-Time-0.1.7
@@ -236,7 +237,6 @@ perl-Text-Brew-0.02
 perl-Text-Diff-1.45
 perl-TimeDate-2.30
 perl-Time-modules-2011.0517
-perl-Time-Moment-0.44
 perl-Try-Tiny-0.30
 perl-Types-Serialiser-1.0
 perl-UNIVERSAL-can-1.20140328
@@ -257,8 +257,14 @@ perl-YAML-1.24
 perl-YAML-LibYAML-0.83
 perl-YAML-PP-0.030
 psmisc-23.0
+postgresql-server
+python3-appdirs-1.4.3
+python3-packaging-20.3
 python3-pathspec-0.7.0
-python3-PyYAML-5.4.1
+python3-pyparsing-2.2.0
+python3-PyYAML-5.3.1
+python3-setuptools-40.5.0
 python3-yamllint-1.22.1
+ruby2.5-rubygem-sass
 ShellCheck-0.7.1
 sqlite3-3.36.0

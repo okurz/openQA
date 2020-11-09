@@ -3,42 +3,28 @@ version: 2
 aliases:
   - &restore_cache
     keys:
-      - v1-{{ checksum "tools/ci/ci-packages.txt" }}-{{ checksum "tools/ci/build_cache.sh" }}
+      - v1-{{ checksum ".circleci/ci-packages.txt" }}-{{ checksum ".circleci/build_cache.sh" }}
 
   - &save_cache
-    key: v1-{{ checksum "tools/ci/ci-packages.txt" }}-{{ checksum "tools/ci/build_cache.sh" }}
+    key: v1-{{ checksum ".circleci/ci-packages.txt" }}-{{ checksum ".circleci/build_cache.sh" }}
     paths:
       - "/var/cache/zypp/packages"
       - "~/project/assets/cache"
 
   - &restore_fullstack_cache
     keys:
-      - v1-{{ checksum "tools/ci/autoinst.sha" }}-{{ checksum "tools/ci/build_autoinst.sh" }}
+      - v1-{{ checksum ".circleci/autoinst.sha" }}-{{ checksum ".circleci/build_autoinst.sh" }}
 
   - &save_fullstack_cache
-    key: v1-{{ checksum "tools/ci/autoinst.sha" }}-{{ checksum "tools/ci/build_autoinst.sh" }}
+    key: v1-{{ checksum ".circleci/autoinst.sha" }}-{{ checksum ".circleci/build_autoinst.sh" }}
     paths:
       - "/var/cache/autoinst"
-
-  - &chown_hack_for_cache
-    name: Chown package cache to user
-    command: |
-      [ -z "$CIRCLE_WORKFLOW_ID" ] || sudo chown -R squamata /var/cache/zypp/packages
-
-  - &chown_hack_for_cache_fullstack
-    name: Chown autoinst cache to user
-    command: |
-      # hack as we don't want run container as root
-      [ -z "$CIRCLE_WORKFLOW_ID" ] || {
-        sudo mkdir -p /var/cache/autoinst
-        sudo chown -R squamata /var/cache/autoinst
-      }
 
   - &check_cache
     name: Log cached packages
     command: |
       mkdir -p logs
-      find /var/cache/zypp/packages/ -iname *.rpm > ./logs/packages.txt
+      ! [ -d /var/cache/zypp/packages ] || find /var/cache/zypp/packages/ -iname *.rpm > ./logs/packages.txt
 
   - &store_logs
     path: logs
@@ -46,7 +32,13 @@ aliases:
 
   - &install_cached_packages
     name: Install cached packages
-    command: tools/ci/build_or_install_from_cache.sh
+    command: |
+        set -x
+        if [ -z "$CIRCLE_WORKFLOW_ID" ]; then
+          bash .circleci/build_cache.sh
+        else
+          rpm -i -f $(find /var/cache/zypp/packages/ | grep '.rpm$')
+        fi
 
   - &test_junit
     name: "Enabling JUnit output for Perl tests"
@@ -71,15 +63,19 @@ aliases:
       if [ ! -z "$CIRCLE_WORKFLOW_ID" ]; then # only in workflow
         rm -rf ../os-autoinst
         sudo cp -r /var/cache/autoinst ../os-autoinst
-        sudo chown -R 1000 ../os-autoinst/t/data
       else # only in local run
-         [ -d ../os-autoinst ] || { sudo mkdir ../os-autoinst && sudo chown -R 1000 ../os-autoinst; }
-         bash tools/ci/build_autoinst.sh ../os-autoinst
+         bash .circleci/build_autoinst.sh ../os-autoinst $(cat .circleci/autoinst.sha)
        fi
 
   - &make_test
     name: "Running unit tests"
-    command: tools/ci/run_unit_tests.sh
+    command: |
+      export COVERAGE=1
+      export COVERDB_SUFFIX="_${CIRCLE_JOB}"
+      # circleCI can be particularly slow sometimes since some time around 2021-06
+      export OPENQA_TEST_TIMEOUT_SCALE_CI=3
+      export EXTRA_PROVE_ARGS="-v"
+      make test-$CIRCLE_JOB
     no_output_timeout: 50m
 
   - &git_token_authentication
@@ -91,7 +87,6 @@ aliases:
 
 images:
   - &docker_config
-    user: squamata
     environment:
       JUNIT_PACKAGE: openQA
       JUNIT_NAME_MANGLE: perl
@@ -108,7 +103,7 @@ images:
       CONTAINER_TEST: 0
 
   - &base
-    image: registry.opensuse.org/devel/openqa/ci/containers/base:latest
+    image: registry.opensuse.org/home/okurz/branches/devel/openqa/pr3529_use_tiny_base/containers/leap:tar
     <<: *docker_config
 
   - &dependency_bot
@@ -126,12 +121,12 @@ jobs:
           name: "Setup git"
           command: |
             git config user.email "${COMMIT_AUTHOR_EMAIL}"
-            git config user.name "Dependency bot CI"
+            git config user.name "Dependency bot circleci"
             git config core.autocrlf true
       - run: *git_token_authentication
       - run:
           name: "Prepare dependency PR"
-          command: tools/ci/prepare_dependency_pr.sh
+          command: .circleci/prepare_dependency_pr.sh
 
   cache:
     docker:
@@ -139,8 +134,7 @@ jobs:
     steps:
       - checkout
       - run: ls -la && pwd
-      - run: cat tools/ci/ci-packages.txt
-      - run: *chown_hack_for_cache
+      - run: cat .circleci/ci-packages.txt
       - restore_cache: *restore_cache
       - run: *check_cache
       - store_artifacts: *store_logs
@@ -148,7 +142,7 @@ jobs:
           name: "Generate packaged assets"
           command: |
             if [ ! -d /var/cache/zypp/packages/openQA ]; then
-              bash -x tools/ci/build_cache.sh
+              bash -x .circleci/build_cache.sh
               tools/generate-packed-assets
             fi
       - save_cache: *save_cache
@@ -158,8 +152,6 @@ jobs:
       - <<: *base
     steps:
       - checkout
-      - run: *chown_hack_for_cache
-      - run: *chown_hack_for_cache_fullstack
       - restore_cache: *restore_cache
       - restore_cache: *restore_fullstack_cache
       - run: *check_cache
@@ -168,7 +160,7 @@ jobs:
           name: "Build os-autoinst if not cached"
           command: |
             if [ ! -d /var/cache/autoinst/t ]; then
-              bash -x tools/ci/build_autoinst.sh "/var/cache/autoinst"
+              bash -x .circleci/build_autoinst.sh "/var/cache/autoinst" $(cat .circleci/autoinst.sha)
             fi
       - save_cache: *save_fullstack_cache
 
@@ -177,7 +169,6 @@ jobs:
       - <<: *base
     steps:
       - checkout
-      - run: *chown_hack_for_cache
       - restore_cache: *restore_cache
       - run: *check_cache
       - store_artifacts: *store_logs
@@ -196,8 +187,6 @@ jobs:
       - <<: *base
     steps:
       - checkout
-      - run: *chown_hack_for_cache
-      - run: *chown_hack_for_cache_fullstack
       - restore_cache: *restore_cache
       - restore_cache: *restore_fullstack_cache
       - run: *check_cache
@@ -235,7 +224,6 @@ jobs:
       - <<: *base
     steps:
       - checkout
-      - run: *chown_hack_for_cache
       - restore_cache: *restore_cache
       - run: *check_cache
       - store_artifacts: *store_logs
@@ -250,7 +238,7 @@ jobs:
       - run: make coverage-report-html
       - store_artifacts: *store_cover_db
       - run: make coverage-report-codecov
-      - run: curl -O https://uploader.codecov.io/latest/linux/codecov && chmod +x codecov && ./codecov
+      - run: bash <(curl -s https://codecov.io/bash)
 
   build-docs: &docs-template
     name: "Generating docs"
@@ -258,13 +246,12 @@ jobs:
       - <<: *base
     steps:
       - checkout
-      - run: *chown_hack_for_cache
       - restore_cache: *restore_cache
       - run: *check_cache
       - store_artifacts: *store_logs
       - run: *install_cached_packages
       - run: *git_token_authentication
-      - run: tools/ci/build-docs
+      - run: tools/build-docs-ci
 
   build-docs-nightly:
     <<: *docs-template
