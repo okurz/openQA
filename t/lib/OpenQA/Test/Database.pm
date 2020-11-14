@@ -63,6 +63,7 @@ sub insert_fixtures {
 
     $fixtures_glob //= '*.pl';
     foreach my $fixture (glob "$fixtures_glob") {
+        warn "FIXTURES: $fixture";
 
         my $info = eval path($fixture)->slurp;    ## no critic
         chdir $cwd, croak "Could not insert fixture $fixture: $@" if $@;

@@ -20,6 +20,9 @@ sub new {
     return $self;
 }
 
+# TODO this creates t/data/openqa/testresults, I think as a copy from
+# t/testresults but in t/ui/07-file.t the server does not find it anymore
+# after skipping fixtures
 sub init_data {
     my ($self, %options) = @_;
 
