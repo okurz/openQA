@@ -1,5 +1,17 @@
-# Copyright 2020-2021 SUSE LLC
-# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2020-2021 SUSE LLC
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <http://www.gnu.org/licenses/>.
 
 package OpenQA::Test::TimeLimit;
 use Test::Most;
@@ -11,7 +23,7 @@ sub import {
     die "$package: Need argument on import, e.g. use: use OpenQA::Test::TimeLimit '42';" unless $limit;
     # disable timeout if requested by ENV variable or running within debugger
     return if ($ENV{OPENQA_TEST_TIMEOUT_DISABLE} or $INC{'perl5db.pl'});
-    $SCALE_FACTOR *= $ENV{OPENQA_TEST_TIMEOUT_SCALE_COVER} // 3 if Devel::Cover->can('report');
+    $SCALE_FACTOR *= $ENV{OPENQA_TEST_TIMEOUT_SCALE_COVER} // 4 if Devel::Cover->can('report');
     $SCALE_FACTOR *= $ENV{OPENQA_TEST_TIMEOUT_SCALE_CI} // 2 if $ENV{CI};
     $limit *= $SCALE_FACTOR;
     $SIG{ALRM} = sub { BAIL_OUT "test '$0' exceeds runtime limit of '$limit' seconds\n" };
