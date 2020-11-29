@@ -2027,7 +2027,8 @@ sub done {
 
     # bugrefs are there to mark reasons of failure - the function checks itself though
     my $carried_over = $self->carry_over_bugrefs;
-    $self->detect_known_issues unless $carried_over;
+    my $known_issue_detected = $self->detect_known_issues unless $carried_over;
+    $self->trigger_investigation_jobs unless $known_issue_detected;
     $self->unblock;
 
     return $result;
