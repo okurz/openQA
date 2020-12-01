@@ -179,7 +179,8 @@ test-unit-and-integration:
 run-tests-within-container:
 	tools/run-tests-within-container
 
-COVER_OPTS ?= -select_re '^/lib' +ignore_re lib/perlcritic/Perl/Critic/Policy -coverage statement
+COVER_SELECT_RE ?= -select_re '^(lib|script|t)/'
+COVER_OPTS ?= +ignore_re lib/perlcritic/Perl/Critic/Policy -coverage statement
 
 comma := ,
 space :=
@@ -193,15 +194,13 @@ print-cover-opt:
 coverage:
 	cover ${COVER_OPTS} -test
 
-COVER_REPORT_OPTS ?= -select_re '^(lib|script|t)/'
-
 .PHONY: coverage-codecov
 coverage-codecov: coverage
-	cover $(COVER_REPORT_OPTS) -report codecov
+	cover $(COVER_SELECT_RE) -report codecov
 
 .PHONY: coverage-html
 coverage-html: coverage
-	cover $(COVER_REPORT_OPTS) -report html_basic
+	cover $(COVER_SELECT_RE) -report html_basic
 
 public/favicon.ico: assets/images/logo.svg
 	for w in 16 32 64 128; do \
