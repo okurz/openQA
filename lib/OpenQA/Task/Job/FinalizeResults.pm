@@ -3,7 +3,7 @@
 
 package OpenQA::Task::Job::FinalizeResults;
 use Mojo::Base 'Mojolicious::Plugin', -signatures;
-use OpenQA::Jobs::Constants 'CANCELLED';
+use OpenQA::Jobs::Constants qw(CANCELLED OK_RESULTS);
 use Time::Seconds;
 
 sub register {
@@ -35,7 +35,8 @@ sub _finalize_results {
         $minion_job->fail("Finalizing results of $count modules failed");
     }
     return if $openqa_job->state eq CANCELLED;
-    return if $carried_over;
+    # bugrefs are there to mark reasons of failure - the function checks itself though
+    return if $openqa_job->carry_over_bugrefs;
     my $key = 'job_done_hook_' . $openqa_job->result;
     if (my $hook = $ENV{'OPENQA_' . uc $key} // $app->config->{hooks}->{lc $key}) {
         my $timeout = $ENV{OPENQA_JOB_DONE_HOOK_TIMEOUT} // '5m';
