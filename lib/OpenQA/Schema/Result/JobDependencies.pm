@@ -28,12 +28,6 @@ __PACKAGE__->set_primary_key('child_job_id', 'parent_job_id', 'dependency');
 __PACKAGE__->belongs_to(child => 'OpenQA::Schema::Result::Jobs', 'child_job_id');
 __PACKAGE__->belongs_to(parent => 'OpenQA::Schema::Result::Jobs', 'parent_job_id');
 
-sub sqlt_deploy_hook {
-    my ($self, $sqlt_table) = @_;
-
-    $sqlt_table->add_index(name => 'idx_job_dependencies_dependency', fields => ['dependency']);
-}
-
 sub to_string {
     my ($self) = @_;
     return OpenQA::JobDependencies::Constants::display_name($self->dependency);

@@ -81,12 +81,6 @@ __PACKAGE__->belongs_to(
 );
 __PACKAGE__->add_unique_constraint([qw(job_id name category script)]);
 
-sub sqlt_deploy_hook {
-    my ($self, $sqlt_table) = @_;
-
-    $sqlt_table->add_index(name => 'idx_job_modules_result', fields => ['result']);
-}
-
 sub results {
     my ($self, %options) = @_;
     my $skip_text_data = $options{skip_text_data};
