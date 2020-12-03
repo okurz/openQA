@@ -1,5 +1,17 @@
-# Copyright 2015-2019 SUSE LLC
-# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2015-2021 SUSE LLC
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <http://www.gnu.org/licenses/>.
 
 package OpenQA::Schema::Result::GruTasks;
 
@@ -47,22 +59,13 @@ __PACKAGE__->filter_column(
         filter_from_storage => 'decode_json_from_db',
     });
 
-sub sqlt_deploy_hook {
-    my ($self, $sqlt_table) = @_;
-
-    $sqlt_table->add_index(name => 'gru_tasks_run_at_reversed', fields => 'run_at DESC');
-}
-
 sub decode_json_from_db {
     my $ret = decode_json($_[1]);
     return $ret->{_} if ref($ret) eq 'HASH' && defined $ret->{_};
     return $ret;
 }
 
-sub encode_json_to_db {
-    my $args = $_[1];
-    encode_json($args);
-}
+sub encode_json_to_db { encode_json($_[1]) }
 
 sub fail {
     my ($self, $reason) = @_;
