@@ -31,12 +31,14 @@ use lib "$FindBin::Bin/lib", "$FindBin::Bin/../external/os-autoinst-common/lib";
 use Test::Warnings ':report_warnings';
 use OpenQA::Utils;
 use IO::Socket::INET;
+use IPC::Run 'start';
 use Mojo::Server::Daemon;
 use Mojo::IOLoop::Server;
 use POSIX '_exit';
 use Mojo::IOLoop::ReadWriteProcess qw(queue process);
 use Mojo::IOLoop::ReadWriteProcess::Session 'session';
-use OpenQA::Test::Utils qw(fake_asset_server cache_minion_worker cache_worker_service wait_for_or_bail_out);
+use OpenQA::Test::Utils
+  qw(fake_asset_server cache_minion_worker cache_worker_service stop_service wait_for_or_bail_out);
 use OpenQA::Test::TimeLimit '90';
 use Mojo::Util qw(md5_sum);
 use OpenQA::CacheService;
@@ -55,24 +57,22 @@ my $daemon;
 my $cache_service = cache_worker_service;
 my $worker_cache_service = cache_minion_worker;
 
-my $server_instance = process sub {
-    # Connect application with web server and start accepting connections
-    $daemon = Mojo::Server::Daemon->new(app => fake_asset_server, listen => [$host])->silent(1);
-    $daemon->run;
-    Devel::Cover::report() if Devel::Cover->can('report');
-    _exit(0);    # uncoverable statement to ensure proper exit code of complete test at cleanup
-  },
-  max_kill_attempts => 0,
-  blocking_stop => 1,
-  _default_blocking_signal => POSIX::SIGTERM,
-  kill_sleeptime => 0;
+my $server_instance;
 
 sub start_server {
-    $server_instance->set_pipes(0)->separate_err(0)->blocking_stop(1)->channels(0)->restart;
+    $server_instance = start sub {
+        # Connect application with web server and start accepting connections
+        $daemon = Mojo::Server::Daemon->new(app => fake_asset_server, listen => [$host])->silent(1);
+        $daemon->run;
+        Devel::Cover::report() if Devel::Cover->can('report');
+        _exit(0);    # uncoverable statement to ensure proper exit code of complete test at cleanup
+    };
     $cache_service->set_pipes(0)->separate_err(0)->blocking_stop(1)->channels(0)->restart->restart;
     $worker_cache_service->restart;
     wait_for_or_bail_out { $cache_client->info->available } 'cache service';
 }
+
+END { stop_service($server_instance) }
 
 sub test_default_usage {
     my ($id, $asset) = @_;
@@ -198,6 +198,8 @@ subtest 'Cache Requests' => sub {
 };
 
 start_server;
+END { $cache_service->stop }
+
 ok $cache_client->info->available, 'cache service is available';
 
 subtest 'Invalid requests' => sub {
@@ -613,8 +615,6 @@ subtest 'OpenQA::CacheService::Task::Sync' => sub {
     $worker_2->stop;
 };
 
-$server_instance->stop;
-$cache_service->stop;
 done_testing();
 
 1;
