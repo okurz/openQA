@@ -135,6 +135,9 @@ test: test-with-database
 else
 test: test-checkstyle-standalone test-with-database
 endif
+ifeq ($(CONTAINER_TEST),1)
+test: test-containers-compose
+endif
 endif
 
 .PHONY: test-checkstyle
@@ -294,6 +297,10 @@ test-check-containers:
 .PHONY: tidy
 tidy: tidy-js
 	tools/tidy
+
+.PHONY: test-containers-compose
+test-containers-compose:
+	for i in $(wildcard container/**/docker-compose.yaml); do sudo docker-compose up -d -f $$i;  done
 
 .PHONY: update-deps
 update-deps:
