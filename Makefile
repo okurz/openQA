@@ -300,7 +300,9 @@ tidy: tidy-js
 
 .PHONY: test-containers-compose
 test-containers-compose:
-	for i in $(wildcard container/**/docker-compose.yaml); do sudo docker-compose up -d -f $$i;  done
+	curl -L "https://github.com/docker/compose/releases/download/1.28.5/docker-compose-$(uname -s)-$(uname -m)" -o /bin/docker-compose
+	chmod a+x /bin/docker-compose
+	for i in $(wildcard container/**/docker-compose.yaml); do docker-compose up -d -f $$i;  done
 
 .PHONY: update-deps
 update-deps:
