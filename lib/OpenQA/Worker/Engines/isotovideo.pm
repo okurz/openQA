@@ -1,5 +1,17 @@
-# Copyright 2015-2021 SUSE LLC
-# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2015-2021 SUSE LLC
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <http://www.gnu.org/licenses/>.
 
 package OpenQA::Worker::Engines::isotovideo;
 use Mojo::Base -base, -signatures;
@@ -268,51 +280,16 @@ sub do_asset_caching ($job, $vars, $cache_dir, $assetkeys, $webui_host, $pooldir
         });
 }
 
-sub engine_workit ($job, $callback) {
-    my $worker = $job->worker;
-    my $client = $job->client;
-    my $global_settings = $worker->settings->global_settings;
-    my $pooldir = $worker->pool_directory;
-    my $instance = $worker->instance_number;
-    my $workerid = $client->worker_id;
-    my $webui_host = $client->webui_host;
-    my $job_info = $job->info;
-
-    log_debug('Preparing Mojo::IOLoop::ReadWriteProcess::Session');
-    session->enable;
-    session->reset;
-    session->enable_subreaper;
-
-    my ($sysname, $hostname, $release, $version, $machine) = POSIX::uname();
-    log_info('+++ setup notes +++', channels => 'autoinst');
-    log_info(sprintf("Running on $hostname:%d ($sysname $release $version $machine)", $instance),
-        channels => 'autoinst');
-
-    log_error("Failed enabling subreaper mode", channels => 'autoinst') unless session->subreaper;
-
-    # XXX: this should come from the worker table. Only included
-    # here for convenience when looking at the pool of
-    # debugging.
-    my $job_settings = $job_info->{settings};
-    for my $i (qw(QEMUPORT VNC OPENQA_HOSTNAME)) {
-        $job_settings->{$i} = $ENV{$i};
-    }
-    if (open(my $fh, '>', 'job.json')) {
-        print $fh Cpanel::JSON::XS->new->pretty(1)->encode($job_info);
-        close $fh;
-    }
-
+sub prepare_environment ($webui_host, $instance, $worker_id, $global_settings, $job, $pooldir) {
     # pass worker instance and worker id to isotovideo
     # both used to create unique MAC and TAP devices if needed
     # workerid is also used by libvirt backend to identify VMs
-    my $openqa_url = $webui_host;
     my %vars = (
-        OPENQA_URL => $openqa_url,
+        OPENQA_URL => $webui_host,
         WORKER_INSTANCE => $instance,
-        WORKER_ID => $workerid,
+        WORKER_ID => $worker_id,
         PRJDIR => OpenQA::Utils::sharedir(),
-        %$job_settings
-    );
+        %$job->info->{settings});
     # note: PRJDIR is used as base for relative needle paths by os-autoinst. This is supposed to change
     #       but for compatibility with current old os-autoinst we need to set PRJDIR for a consistent
     #       behavior.
@@ -431,6 +408,43 @@ sub _engine_workit_step_2 ($job, $job_settings, $vars, $shared_cache, $callback)
         if (my $error = _link_repo($default_needles_dir, $pooldir, $needles_dir)) { return $callback->($error) }
     }
     _save_vars($pooldir, $vars);
+}
+
+sub engine_workit ($job, $callback) {
+    my $worker = $job->worker;
+    my $client = $job->client;
+    my $global_settings = $worker->settings->global_settings;
+    my $pooldir = $worker->pool_directory;
+    my $instance = $worker->instance_number;
+    my $workerid = $client->worker_id;
+    my $webui_host = $client->webui_host;
+    my $job_info = $job->info;
+
+    log_debug('Preparing Mojo::IOLoop::ReadWriteProcess::Session');
+    session->enable;
+    session->reset;
+    session->enable_subreaper;
+
+    my ($sysname, $hostname, $release, $version, $machine) = POSIX::uname();
+    log_info('+++ setup notes +++', channels => 'autoinst');
+    log_info(sprintf("Running on $hostname:%d ($sysname $release $version $machine)", $instance),
+        channels => 'autoinst');
+
+    log_error("Failed enabling subreaper mode", channels => 'autoinst') unless session->subreaper;
+
+    # XXX: this should come from the worker table. Only included
+    # here for convenience when looking at the pool of
+    # debugging.
+    my $job_settings = $job_info->{settings};
+    for my $i (qw(QEMUPORT VNC OPENQA_HOSTNAME)) {
+        $job_settings->{$i} = $ENV{$i};
+    }
+    if (open(my $fh, '>', 'job.json')) {
+        print $fh Cpanel::JSON::XS->new->pretty(1)->encode($job_info);
+        close $fh;
+    }
+
+    prepare_environment($client->webui_host, $instance, $client->worker_id, $global_settings, $job, $pooldir);
 
     # os-autoinst's commands server
     $job_info->{URL}
