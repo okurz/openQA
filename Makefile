@@ -193,8 +193,8 @@ test-with-database:
 
 .PHONY: test-unit-and-integration
 test-unit-and-integration:
-	export GLOBIGNORE="$(GLOBIGNORE)";\
-	export DEVEL_COVER_DB_FORMAT=JSON;\
+	export GLOBIGNORE="$(GLOBIGNORE)"
+	export DEVEL_COVER_DB_FORMAT=JSON
 	export PERL5OPT="$(COVEROPT)$(PERL5OPT) -It/lib -I$(PWD)/t/lib -MOpenQA::Test::PatchDeparse";\
 	RETRY=${RETRY} HOOK=./tools/delete-coverdb-folder timeout -s SIGINT -k 5 -v ${TIMEOUT_RETRIES} tools/retry prove ${PROVE_LIB_ARGS} ${PROVE_ARGS}
 
