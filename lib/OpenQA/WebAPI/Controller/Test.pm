@@ -20,25 +20,18 @@ sub referer_check {
     my ($self) = @_;
     return $self->reply->not_found if (!defined $self->param('testid'));
     my $referer = $self->req->headers->header('Referer') // '';
-    if ($referer) {
-        $self->schema->resultset('Jobs')->mark_job_linked($self->param('testid'), $referer);
-    }
+    return 1 unless $referer;
+    $self->schema->resultset('Jobs')->mark_job_linked($self->param('testid'), $referer);
     return 1;
 }
 
-sub list {
-    my ($self) = @_;
-}
+sub list { }
 
 sub get_match_param {
     my ($self) = @_;
 
-    my $match;
-    if (defined($self->param('match'))) {
-        $match = $self->param('match');
-        $match =~ s/[^\w\[\]\{\}\(\),:.+*?\\\$^|-]//g;    # sanitize
-    }
-    return $match;
+    return undef unless defined $self->param('match');
+    return $self->param('match') =~ s/[^\w\[\]\{\}\(\),:.+*?\\\$^|-]//gr;    # sanitize
 }
 
 sub list_ajax ($self) {
@@ -228,10 +221,7 @@ sub details {
     my @ret;
 
     for my $module (@{$modules->{modules}}) {
-        for my $step (@{$module->{details}}) {
-            delete $step->{needles};
-        }
-
+        delete $_->{needles} for @{$module->{details}};
         my $hash = {
             name => $module->{name},
             category => $module->{category},
@@ -305,6 +295,12 @@ sub settings {
     $self->render('test/settings');
 }
 
+sub test_file_path ($self, $testcasedir, $dir, $data_uri) {
+    return path($dir, $data_uri) if -d path($testcasedir)->child($dir);
+    my $default_data_dir = $self->app->config->{job_settings_ui}->{default_data_dir};
+    return path($default_data_dir, $dir, $data_uri);
+}
+
 =over 4
 
 =item show_filesrc()
@@ -316,22 +312,13 @@ So this works in the same way as the test module source.
 
 =cut
 
-sub show_filesrc {
-    my ($self) = @_;
-    my $job = $self->_stash_job or return $self->reply->not_found;
-    my $jobid = $self->param('testid');
-    my $dir = $self->stash('dir');
-    my $data_uri = $self->stash('link_path');
+sub show_filesrc ($self) {
+    my $job         = $self->_stash_job or return $self->reply->not_found;
+    my $jobid       = $self->param('testid');
+    my $dir         = $self->stash('dir');
+    my $data_uri    = $self->stash('link_path');
     my $testcasedir = testcasedir($job->DISTRI, $job->VERSION);
-    # Use the testcasedir to determine the correct path
-    my $filepath;
-    if (-d path($testcasedir)->child($dir)) {
-        $filepath = path($dir, $data_uri);
-    }
-    else {
-        my $default_data_dir = $self->app->config->{job_settings_ui}->{default_data_dir};
-        $filepath = path($default_data_dir, $dir, $data_uri);
-    }
+    my $filepath    = $self->test_file_path($testcasedir, $dir, $data_uri);
 
     if (my $casedir = $job->settings->single({key => 'CASEDIR'})) {
         my $casedir_url = Mojo::URL->new($casedir->value);
