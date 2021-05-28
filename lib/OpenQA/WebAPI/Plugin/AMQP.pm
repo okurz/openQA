@@ -16,8 +16,7 @@ use Scalar::Util qw(looks_like_number);
 my @job_events = qw(job_create job_delete job_cancel job_restart job_update_result job_done);
 my @comment_events = qw(comment_create comment_update comment_delete);
 
-sub new {
-    my $class = shift;
+sub new ($class) {
     my $self = $class->SUPER::new(@_);
     $self->{app} = undef;
     $self->{config} = undef;
@@ -26,28 +25,19 @@ sub new {
     return $self;
 }
 
-sub register {
-    my $self = shift;
-    $self->{app} = shift;
-    $self->{config} = $self->{app}->config;
+sub register ($self, $app) {
+    $self->{app} = $app;
+    $self->{config} = $app->config;
     Mojo::IOLoop->singleton->next_tick(
         sub {
-            # register for events
-            for my $e (@job_events) {
-                OpenQA::Events->singleton->on("openqa_$e" => sub { shift; $self->on_job_event(@_) });
-            }
-            for my $e (@comment_events) {
-                OpenQA::Events->singleton->on("openqa_$e" => sub { shift; $self->on_comment_event(@_) });
-            }
+            OpenQA::Events->singleton->on("openqa_$_" => sub { shift; $self->on_job_event(@_) }) for @job_events;
+            OpenQA::Events->singleton->on("openqa_$_" => sub { shift; $self->on_comment_event(@_) })
+              for @comment_events;
         });
 }
 
-sub log_event {
-    my ($self, $event, $event_data) = @_;
-
-    # use dot separators
-    $event =~ s/_/\./;
-    $event =~ s/_/\./;
+sub log_event ($self, $event, $event_data) {
+    $event =~ s/_/\./;    # use dot separators
 
     my $prefix = $self->{config}->{amqp}{topic_prefix};
     $self->publish_amqp($prefix ? "$prefix.$event" : $event, $event_data);
@@ -75,10 +65,7 @@ sub publish_amqp ($self, $topic, $event_data, $headers = {}, $remaining_attempts
         })->finally(sub { undef $publisher });
 }
 
-sub on_job_event {
-    my ($self, $args) = @_;
-
-    my ($user_id, $connection_id, $event, $event_data) = @$args;
+sub on_job_event ($self, $user_id, $connection_id, $event, $event_data) {
     my $jobs = $self->{app}->schema->resultset('Jobs');
     my $job = $jobs->find({id => $event_data->{id}});
 
@@ -93,11 +80,9 @@ sub on_job_event {
     for my $detail (qw(group_id BUILD TEST ARCH MACHINE FLAVOR)) {
         $event_data->{$detail} //= $job->$detail;
     }
-    if ($job->state eq OpenQA::Jobs::Constants::DONE) {
-        my $bugref = $job->bugref;
-        if ($event_data->{bugref} = $bugref) {
-            $event_data->{bugurl} = OpenQA::Utils::bugurl($bugref);
-        }
+    if ($job->state eq OpenQA::Jobs::Constants::DONE && my $bugref = $job->bugref) {
+        $event_data->{bugref} = $bugref;
+        $event_data->{bugurl} = OpenQA::Utils::bugurl($bugref);
     }
     my $job_settings = $job->settings_hash;
     for my $detail (qw(ISO HDD_1)) {
@@ -107,13 +92,8 @@ sub on_job_event {
     $self->log_event($event, $event_data);
 }
 
-sub on_comment_event {
-    my ($self, $args) = @_;
-    my ($comment_id, $connection_id, $event, $event_data) = @$args;
-
-    # find comment in database
-    my $comment = $self->{app}->schema->resultset('Comments')->find($event_data->{id});
-    return unless $comment;
+sub on_comment_event ($self, $comment_id, $connection_id, $event, $event_data) {
+    return unless my $comment = $self->{app}->schema->resultset('Comments')->find($event_data->{id});
 
     # just send the hash already used for JSON representation
     my $hash = $comment->hash;
