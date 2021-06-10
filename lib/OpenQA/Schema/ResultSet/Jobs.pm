@@ -1,5 +1,17 @@
 # Copyright 2014-2021 SUSE LLC
-# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <http://www.gnu.org/licenses/>.
 
 package OpenQA::Schema::ResultSet::Jobs;
 
@@ -314,12 +326,10 @@ sub prepare_complex_query_search_args ($self, $args) {
     }
 
     push(@conds, @{$args->{additional_conds}}) if $args->{additional_conds};
-    my %attrs;
-    $attrs{columns} = $args->{columns} if $args->{columns};
-    $attrs{prefetch} = $args->{prefetch} if $args->{prefetch};
-    $attrs{rows} = $args->{limit} if $args->{limit};
-    $attrs{page} = $args->{page} || 0;
-    $attrs{order_by} = $args->{order_by} || ['me.id DESC'];
+    my %attrs = (
+        page => $args->{page} || 0,
+        order_by => $args->{order_by} || ['me.id DESC']);
+    for (qw(columns prefetch limit)) { $attrs->{$_} = $args->{$_} if $args->{$_} }
     $attrs{join} = \@joins if @joins;
     return (\@conds, \%attrs);
 }
