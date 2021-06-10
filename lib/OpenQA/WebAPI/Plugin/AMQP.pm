@@ -80,7 +80,7 @@ sub on_job_event ($self, $user_id, $connection_id, $event, $event_data) {
     for my $detail (qw(group_id BUILD TEST ARCH MACHINE FLAVOR)) {
         $event_data->{$detail} //= $job->$detail;
     }
-    if ($job->state eq OpenQA::Jobs::Constants::DONE && my $bugref = $job->bugref) {
+    if (my $bugref = $job->bugref && $job->state eq OpenQA::Jobs::Constants::DONE) {
         $event_data->{bugref} = $bugref;
         $event_data->{bugurl} = OpenQA::Utils::bugurl($bugref);
     }
