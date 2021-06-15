@@ -28,13 +28,9 @@ sub referer_check ($self) {
     return 1;
 }
 
-sub list {
-    my ($self) = @_;
-}
+sub list ($self) { }
 
-sub get_match_param {
-    my ($self) = @_;
-
+sub get_match_param ($self) {
     my $match;
     if (defined($self->param('match'))) {
         $match = $self->param('match');
@@ -124,9 +120,7 @@ sub _render_comment_data_for_ajax ($self, $job_id, $comment_data) {
     return \%data;
 }
 
-sub list_running_ajax {
-    my ($self) = @_;
-
+sub list_running_ajax ($self) {
     my $running = $self->schema->resultset('Jobs')->complex_query(
         state => [OpenQA::Jobs::Constants::EXECUTION_STATES],
         match => $self->get_match_param,
@@ -166,9 +160,7 @@ sub list_running_ajax {
     $self->render(json => {data => \@running});
 }
 
-sub list_scheduled_ajax {
-    my ($self) = @_;
-
+sub list_scheduled_ajax ($self) {
     my $scheduled = $self->schema->resultset('Jobs')->complex_query(
         state => [OpenQA::Jobs::Constants::PRE_EXECUTION_STATES],
         match => $self->get_match_param,
@@ -215,9 +207,7 @@ sub _stash_job ($self, $args = undef) {
     return $job;
 }
 
-sub _stash_job_and_module_list {
-    my ($self, $args) = @_;
-
+sub _stash_job_and_module_list ($self, $args) {
     return undef unless my $job = $self->_stash_job($args);
     my $test_modules = read_test_modules($job);
     $self->stash(modlist => ($test_modules ? $test_modules->{modules} : []));
@@ -295,9 +285,7 @@ sub downloads ($self) {
     $self->render('test/downloads');
 }
 
-sub settings {
-    my ($self) = @_;
-
+sub settings ($self) {
     $self->_stash_job({prefetch => 'settings'}) or return $self->reply->not_found;
     $self->render('test/settings');
 }
@@ -313,8 +301,7 @@ So this works in the same way as the test module source.
 
 =cut
 
-sub show_filesrc {
-    my ($self) = @_;
+sub show_filesrc ($self) {
     my $job = $self->_stash_job or return $self->reply->not_found;
     my $jobid = $self->param('testid');
     my $dir = $self->stash('dir');
@@ -360,9 +347,7 @@ sub show_filesrc {
     );
 }
 
-sub comments {
-    my ($self) = @_;
-
+sub comments ($self) {
     $self->_stash_job({prefetch => 'comments', order_by => 'comments.id'}) or return $self->reply->not_found;
     $self->render('test/comments');
 }
@@ -377,8 +362,7 @@ sub _stash_clone_info ($self, $job) {
         });
 }
 
-sub infopanel {
-    my ($self) = @_;
+sub infopanel ($self) {
     my $job = $self->_stash_job or return $self->reply->not_found;
     $self->stash({worker => $job->assigned_worker, additional_data => 1});
     $self->_stash_clone_info($job);
@@ -395,8 +379,7 @@ sub _get_current_job ($self, $with_assets = 0) {
 
 sub show ($self) { $self->_show($self->_get_current_job(1)) }
 
-sub _show {
-    my ($self, $job) = @_;
+sub _show ($self, $job) {
     return $self->reply->not_found unless $job;
 
     $self->stash(
@@ -470,9 +453,7 @@ sub job_next_previous_ajax ($self) {
     $self->render(json => {data => \@data});
 }
 
-sub _calculate_preferred_machines {
-    my ($jobs) = @_;
-
+sub _calculate_preferred_machines ($jobs) {
     my %machines;
     for my $job (@$jobs) {
         next unless my $machine = $job->MACHINE;
@@ -613,9 +594,7 @@ sub _prepare_job_results ($self, $all_jobs, $limit) {
 }
 
 # appends the specified $distri and $version to $array_to_add_parts_to as string or if $raw as Mojo::ByteStream
-sub _add_distri_and_version_to_summary {
-    my ($array_to_add_parts_to, $distri, $version, $raw) = @_;
-
+sub _add_distri_and_version_to_summary ($array_to_add_parts_to, $distri, $version, $raw) {
     for my $part ($distri, $version) {
         # handle case when multiple distri/version parameters have been specified
         $part = $part->{-in} if (ref $part eq 'HASH');
@@ -638,8 +617,7 @@ sub _add_distri_and_version_to_summary {
 }
 
 # A generic query page showing test results in a configurable matrix
-sub overview {
-    my ($self) = @_;
+sub overview ($self) {
     my ($search_args, $groups) = $self->compose_job_overview_search_args;
     my $config = OpenQA::App->singleton->config;
     my $validation = $self->validation;
@@ -701,8 +679,7 @@ sub overview {
         html => {template => 'test/overview'});
 }
 
-sub latest {
-    my ($self) = @_;
+sub latest ($self) {
     my %search_args = (limit => 1);
     for my $arg (OpenQA::Schema::Result::Jobs::SCENARIO_WITH_MACHINE_KEYS) {
         my $key = lc $arg;
@@ -715,9 +692,7 @@ sub latest {
     return $self->_show($job);
 }
 
-sub module_fails {
-    my ($self) = @_;
-
+sub module_fails ($self) {
     return $self->reply->not_found unless defined $self->param('testid') and defined $self->param('moduleid');
     my $module = $self->app->schema->resultset("JobModules")->search(
         {
@@ -799,7 +774,6 @@ sub _add_dependency_to_node ($node, $parent, $dependency_type) {
 }
 
 sub _add_job ($dependency_data, $job, $as_child_of, $preferred_depth) {
-
     # add current job; return if already visited
     my $job_id = $job->id;
     my $visited = $dependency_data->{visited};
@@ -853,7 +827,6 @@ sub _add_job ($dependency_data, $job, $as_child_of, $preferred_depth) {
 }
 
 sub dependencies ($self) {
-
     # build dependency graph starting from the current job
     my $job = $self->_get_current_job or return $self->reply->not_found;
     my (@nodes, @edges, %cluster);
@@ -862,8 +835,7 @@ sub dependencies ($self) {
     $self->render(json => {nodes => \@nodes, edges => \@edges, cluster => \%cluster});
 }
 
-sub investigate {
-    my ($self) = @_;
+sub investigate ($self) {
     return $self->reply->not_found unless my $job = $self->_get_current_job;
     my $git_limit = OpenQA::App->singleton->config->{global}->{job_investigate_git_log_limit} // 200;
     my $investigation = $job->investigate(git_limit => $git_limit);
