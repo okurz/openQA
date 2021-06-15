@@ -22,8 +22,7 @@ use constant DEPENDENCY_DEBUG_INFO => $ENV{OPENQA_DEPENDENCY_DEBUG_INFO};
 
 sub referer_check ($self) {
     return $self->reply->not_found if (!defined $self->param('testid'));
-    my $referer = $self->req->headers->header('Referer') // '';
-    return 1 unless $referer;
+    return undef unless my $referer = $self->req->headers->header('Referer') // '';
     $self->schema->resultset('Jobs')->mark_job_linked($self->param('testid'), $referer);
     return 1;
 }
@@ -31,12 +30,8 @@ sub referer_check ($self) {
 sub list ($self) { }
 
 sub get_match_param ($self) {
-    my $match;
-    if (defined($self->param('match'))) {
-        $match = $self->param('match');
-        $match =~ s/[^\w\[\]\{\}\(\),:.+*?\\\$^|-]//g;    # sanitize
-    }
-    return $match;
+    return unless my $match = $self->param('match');
+    $match =~ s/[^\w\[\]\{\}\(\),:.+*?\\\$^|-]//gr;    # sanitize
 }
 
 sub list_ajax ($self) {
@@ -717,7 +712,7 @@ sub module_fails ($self) {
     }
 
     # Fallback to first step
-    $first_failed_step = 1 if $first_failed_step == 0;
+    $first_failed_step ||= 1;
 
     $self->render(
         json => {
