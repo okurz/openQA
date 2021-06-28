@@ -2232,7 +2232,7 @@ sub should_show_autoinst_log {
 sub should_show_investigation {
     my ($self) = @_;
 
-    return $self->state ne DONE || $self->result eq FAILED;
+    return grep { !/$self->state/ } FINAL_STATES || grep { /$self->result/ } NOT_OK_RESULTS;
 }
 
 sub status {
