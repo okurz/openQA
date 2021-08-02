@@ -218,16 +218,14 @@ if ($options{'clean'}) {
     }
 }
 
+sub add_if_post_entry ($added, $table, $entry) { ++$added->{$table}->{added} if post_entry($table, $entry) }
+
 my %added;
 for my $table (@tables) {
     next unless $info->{$table};
     $added{$table}->{of} = @{$info->{$table}};
     $added{$table}->{added} = 0;
-    for my $entry (@{$info->{$table}}) {
-        if (post_entry($table, $entry)) {
-            ++$added{$table}->{added};
-        }
-    }
+    add_if_post_entry(\%added, $table, $_) for @{$info->{$table}};
 }
 
 dd \%added;
