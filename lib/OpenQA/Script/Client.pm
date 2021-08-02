@@ -86,6 +86,14 @@ sub url_from_host ($host) {
     return $url;
 }
 
+sub url_from_host ($host) {
+    return Mojo::URL->new($host) if $host =~ '/';
+    my $url = Mojo::URL->new();
+    $url->host($host);
+    $url->scheme($host eq 'localhost' ? 'http' : 'https');
+    return $url;
+}
+
 sub run ($options, $operation, @args) {
     $options->{host} ||= 'localhost';
     $apibase = $options->{apibase} if $options->{apibase};
