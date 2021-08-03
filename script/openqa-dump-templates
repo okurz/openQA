@@ -1,15 +1,15 @@
 #!/usr/bin/env perl
 
-# Copyright 2015-2021 SUSE LLC
+# Copyright (C) 2015-2021 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 =head1 NAME
 
-openqa-dump-templates - dump openQA templates
+dump_templates - dump openQA templates
 
 =head1 SYNOPSIS
 
-openqa-dump-templates [OPTIONS] [TABLES...]
+dump_templates [OPTIONS] [TABLES...]
 
 =head1 OPTIONS
 
@@ -85,13 +85,13 @@ print help
 
 =over 4
 
-=item openqa-dump-templates --host openqa.example.com Products
+=item dump_templates --host openqa.example.com Products
 
-=item openqa-dump-templates --host openqa.example.com --group "openSUSE Tumbleweed" --full
+=item dump_templates --host openqa.example.com --group "openSUSE Tumbleweed" --full
 
-=item openqa-dump-templates --host openqa.example.com --test "gnome"
+=item dump_templates --host openqa.example.com --test "gnome"
 
-=item openqa-dump-templates --host openqa.example.com --machine "64bit"
+=item dump_templates --host openqa.example.com --machine "64bit"
 
 =back
 
