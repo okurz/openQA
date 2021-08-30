@@ -1,5 +1,17 @@
-# Copyright 2014-2020 SUSE LLC
-# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2014-2020 SUSE LLC
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <http://www.gnu.org/licenses/>.
 
 package OpenQA::WebAPI::Auth::OpenID;
 use Mojo::Base -base;
@@ -64,6 +76,34 @@ sub auth_login {
     return (error => $csr->err);
 }
 
+sub _first_last_name {
+    my ($ax) = @_;
+    return join(' ', $ax->{'value.firstname'} // '', $ax->{'value.lastname'} // '');
+}
+
+sub _handle_verified {
+    my $vident = shift;
+    my $sreg = $vident->signed_extension_fields('http://openid.net/extensions/sreg/1.1');
+    my $ax = $vident->signed_extension_fields('http://openid.net/srv/ax/1.0');
+
+    my $email = $sreg->{email} || $ax->{'value.email'} || 'nobody@example.com';
+    my $nickname = $sreg->{nickname} || $ax->{'value.nickname'} || $ax->{'value.firstname'};
+    unless ($nickname) {
+        my @a = split(/\/([^\/]+)$/, $vident->{identity});
+        $nickname = $a[1];
+    }
+
+    my $fullname = $sreg->{fullname} || $ax->{'value.fullname'} || first_last_name($ax) || $nickname;
+
+    my $user = $self->schema->resultset('Users')->create_user(
+        $vident->{identity},
+        email => $email,
+        nickname => $nickname,
+        fullname => $fullname
+    );
+    $self->session->{user} = $vident->{identity};
+}
+
 sub auth_response {
     my ($self) = @_;
 
@@ -89,9 +129,8 @@ sub auth_response {
     };
 
     $csr->handle_server_response(
-        not_openid => sub {
-            return $err_handler->("Failed to login", "OpenID provider returned invalid data. Please retry again");
-        },
+        not_openid =>
+          sub { $err_handler->("Failed to login", "OpenID provider returned invalid data. Please retry again") },
         setup_needed => sub {
             my $setup_url = shift;
 
@@ -102,41 +141,8 @@ sub auth_response {
             return (redirect => $setup_url, error => 0);
         },
         cancelled => sub { },    # Do something appropriate when the user hits "cancel" at the OP
-        verified => sub {
-            my $vident = shift;
-            my $sreg = $vident->signed_extension_fields('http://openid.net/extensions/sreg/1.1');
-            my $ax = $vident->signed_extension_fields('http://openid.net/srv/ax/1.0');
-
-            my $email = $sreg->{email} || $ax->{'value.email'} || 'nobody@example.com';
-            my $nickname = $sreg->{nickname} || $ax->{'value.nickname'} || $ax->{'value.firstname'};
-            unless ($nickname) {
-                my @a = split(/\/([^\/]+)$/, $vident->{identity});
-                $nickname = $a[1];
-            }
-            my $fullname = $sreg->{fullname} || $ax->{'value.fullname'};
-            unless ($fullname) {
-                if ($ax->{'value.firstname'}) {
-                    $fullname = $ax->{'value.firstname'};
-                    if ($ax->{'value.lastname'}) {
-                        $fullname .= ' ' . $ax->{'value.lastname'};
-                    }
-                }
-                else {
-                    $fullname = $nickname;
-                }
-            }
-
-            my $user = $self->schema->resultset('Users')->create_user(
-                $vident->{identity},
-                email => $email,
-                nickname => $nickname,
-                fullname => $fullname
-            );
-            $self->session->{user} = $vident->{identity};
-        },
-        error => sub {
-            return $err_handler->(@_);
-        },
+        verified => \&_handle_verified,
+        error => sub { $err_handler->(@_) },
     );
 
     return (redirect => decode_base64url($csr->args('return_page'), error => 0)) if $csr->args('return_page');
