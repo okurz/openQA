@@ -1,4 +1,4 @@
-# Copyright (C) 2014-2020 SUSE LLC
+# Copyright (C) 2014-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,15 +14,14 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 package OpenQA::WebAPI::Auth::OpenID;
-use Mojo::Base -base;
+use Mojo::Base -base, -signatures;
 
 use OpenQA::Log qw(log_error);
 use LWP::UserAgent;
 use Net::OpenID::Consumer;
 use MIME::Base64 qw(encode_base64url decode_base64url);
 
-sub auth_login {
-    my ($self) = @_;
+sub auth_login ($self) {
     my $url = $self->app->config->{global}->{base_url} || $self->req->url->base->to_string;
 
     # force secure connection after login
@@ -76,13 +75,9 @@ sub auth_login {
     return (error => $csr->err);
 }
 
-sub _first_last_name {
-    my ($ax) = @_;
-    return join(' ', $ax->{'value.firstname'} // '', $ax->{'value.lastname'} // '');
-}
+sub _first_last_name ($ax) { join(' ', $ax->{'value.firstname'} // '', $ax->{'value.lastname'} // '') }
 
-sub _handle_verified {
-    my $vident = shift;
+sub _handle_verified ($vident) {
     my $sreg = $vident->signed_extension_fields('http://openid.net/extensions/sreg/1.1');
     my $ax = $vident->signed_extension_fields('http://openid.net/srv/ax/1.0');
 
@@ -104,9 +99,7 @@ sub _handle_verified {
     $self->session->{user} = $vident->{identity};
 }
 
-sub auth_response {
-    my ($self) = @_;
-
+sub auth_response ($self) {
     my %params = @{$self->req->params->pairs};
     my $url = $self->app->config->{global}->{base_url} || $self->req->url->base;
     return (error => 'Got response on http but https is forced. MOJO_REVERSE_PROXY not set?')
