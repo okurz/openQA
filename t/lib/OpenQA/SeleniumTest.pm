@@ -369,6 +369,12 @@ sub wait_for_element {
     return $element;
 }
 
+sub wait_and_click_element_ok (%args) {
+    my $element = wait_for_element(\%args);
+    ok $element, $args{msg} // "$args{selector} present";
+    $element->click;
+}
+
 sub kill_driver {
     return unless $startingpid && $$ == $startingpid;
     if ($_driver) {
