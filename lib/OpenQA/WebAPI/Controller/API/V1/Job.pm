@@ -76,9 +76,7 @@ Limit the number of jobs.
 
 =cut
 
-sub list {
-    my $self = shift;
-
+sub list ($self) {
     my $validation = $self->validation;
     $validation->optional('scope')->in('current', 'relevant');
     $validation->optional('limit')->num(0);
@@ -189,9 +187,7 @@ So this works in the same way as the test results overview in the GUI.
 
 =cut
 
-sub overview {
-    my $self = shift;
-
+sub overview ($self) {
     my ($search_args, $groups) = $self->compose_job_overview_search_args;
     my $failed_modules = $self->param_hash('failed_modules');
     my $states = $self->param_hash('state');
@@ -228,9 +224,8 @@ is mandatory and should be the name of the test.
 
 =cut
 
-sub create {
-    my $self = shift;
-    my $params = $self->req->params->to_hash;
+sub create ($self) {
+    my $params       = $self->req->params->to_hash;
     my $is_clone_job = delete $params->{is_clone_job} // 0;
 
     # job_create expects upper case keys
@@ -287,9 +282,8 @@ settings, state and times of startup and finish of the job.
 
 =cut
 
-sub show {
-    my $self = shift;
-    my $job_id = int($self->stash('jobid'));
+sub show ($self) {
+    my $job_id  = int($self->stash('jobid'));
     my $details = $self->stash('details') || 0;
     my $job = $self->schema->resultset("Jobs")->search({'me.id' => $job_id}, {prefetch => 'settings'})->first;
     if ($job) {
@@ -310,9 +304,7 @@ Deletes a job from the system.
 
 =cut
 
-sub destroy {
-    my $self = shift;
-
+sub destroy ($self) {
     return unless my $job = $self->find_job_or_render_not_found($self->stash('jobid'));
     $self->emit_event('openqa_job_delete', {id => $job->id});
     $job->delete;
@@ -329,8 +321,7 @@ Sets priority for a given job.
 
 =cut
 
-sub prio {
-    my ($self) = @_;
+sub prio ($self) {
     return unless my $job = $self->find_job_or_render_not_found($self->stash('jobid'));
     my $res = $job->set_prio($self->param('prio'));
 
@@ -349,8 +340,7 @@ Updates result of a job in the system. Replaced in favor of done.
 
 =cut
 
-sub result {
-    my ($self) = @_;
+sub result ($self) {
     return unless my $job = $self->find_job_or_render_not_found($self->stash('jobid'));
     my $result = $self->param('result');
     my $res = $job->update_result($result);
@@ -371,9 +361,7 @@ id must match the id of the worker assigned to the job identified by the job id.
 =cut
 
 # this is the general worker update call
-sub update_status {
-    my ($self) = @_;
-
+sub update_status ($self) {
     return $self->render(json => {error => 'No status information provided'}, status => 400)
       unless my $json = $self->req->json;
 
@@ -478,9 +466,7 @@ Columns group_id and priority cannot be set.
 
 =cut
 
-sub update {
-    my ($self) = @_;
-
+sub update ($self) {
     return unless my $job = $self->find_job_or_render_not_found($self->stash('jobid'));
     my $json = $self->req->json;
     return $self->render(json => {error => 'No updates provided (must be provided as JSON)'}, status => 400)
@@ -535,10 +521,8 @@ Used by the worker to upload files to the test.
 
 =cut
 
-sub create_artefact {
-    my ($self) = @_;
-
-    my $jobid = int($self->stash('jobid'));
+sub create_artefact ($self) {
+    my $jobid  = int($self->stash('jobid'));
     my $schema = $self->schema;
     my $job = $schema->resultset('Jobs')->find($jobid);
     if (!$job) {
@@ -624,9 +608,7 @@ that has been partially uploaded.
 
 =cut
 
-sub upload_state {
-    my ($self) = @_;
-
+sub upload_state ($self) {
     my $validation = $self->validation;
     $validation->required('filename');
     $validation->required('state');
@@ -661,8 +643,7 @@ Updates result of a job in the system.
 
 =cut
 
-sub done {
-    my ($self) = @_;
+sub done ($self) {
     return undef unless my $job = $self->find_job_or_render_not_found($self->stash('jobid'));
 
     my $validation = $self->validation;
@@ -708,11 +689,9 @@ sub done {
     $self->render(json => {result => \$res, reason => \$reason});
 }
 
-sub _restart {
-    my ($self, %args) = @_;
-
-    my $dup_route = $args{duplicate_route_compatibility};
-    my @flags = qw(force skip_aborting_jobs skip_parents skip_children skip_ok_result_children);
+sub _restart ($self, %args) {
+    my $dup_route  = $args{duplicate_route_compatibility};
+    my @flags      = qw(force skip_aborting_jobs skip_parents skip_children skip_ok_result_children);
     my $validation = $self->validation;
     $validation->optional('prio')->num;
     $validation->optional('dup_type_auto')->num(0);    # recorded within the event; for informal purposes only
@@ -781,7 +760,7 @@ Used for both apiv1_restart and apiv1_restart_jobs
 
 =cut
 
-sub restart { shift->_restart }
+sub restart ($self) { $self->_restart }
 
 =over 4
 
@@ -795,7 +774,7 @@ aborting the job.
 
 =cut
 
-sub duplicate { shift->_restart(duplicate_route_compatibility => 1) }
+sub duplicate ($self) { $self->_restart(duplicate_route_compatibility => 1) }
 
 =over 4
 
@@ -809,8 +788,7 @@ Used for both apiv1_cancel and apiv1_cancel_jobs
 
 =cut
 
-sub cancel {
-    my ($self) = @_;
+sub cancel ($self) {
     my $jobid = $self->param('jobid');
 
     my $res;
@@ -838,8 +816,7 @@ Returns the job id of the current job.
 
 =cut
 
-sub whoami {
-    my ($self) = @_;
+sub whoami ($self) {
     my $jobid = $self->stash('job_id');
     $self->render(json => {id => $jobid});
 }
@@ -855,8 +832,7 @@ settings, and returns a job's settings. Internal method used in the B<create()> 
 
 =cut
 
-sub _generate_job_setting {
-    my ($self, $args) = @_;
+sub _generate_job_setting ($self, $args) {
     my $schema = $self->schema;
 
     my %settings;    # Machines, product and test suite settings for the job
