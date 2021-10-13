@@ -111,6 +111,8 @@ our @EXPORT =    ## no critic (Modules::ProhibitAutomaticExportation)
   find_flags
   find_bugref
   find_bugrefs
+  find_force_result
+  bugref_regex
   bugurl
   url_from_label
   bugref_to_href
