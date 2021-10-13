@@ -45,6 +45,8 @@ our @EXPORT = qw(
   parse_assets_from_settings
   find_bugref
   find_bugrefs
+  find_label
+  find_force_result
   bugref_regex
   bugurl
   bugref_to_href
@@ -390,6 +392,9 @@ sub find_bugrefs {
     }
     return \@bugrefs;
 }
+
+sub find_label ($text) { $text =~ /\blabel:(\w+)\b/ }
+sub find_force_result ($text) { label($text) && $text =~ /force_result:(\w+):?(\w*)/ }
 
 sub bugurl {
     my ($bugref) = @_;

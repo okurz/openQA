@@ -5,7 +5,7 @@ package OpenQA::WebAPI::Controller::API::V1::Comment;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 use Date::Format;
-use OpenQA::Utils qw(:DEFAULT href_to_bugref);
+use OpenQA::Utils qw(:DEFAULT href_to_bugref find_force_result);
 use OpenQA::Jobs::Constants;
 
 =pod
@@ -192,6 +192,7 @@ sub update ($self) {
     return $self->render(json => {error => "Forbidden (must be author)"}, status => 403)
       unless ($comment->user_id == $self->current_user->id);
     my $txn_guard = $self->schema->txn_scope_guard;
+    return $self->render(json => {error => "Removing 'force_result' label from $comment_id not allowed"}, status => 403) if $comment->force_result && find_force_result($text);
     my $res = $comment->update({text => href_to_bugref($text)});
     eval { $self->_handle_special_comments($res) };
     return $self->render(json => {error => $@}, status => 400) if $@;

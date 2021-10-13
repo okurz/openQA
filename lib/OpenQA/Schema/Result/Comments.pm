@@ -4,7 +4,7 @@
 package OpenQA::Schema::Result::Comments;
 use Mojo::Base 'DBIx::Class::Core', -signatures;
 
-use OpenQA::Utils qw(find_bugref find_bugrefs);
+use OpenQA::Utils qw(find_bugref find_bugrefs find_label find_force_result);
 use OpenQA::Markdown qw(markdown_to_html);
 
 __PACKAGE__->load_components(qw(Core));
@@ -101,10 +101,7 @@ sub bugrefs ($self) { find_bugrefs($self->text) }
 
 Returns label value if C<$self> is label, e.g. 'label:my_label' returns 'my_label'
 =cut
-sub label ($self) {
-    $self->text =~ /\blabel:(\w+)\b/;
-    return $1;
-}
+sub label ($self) { label($self->text) }
 
 =head2 force_result
 
