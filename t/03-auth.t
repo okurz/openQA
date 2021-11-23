@@ -11,7 +11,7 @@ use Test::Mojo;
 use Test::Output 'combined_like';
 use Test::Warnings;
 require OpenQA::Test::Database;
-use OpenQA::Test::TimeLimit '10';
+use OpenQA::Test::TimeLimit '30';
 use OpenQA::WebAPI::Auth::OAuth2;
 use Mojo::File qw(tempdir path);
 use Mojo::Transaction;
