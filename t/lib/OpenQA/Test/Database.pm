@@ -17,14 +17,26 @@ use Try::Tiny;
 
 has fixture_path => 't/fixtures';
 
-plan skip_all => 'set TEST_PG to e.g. "DBI:Pg:dbname=test" to enable this test' unless $ENV{TEST_PG};
+plan skip_all => 'set TEST_PG to e.g. "DBI:Pg:dbname=test" to enable this test' if $ENV{USE_EXTERNAL_PG} && !$ENV{TEST_PG};
 
 sub generate_schema_name {
     return 'tmp_' . random_string();
 }
 
+sub spawn_postgres {
+    $ENV{TEST_PG_PATH} //= '/dev/shm/tpg';
+    # this times out in `prove -l -v t/03-auth.t` and I don't see any output.
+    # Maybe it's better to use IPC::Run and show the output unbuffered or
+    # something
+    my $out = qx{test -d $ENV{TEST_PG_PATH} && (pg_ctl -D $ENV{TEST_PG_PATH} -s status >&/dev/null || pg_ctl -D $ENV{TEST_PG_PATH} -s start) || ./t/test_postgresql $ENV{TEST_PG_PATH}};
+    diag $out;
+    $ENV{TEST_PG} = "DBI:Pg:dbname=openqa_test;host=$ENV{TEST_PG_PATH}";
+}
+
 sub create {
     my ($self, %options) = @_;
+
+    spawn_postgres;
 
     # create new database connection
     my $schema = OpenQA::Schema::connect_db(mode => 'test', deploy => 0);
@@ -50,6 +62,10 @@ sub create {
     $schema->deploy;
     $self->insert_fixtures($schema, $options{fixtures_glob}) if $options{fixtures_glob};
     return $schema;
+}
+
+END {
+    qx{pg_ctl -D $ENV{TEST_PG_PATH} stop} unless $ENV{USE_EXTERNAL_PG} || $ENV{KEEP_DB};
 }
 
 sub insert_fixtures {
