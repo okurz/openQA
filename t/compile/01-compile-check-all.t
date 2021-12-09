@@ -9,7 +9,7 @@ use Test::Compile;
 use File::Which;
 use FindBin;
 use lib "$FindBin::Bin/../lib", "$FindBin::Bin/../../external/os-autoinst-common/lib";
-use OpenQA::Test::TimeLimit '400';
+use OpenQA::Test::TimeLimit '500';
 
 
 my $SKIP = [
