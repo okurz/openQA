@@ -235,9 +235,7 @@ sub sqlt_deploy_hook {
 }
 
 # override to straighten out job modules and screenshot references
-sub delete {
-    my ($self) = @_;
-
+sub delete ($self) {
     $self->modules->delete;
 
     # delete all screenshot references (screenshots left unused are deleted later in the job limit task)
@@ -280,8 +278,7 @@ sub archive ($self, $signal_guard = undef) {
     return $archived_result_dir;
 }
 
-sub name {
-    my ($self) = @_;
+sub name ($self) {
     return $self->{_name} if $self->{_name};
     my %formats = (BUILD => 'Build%s',);
     my @name_keys = qw(DISTRI VERSION FLAVOR ARCH BUILD TEST);
@@ -294,36 +291,29 @@ sub name {
     return $self->{_name};
 }
 
-sub label {
-    my ($self) = @_;
-
+sub label ($self) {
     my $test = $self->TEST;
     my $machine = $self->MACHINE;
     return $machine ? "$test\@$machine" : $test;
 }
 
-sub scenario {
-    my ($self) = @_;
-
+sub scenario ($self) {
     my $test_suite_name = $self->settings_hash->{TEST_SUITE_NAME} || $self->TEST;
     return $self->result_source->schema->resultset('TestSuites')->find({name => $test_suite_name});
 }
 
-sub scenario_hash {
-    my ($self) = @_;
+sub scenario_hash ($self) {
     my %scenario = map { lc $_ => $self->get_column($_) } SCENARIO_WITH_MACHINE_KEYS;
     return \%scenario;
 }
 
-sub scenario_name {
-    my ($self) = @_;
+sub scenario_name ($self) {
     my $scenario = join('-', map { $self->get_column($_) } SCENARIO_KEYS);
     if (my $machine = $self->MACHINE) { $scenario .= "@" . $machine }
     return $scenario;
 }
 
-sub scenario_description {
-    my ($self) = @_;
+sub scenario_description ($self) {
     my $description = $self->settings_hash->{JOB_DESCRIPTION};
     return $description if defined $description;
     my $scenario = $self->scenario or return undef;
@@ -331,18 +321,9 @@ sub scenario_description {
 }
 
 # return 0 if we have no worker
-sub worker_id {
-    my ($self) = @_;
-    if ($self->worker) {
-        return $self->worker->id;
-    }
-    return 0;
-}
+sub worker_id ($self) { $self->worker ? $self->worker->id : 0 }
 
-sub reschedule_state {
-    my $self = shift;
-    my $state = shift // OpenQA::Jobs::Constants::SCHEDULED;
-
+sub reschedule_state ($self, $state || OpenQA::Jobs::Constants::SCHEDULED) {
     # cleanup
     $self->set_property('JOBTOKEN');
     $self->release_networks();
@@ -360,16 +341,12 @@ sub reschedule_state {
     log_debug('Job ' . $self->id . " reset to state $state");
 
     # free the worker
-    if (my $worker = $self->worker) {
-        $self->worker->update({job_id => undef});
-    }
+    if (my $worker = $self->worker) { $self->worker->update({job_id => undef}) }
 }
 
-sub log_debug_job { log_debug('[Job#' . shift->id . '] ' . shift) }
+sub log_debug_job ($self, $msg) { log_debug('[Job#' . $self->id . '] ' . $msg) }
 
-sub set_assigned_worker {
-    my ($self, $worker) = @_;
-
+sub set_assigned_worker ($self, $worker) {
     my $job_id = $self->id;
     my $worker_id = $worker->id;
     $self->update(
