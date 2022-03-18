@@ -1427,13 +1427,7 @@ sub create_asset ($self, $asset, $scope, $local = undef) {
 sub has_failed_modules ($self) { $self->modules->count({result => 'failed'}, {rows => 1}) }
 
 sub failed_modules ($self) {
-    my $fails = $self->modules->search({result => 'failed'}, {select => ['name'], order_by => 't_updated'});
-    my @failedmodules;
-
-    while (my $module = $fails->next) {
-        push(@failedmodules, $module->name);
-    }
-    return \@failedmodules;
+    \map { $_->name } $self->modules->search({result => 'failed'}, {select => ['name'], order_by => 't_updated'})->all;
 }
 
 sub update_status ($self, $status) {
@@ -1607,8 +1601,7 @@ sub _find_network ($self, $name, $seen = {}) {
     return if $seen->{$self->id};
     $seen->{$self->id} = 1;
 
-    my $net = $self->networks->find({name => $name});
-    return $net->vlan if $net;
+    if (my $net = $self->networks->find({name => $name})) { return $net->vlan }
 
     my $parents = $self->parents->search(
         {
