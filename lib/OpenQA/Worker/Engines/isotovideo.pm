@@ -9,8 +9,7 @@ use OpenQA::Log qw(log_error log_info log_debug log_warning get_channel_handle f
 use OpenQA::Utils
   qw(asset_type_from_setting base_host locate_asset looks_like_url_with_scheme effective_distri testcasedir productdir needledir);
 use POSIX qw(:sys_wait_h strftime uname _exit);
-use Mojo::JSON 'encode_json';    # booleans
-use Cpanel::JSON::XS ();
+use Mojo::JSON 'encode_json';
 use Fcntl;
 use File::Spec::Functions qw(abs2rel catdir file_name_is_absolute);
 use File::Basename qw(basename fileparse);
@@ -326,7 +325,7 @@ sub engine_workit ($job, $callback) {
             $webui_host,
             $pooldir,
             sub ($shared_cache) {
-                return _engine_workit_step_2($job, $job_settings, \%vars, $shared_cache, $callback)
+                return _engine_workit_step_2($job, \%vars, $shared_cache, $callback)
                   unless ref $shared_cache eq 'HASH';
                 $shared_cache->{category} //= WORKER_EC_CACHE_FAILURE;
                 return $callback->($shared_cache);
@@ -337,7 +336,7 @@ sub engine_workit ($job, $callback) {
         return $callback->($error) if $error;
     }
 
-    return _engine_workit_step_2($job, $job_settings, \%vars, undef, $callback);
+    return _engine_workit_step_2($job, \%vars, undef, $callback);
 }
 
 sub _configure_cgroupv2 ($job_info) {
@@ -379,7 +378,9 @@ sub _checkout_path ($url_or_path, $is_url) {
     return (fileparse(Mojo::URL->new($url_or_path)->path, qr/\.[^.]*/))[0];
 }
 
-sub start_isotovideo_container ($pooldir, $job_info) {
+sub start_isotovideo_container ($cgroup, $pooldir, $job) {
+    my $job_info = $job->info;
+    my $job_settings = $job_info->{settings};
     # create tmpdir for QEMU
     my $tmpdir = "$pooldir/tmp";
     mkdir($tmpdir) unless (-d $tmpdir);
@@ -433,13 +434,13 @@ sub start_isotovideo_container ($pooldir, $job_info) {
     log_info('Starting isotovideo container');
     $container->start();
     $workerpid = $child->pid();
-    return $callback->({child => $child});
 }
 
-sub _engine_workit_step_2 ($job, $job_settings, $vars, $shared_cache, $callback) {
+sub _engine_workit_step_2 ($job, $vars, $shared_cache, $callback) {
     my $worker = $job->worker;
     my $pooldir = $worker->pool_directory;
     my $job_info = $job->info;
+    my $job_settings = $job_info->{settings};
 
     $vars->{ASSETDIR} //= OpenQA::Utils::assetdir;
 
@@ -459,7 +460,7 @@ sub _engine_workit_step_2 ($job, $job_settings, $vars, $shared_cache, $callback)
         }
         else {
             $vars->{PRODUCTDIR} //= $absolute_paths
-              && !$has_custom_dir ? $default_productdir : abs2rel($default_productdir, $default_casedir);
+              && $has_custom_dir ? abs2rel($default_productdir, $default_casedir) : $default_productdir;
         }
     }
 
