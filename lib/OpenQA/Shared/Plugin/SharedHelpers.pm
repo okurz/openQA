@@ -66,6 +66,10 @@ sub _current_user ($c) {
         }
         $c->stash(current_user => $current_user = $user ? {user => $user} : {no_user => 1});
     }
+    use Data::Dumper;
+    $Data::Dumper::Maxdepth = 2;
+    my $username = defined $current_user->{user} ? ($current_user->{user}->{name} // '(no name)') : '(no user)';
+    print "_current_user: '$username'\n";
 
     return $current_user && defined $current_user->{user} ? $current_user->{user} : undef;
 }
