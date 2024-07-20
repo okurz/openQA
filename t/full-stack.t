@@ -20,7 +20,7 @@ BEGIN {
 }
 
 use Mojo::Base -signatures;
-use List::Util qw(any);
+use List::Util;    # Prevent "Prototype mismatch: sub main::any: none vs (&@)" with fully-qualified use
 use Test::Mojo;
 use Test::Warnings ':report_warnings';
 use Test::MockModule;
@@ -106,7 +106,7 @@ sub check_scheduled_job_and_wait_for_free_worker ($worker_class) {
     my @scheduled_jobs = values %{OpenQA::Scheduler::Model::Jobs->singleton->determine_scheduled_jobs};
     my $relevant_jobs = 0;
     for my $job (@scheduled_jobs) {
-        ++$relevant_jobs if any { $_ eq $worker_class } @{$job->{worker_classes}};
+        ++$relevant_jobs if List::Util::any { $_ eq $worker_class } @{$job->{worker_classes}};
     }
     Test::More::ok $relevant_jobs, "$relevant_jobs job(s) with worker class $worker_class scheduled"
       or Test::More::diag explain 'scheduled jobs: ', \@scheduled_jobs;
