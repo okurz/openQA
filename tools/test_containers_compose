@@ -2,8 +2,6 @@
 
 set -euo pipefail
 
-thisdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null 2>&1 && pwd)"
-
 # longer, exponential sleep between retries to retry on infrastructure issues
 EXPONENTIAL="${EXPONENTIAL:-5}"
 SLEEP="${SLEEP:-30}"
@@ -26,6 +24,18 @@ wait_until() {
     done
 }
 
+setup_retry() {
+    retry_params="-e -s 30 -r 7"
+    if command -v retry > /dev/null; then
+        retry="retry $retry_params"
+        return
+    elif [ ! -e retry ]; then
+        curl -sS https://raw.githubusercontent.com/okurz/retry/main/retry > retry
+        chmod +x retry
+    fi
+    retry="$PWD/retry $retry_params"
+}
+
 setup_containers() {
     local project_name="$1"
     # Remove fixed port mappings and webui-db-init service to avoid conflicts and race conditions
@@ -40,9 +50,9 @@ if 'services' in d:
 with open('docker-compose.yaml', 'w') as f:
     yaml.safe_dump(d, f)
 "
-    sudo env OPENQA_WEBUI_REPLICAS=1 OPENQA_WORKER_REPLICAS=1 "$thisdir"/retry docker compose -p "$project_name" build
+    sudo env OPENQA_WEBUI_REPLICAS=1 OPENQA_WORKER_REPLICAS=1 $retry docker compose -p "$project_name" build
     exit_code=""
-    sudo env OPENQA_WEBUI_REPLICAS=1 OPENQA_WORKER_REPLICAS=1 MOJO_CLIENT_DEBUG=1 "$thisdir"/retry docker compose -p "$project_name" up -d || exit_code=$?
+    sudo env OPENQA_WEBUI_REPLICAS=1 OPENQA_WORKER_REPLICAS=1 MOJO_CLIENT_DEBUG=1 $retry docker compose -p "$project_name" up -d || exit_code=$?
     if [[ -n $exit_code ]]; then
         echo "docker compose exited with non-zero code $exit_code, showing logs:"
         sudo docker compose -p "$project_name" logs
@@ -75,7 +85,7 @@ test_webui() {
         printf "[nginx]\nkey = 1234567890ABCDEF\nsecret = 1234567890ABCDEF\n" > conf/client.conf
         setup_containers "$project_name"
         # Use 'run' instead of 'exec' as it might have better network alias support in some environments
-        sudo env OPENQA_WEBUI_REPLICAS=1 OPENQA_WORKER_REPLICAS=1 "$thisdir"/retry docker compose -p "$project_name" run --rm webui openqa-cli api -X POST jobs ISO=foo.iso DISTRI=my-distri FLAVOR=my-flavor VERSION=42 BUILD=42 TEST=my-test \
+        sudo env OPENQA_WEBUI_REPLICAS=1 OPENQA_WORKER_REPLICAS=1 $retry docker compose -p "$project_name" run --rm webui openqa-cli api -X POST jobs ISO=foo.iso DISTRI=my-distri FLAVOR=my-flavor VERSION=42 BUILD=42 TEST=my-test \
             --host http://nginx:9526 || (
             echo "Error executing a job"
             sudo docker compose -p "$project_name" ps
@@ -99,5 +109,6 @@ test_worker() {
     ) || exit 1
 }
 
+setup_retry
 test_webui
 test_worker
