@@ -36,21 +36,14 @@ sub register ($self, $app, @args) {
     log_debug 'AMQP plugin name discovered as: ' . $config->{plugin};
     Mojo::IOLoop->singleton->next_tick(
         sub {
-            # register for events
-            for my $e (@job_events) {
-                OpenQA::Events->singleton->on("openqa_$e" => sub { shift; $self->on_job_event(@_) });
-            }
-            for my $e (@comment_events) {
-                OpenQA::Events->singleton->on("openqa_$e" => sub { shift; $self->on_comment_event(@_) });
-            }
+            OpenQA::Events->singleton->on("openqa_$_" => sub { shift; $self->on_job_event(@_) }) for @job_events;
+            OpenQA::Events->singleton->on("openqa_$_" => sub { shift; $self->on_comment_event(@_) })
+              for @comment_events;
         });
 }
 
 sub log_event ($self, $event, $event_data) {
-
-    # use dot separators
-    $event =~ s/_/\./;
-    $event =~ s/_/\./;
+    $event =~ s/_/\./;    # use dot separators
 
     my $prefix = $self->{config}->{amqp}{topic_prefix};
     $self->publish_amqp($prefix ? "$prefix.$event" : $event, $event_data);
@@ -114,11 +107,9 @@ sub on_job_event ($self, $args) {
     for my $detail (qw(group_id BUILD TEST ARCH MACHINE FLAVOR)) {
         $event_data->{$detail} //= $job->$detail;
     }
-    if ($job->state eq OpenQA::Jobs::Constants::DONE) {
-        my $bugref = $job->bugref;
-        if ($event_data->{bugref} = $bugref) {
-            $event_data->{bugurl} = OpenQA::Utils::bugurl($bugref);
-        }
+    if (my $bugref = $job->bugref && $job->state eq OpenQA::Jobs::Constants::DONE) {
+        $event_data->{bugref} = $bugref;
+        $event_data->{bugurl} = OpenQA::Utils::bugurl($bugref);
         $event_data->{failedmodules} = $job->failed_modules;
     }
     my $job_settings = $job->settings_hash;
@@ -131,10 +122,7 @@ sub on_job_event ($self, $args) {
 
 sub on_comment_event ($self, $args) {
     my ($comment_id, $connection_id, $event, $event_data) = @$args;
-
-    # find comment in database
-    my $comment = $self->{app}->schema->resultset('Comments')->find($event_data->{id});
-    return unless $comment;
+    return unless my $comment = $self->{app}->schema->resultset('Comments')->find($event_data->{id});
 
     # just send the hash already used for JSON representation
     my $hash = $comment->hash;
