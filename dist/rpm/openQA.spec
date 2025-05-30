@@ -52,7 +52,7 @@
 %endif
 # runtime requirements that also the testsuite needs
 %if %{with python_scripts}
-%define python_scripts_requires python3-base python3-requests openQA-client
+%define python_scripts_requires python3-base python3-requests
 %else
 %define python_scripts_requires %{nil}
 %endif
