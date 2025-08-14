@@ -10,7 +10,7 @@ use OpenQA::JobSettings;
 our @EXPORT = qw(detect_maintenance_update);
 
 sub collect_incident_repos ($url_handler, $settings) {
-    OpenQA::JobSettings::expand_placeholders($settings, 0);
+    #OpenQA::JobSettings::expand_placeholders($settings, 0);
     if (my $repo = $settings->{INCIDENT_REPO}) {
         return verify_incident_repos($url_handler, $repo);
     }

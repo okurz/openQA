@@ -47,6 +47,7 @@ my $settings = {
     # %%%%CASEDIR%%% will be preserved, number of surrounding % preserved except for outermost pair
     # %CASEDIR% will still be substituted, despite other escaped occurrences in same value
     NEEDLES_DIR => '%%CASEDIR%%/bar/%%%%CASEDIR%%%/%CASEDIR%',
+    UNDEFINED_VARIABLE_STAYS_UNCHANGED => '%UNDEFINED_VARIABLE%',
 };
 
 subtest expand_placeholders => sub {
@@ -84,6 +85,7 @@ subtest expand_placeholders => sub {
         WORKAROUND_MODULES => 'base,desktop,serverapp,script,sdk',
         CASEDIR => 'foo',
         NEEDLES_DIR => '%CASEDIR%/bar/%%%CASEDIR%%/foo',
+        UNDEFINED_VARIABLE_STAYS_UNCHANGED => '%UNDEFINED_VARIABLE%',
     };
     is $error, undef, 'no error returned';
     is_deeply $settings, $match_settings, 'Settings replaced';
@@ -121,7 +123,7 @@ subtest 'handle_plus_in_settings' => sub {
 };
 
 subtest 'two-pass variable expansion' => sub {
-    my %settings = (FOO => 'http://%BAR%/', NEEDLES_DIR => '%%CASEDIR%%/needles');
+    my %settings = (FOO => 'http://%BAR%/', NEEDLES_DIR => '%%CASEDIR%%/needles', UNDEFINED => '%UNDEFINED%');
 
     is OpenQA::JobSettings::expand_placeholders(\%settings), undef, 'web UI pass of expand_placeholders';
     is $settings{FOO}, 'http://%BAR%/', 'placeholder referring to non-existing key not removed during web UI pass';
@@ -131,6 +133,7 @@ subtest 'two-pass variable expansion' => sub {
     is $settings{FOO}, 'http:///', 'placeholder referring to non-existing key finally removed by worker';
     is $settings{NEEDLES_DIR}, '%CASEDIR%/needles',
       '%CASEDIR% preserved during worker pass, handled instead by _engine_workit_step_2';
+    is $settings{UNDEFINED}, '%UNDEFINED%', 'not defined variables stay unchanged';
 };
 
 done_testing;
