@@ -85,7 +85,14 @@ sub create_api_key ($self) {
       ? DateTime::Format::Pg->parse_datetime($validation->param('expiration'))
       : DateTime->now->add(years => 1);
     my $apikey = $user->api_keys->create({t_expiration => $expiration});
-    $self->render(json => {id => $apikey->id, key => $apikey->key, t_expiration => $apikey->t_expiration});
+    $self->render(
+        json => {
+            id => $apikey->id,
+            key => $apikey->key,
+            secret => $apikey->secret,
+            t_expiration => $apikey->t_expiration
+        }
+    );
 }
 
 =over 4
