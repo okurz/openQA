@@ -181,6 +181,16 @@ while ! curl -o /dev/null -w "%{http_code}" -sIL http://localhost/ | grep 200; d
 done
 
 # setup api key for client
+if [[ -z "${OPENQA_AUTH_NONE_KEY:-}" ]]; then
+    # create api key
+    curl -s http://localhost/login > /dev/null # create demo user (id=2)
+    # Use the new script to create a key. Fake Auth uses 1234567890ABCDEF by default for Demo user.
+    # We parse the output of our new script to get key and secret.
+    API_OUTPUT=$("$OPENQA_DIR"/script/openqa-create-api-key --apikey 1234567890ABCDEF --apisecret 1234567890ABCDEF)
+    OPENQA_AUTH_NONE_KEY=$(echo "$API_OUTPUT" | grep '^key = ' | cut -d' ' -f3)
+    OPENQA_AUTH_NONE_SECRET=$(echo "$API_OUTPUT" | grep '^secret = ' | cut -d' ' -f3)
+fi
+
 if [[ -n "${OPENQA_AUTH_NONE_KEY:-}" ]]; then
     cat >> /etc/openqa/client.conf << EOF
 [localhost]
