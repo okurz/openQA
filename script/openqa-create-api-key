@@ -1,0 +1,82 @@
+#!/usr/bin/env perl
+
+# Copyright 2026 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib "$FindBin::RealBin/../lib";
+
+use OpenQA::Client;
+use Getopt::Long;
+use JSON::PP;
+use Mojo::URL;
+
+my $host = 'http://localhost';
+my $key;
+my $secret;
+my $api_section;
+my $json_output = 0;
+
+GetOptions(
+    'host=s'      => \$host,
+    'apikey=s'    => \$key,
+    'apisecret=s' => \$secret,
+    'api=s'       => \$api_section,
+    'json'        => \$json_output,
+    'h|help'      => sub { usage() },
+) or usage();
+
+my $url = Mojo::URL->new($host);
+my $ua  = OpenQA::Client->new(apikey => $key, apisecret => $secret, api => $api_section || $url->host);
+$url->path('/api/v1/users/me/api_keys');
+
+my $tx = $ua->post($url);
+
+if (my $res = $tx->result) {
+    if ($res->is_success) {
+        my $data = $res->json;
+        if ($json_output) {
+            print encode_json($data) . "\n";
+        }
+        else {
+            my $section = $host =~ s{^https?://}{}r;
+            $section =~ s{/.*$}{}; # Remove path if any
+            print "[$section]\n";
+            print "key = $data->{key}\n";
+            print "secret = $data->{secret}\n";
+        }
+    }
+    else {
+        my $msg = $res->message;
+        if (my $json = $res->json) {
+            $msg = $json->{error} if $json->{error};
+        }
+        die "Error: $msg (" . $res->code . ")\n";
+    }
+}
+else {
+    my $err = $tx->error;
+    die "Connection error: $err->{message}\n";
+}
+
+sub usage {
+    print "Usage: $0 [--apikey KEY] [--apisecret SECRET] [--api SECTION] [--host http://localhost] [--json]\n";
+    print "\n";
+    print "Options:\n";
+    print "  --apikey KEY      API key. Use is discouraged due to risk of leaking\n";
+    print "                    credentials. Prefer config file or env variables.\n";
+    print "  --apisecret SEC   API secret. Use is discouraged due to risk of leaking\n";
+    print "                    credentials. Prefer config file or env variables.\n";
+    print "\n";
+    print "Authentication credentials can be provided via:\n";
+    print "  1. Command line arguments: --apikey and --apisecret\n";
+    print "  2. Environment variables: OPENQA_API_KEY and OPENQA_API_SECRET\n";
+    print "  3. Config file (~/.config/openqa/client.conf): using --api SECTION or matching the --host\n";
+    print "\n";
+    print "Example for Fake Auth:\n";
+    print "  $0 --apikey 1234567890ABCDEF --apisecret 1234567890ABCDEF\n";
+    exit 1;
+}

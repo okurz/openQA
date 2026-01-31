@@ -620,6 +620,8 @@ to use different providers.
 
 #### Fake
 
+==== Fake
+
 For development purposes only! This method is a "mock" authentication provider
 designed for openQA developers to test permissions and role-based access
 control (RBAC). It requires an explicit visit to the `/login` route but allows simulating different user roles (e.g. `?user=nobody` for a non-privileged
@@ -628,6 +630,15 @@ user).
 To ease worker testing, an API key and secret are created (or updated) for the
 'Demo user' with administrator privileges and a validity of one day during
 login.
+
+You can use the helper script `script/openqa-create-api-key` to generate a pair
+of keys using Fake auth:
+
+[source,sh]
+--------------------------------------------------------------------------------
+./script/openqa-create-api-key --apikey 1234567890ABCDEF --apisecret 1234567890ABCDEF
+--------------------------------------------------------------------------------
+
 You can then use the following as `/etc/openqa/client.conf`:
 
 ``` ini
