@@ -520,7 +520,7 @@ function saveNeedle(overwrite) {
   const propWorkaround = document.getElementById('property_workaround');
   const inputWorkaroundDesc = document.getElementById('input_workaround_desc');
   if (!overwrite && propWorkaround && propWorkaround.checked && inputWorkaroundDesc && !inputWorkaroundDesc.value) {
-      'You set the workaround property for this needle without a description. Are you sure you want to save without a description?';
+    ('You set the workaround property for this needle without a description. Are you sure you want to save without a description?');
     if (!confirm(confirmMessage)) {
       return false;
     }
