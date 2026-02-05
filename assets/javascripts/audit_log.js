@@ -288,21 +288,26 @@ function rescheduleProductForActionLink(link) {
 }
 
 function rescheduleProduct(url) {
-  fetchWithCSRF(url, {method: 'POST'})
+  fetchWithCSRF(url, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
     .then(response => {
-      return response
-        .json()
-        .then(json => {
-          // Attach the parsed JSON to the response object for further use
-          return {response, json};
-        })
-        .catch(() => {
-          // If parsing fails, handle it as a non-JSON response
-          throw `Server returned ${response.status}: ${response.statusText}`;
-        });
+      return response.text().then(text => {
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (e) {
+          // not JSON
+        }
+        return {response, json, text};
+      });
     })
-    .then(({response, json}) => {
-      if (!response.ok) throw `Server returned ${response.status}: ${response.statusText}<br>${json.error || ''}`;
+    .then(({response, json, text}) => {
+      if (!response.ok) throw json?.error || text || `Server returned ${response.status}: ${response.statusText}`;
       const id = json.scheduled_product_id;
       const msg =
         typeof id === 'number'
