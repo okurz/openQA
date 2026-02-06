@@ -19,6 +19,23 @@ function setupForAll() {
   updateTimeago();
   document.querySelectorAll('[data-bs-toggle="popover"]').forEach(e => new bootstrap.Popover(e, {html: true}));
   document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(e => new bootstrap.Tooltip(e, {html: true}));
+  setupMultiSelect();
+}
+
+function setupMultiSelect() {
+  document.addEventListener('mousedown', function (e) {
+    const select = e.target.closest('select[multiple].chosen-select');
+    if (select && e.target.tagName === 'OPTION') {
+      e.preventDefault();
+      const scroll = select.scrollTop;
+      e.target.selected = !e.target.selected;
+      select.focus();
+      setTimeout(() => {
+        select.scrollTop = scroll;
+      }, 0);
+      select.dispatchEvent(new Event('change'));
+    }
+  });
 }
 
 function getCSRFToken() {

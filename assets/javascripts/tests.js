@@ -491,11 +491,13 @@ function renderTestLists() {
 
   // apply filter from query params
   if (filter) {
-    const filters = Array.isArray(filter) ? filter : [filter];
-    Array.from(finishedJobsResultFilter.options).forEach(opt => {
-      if (filters.includes(opt.value)) opt.selected = true;
-    });
-    finishedJobsResultFilter.dispatchEvent(new Event('change'));
+    if (filter) {
+      const filters = Array.isArray(filter) ? filter : [filter];
+      Array.from(finishedJobsResultFilter.options).forEach(opt => {
+        if (filters.includes(opt.value)) opt.selected = true;
+      });
+      finishedJobsResultFilter.dispatchEvent(new Event('change'));
+    }
   }
 
   document.addEventListener('mouseover', e => {
