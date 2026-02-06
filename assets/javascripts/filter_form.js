@@ -103,9 +103,6 @@ function setupFilterForm(options) {
       });
       filterForm.querySelectorAll('select').forEach(select => {
         Array.from(select.options).forEach(opt => (opt.selected = false));
-        if (typeof jQuery !== 'undefined' && typeof jQuery.fn.chosen === 'function') {
-          $(select).trigger('chosen:updated');
-        }
       });
       document.querySelector('#filter-panel .card-header span').textContent =
         'no filter present, click to toggle filter form';
