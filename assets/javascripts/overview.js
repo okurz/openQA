@@ -217,8 +217,7 @@ function setupOverview(options) {
 
   // initialize filter for modules results
   const modulesResultFilter = document.getElementById('modules_result');
-  if (modulesResultFilter && typeof jQuery !== 'undefined' && typeof jQuery.fn.chosen === 'function') {
-    $(modulesResultFilter).chosen({width: '100%'});
+  if (modulesResultFilter) {
     modulesResultFilter.addEventListener('change', function (event) {
       // update query params
       var params = parseQueryParams();
@@ -258,9 +257,6 @@ function setupOverview(options) {
         Array.from(modulesResultFilter.options).forEach(opt => {
           if (opt.value === val) opt.selected = true;
         });
-        if (typeof jQuery !== 'undefined' && typeof jQuery.fn.chosen === 'function') {
-          $(modulesResultFilter).trigger('chosen:updated');
-        }
         modulesResultFilter.dispatchEvent(new Event('change'));
       }
       return formatFilter(val);
