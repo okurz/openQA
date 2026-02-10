@@ -674,7 +674,7 @@ function updateDeveloperPanel() {
   if (!panel) {
     return;
   }
-  if (!testStatus.running) {
+  if (testStatus.state !== 'running' && testStatus.state !== 'uploading' && !testStatus.running) {
     // hide entire panel if test is not running anymore
     panel.style.display = 'none';
     return;
@@ -761,11 +761,12 @@ function updateDeveloperPanel() {
   $('#developer-status-appendix').text(statusAppendix);
 
   // update session info
-  const sessionInfoElement = $('#developer-session-info');
+  const sessionInfoElement = document.getElementById('developer-session-info');
   let sessionInfo;
-  if (developerMode.develSessionDeveloper) {
+  if (developerMode.develSessionDeveloper && sessionInfoElement) {
     sessionInfo = 'owned by ' + developerMode.develSessionDeveloper + ' (';
-    sessionInfoElement.textContent = sessionInfo;
+    sessionInfoElement.innerHTML = '';
+    sessionInfoElement.appendChild(document.createTextNode(sessionInfo));
 
     const timeagoElement = document.createElement('abbr');
     timeagoElement.className = 'timeago';
@@ -791,7 +792,7 @@ function updateDeveloperPanel() {
       globalSessionInfoElement.style.display = 'block';
       globalSessionInfoElement.hidden = false;
     }
-  } else if (!developerMode.badConfiguration) {
+  } else if (!developerMode.badConfiguration && sessionInfoElement) {
     sessionInfo = 'regular test execution';
     if (developerMode.isAccessible && !developerMode.panelExpanded) {
       sessionInfo += ' - click to expand';
@@ -1262,6 +1263,7 @@ function processWsCommand(obj) {
             e.textContent = vncArg;
           });
         }
+      }
       }
   }
 
