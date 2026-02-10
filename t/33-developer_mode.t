@@ -22,7 +22,7 @@ BEGIN {
 use FindBin;
 use lib "$FindBin::Bin/lib", "$FindBin::Bin/../external/os-autoinst-common/lib";
 use Mojo::Base -signatures;
-use OpenQA::Test::TimeLimit '60';
+use OpenQA::Test::TimeLimit '180';
 use Test::Mojo;
 use IO::Socket::INET;
 use Mojo::File 'path';
@@ -96,7 +96,10 @@ sub relogin_as ($user) {
         }
         $driver->get('/login?user=' . $user);    # uncoverable statement (must be bug in coverage tracking)
         $login_text = $driver->find_element('#user-action a')->get_text;
-        return pass $user . ' logged-in' . $user if $login_text eq $expected_login_text;
+        if ($login_text eq $expected_login_text) {
+            wait_for_ajax(msg => "$user logged-in");
+            return pass $user . ' logged-in' . $user;
+        }
     }
     fail "unable to re-login as $user, stuck with login text '$login_text'";    # uncoverable statement
 }
@@ -261,6 +264,9 @@ sub assert_initial_ui_state {
 
     subtest 'initial state of UI controls' => sub {
         wait_for_session_info(qr/owned by Demo/, 'user displayed');
+        wait_until(sub { $driver->find_element('#developer-status-appendix')->get_text =~ qr/reached module shutdown/ }, 'status appendix says reached module shutdown');
+        wait_until(sub { $driver->find_element('#developer-status-info')->get_text =~ qr/paused/ }, 'status info says paused');
+        wait_until(sub { $driver->find_element('#developer-vnc-notice')->get_text =~ qr/VNC/ }, 'VNC notice says VNC');
         element_visible('#developer-vnc-notice', qr/.*VNC.*91.*/);
         element_visible('#developer-panel .card-header', qr/paused/);
     };
@@ -290,6 +296,7 @@ subtest 'status-only route accessible for other users' => sub {
         element_hidden('#developer-panel .card-body');
 
         $driver->find_element('#developer-status')->click();
+        wait_for_ajax(msg => 'expand developer panel');
         element_visible(
             '#developer-panel .card-body',
             [qr/Another user has already locked this job./],
