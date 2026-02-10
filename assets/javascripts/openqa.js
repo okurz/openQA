@@ -22,7 +22,8 @@ function setupForAll() {
 }
 
 function getCSRFToken() {
-  return document.querySelector('meta[name="csrf-token"]').content;
+  const element = document.querySelector('meta[name="csrf-token"]');
+  return element ? element.content : '';
 }
 
 window.runningFetchRequests = 0;
@@ -196,7 +197,7 @@ function makeUrlPort(servicePortDelta) {
     // don't put a port in the URL if there's no explicit port
     port = '';
   } else {
-    if (port !== 80 || port !== 443) port += servicePortDelta;
+    if (port !== 80 && port !== 443) port += Number.parseInt(servicePortDelta || 0);
     port = ':' + port;
   }
   return port;
@@ -218,7 +219,7 @@ function makeWsUrlAbsolute(url, servicePortDelta) {
   const location = window.location;
   const port = makeUrlPort(servicePortDelta);
   return (
-    (location.protocol == 'https:' ? 'wss://' : 'ws:/') +
+    (location.protocol == 'https:' ? 'wss://' : 'ws://') +
     location.hostname +
     port +
     (url.indexOf('/') !== 0 ? '/' : '') +
@@ -334,7 +335,7 @@ function restartJob(ajaxUrl, jobIds, comment) {
         if (singleJobId) {
           newJobUrl = json.test_url[0][singleJobId];
         } else {
-          const testUrlData = json?.test_url;
+          const testUrlData = json ? json.test_url : undefined;
           if (Array.isArray(testUrlData)) {
             newJobUrl = testUrlData.map(item => Object.values(item)[0]);
           }
@@ -922,7 +923,8 @@ function handleRemote(element) {
 function handleMethod(element) {
   const method = element.getAttribute('data-method').toUpperCase();
   const url = element.getAttribute('href');
-  const csrfParam = document.querySelector('meta[name="csrf-param"]')?.content || 'csrf_token';
+  const csrfParamElement = document.querySelector('meta[name="csrf-param"]');
+  const csrfParam = (csrfParamElement ? csrfParamElement.content : null) || 'csrf_token';
   const csrfToken = getCSRFToken();
 
   const form = document.createElement('form');
