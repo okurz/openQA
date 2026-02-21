@@ -5,7 +5,8 @@ package OpenQA::BuildResults;
 
 use Mojo::Base -strict, -signatures;
 
-use OpenQA::Jobs::Constants;
+use OpenQA::Jobs::Constants
+  qw(DONE CANCELLED PENDING_STATES PASSED SOFTFAILED ABORTED FAILED NOT_COMPLETE NOT_OK_RESULTS meta_result);
 use OpenQA::Constants qw(BUILD_SORT_BY_NAME BUILD_SORT_BY_NEWEST_JOB BUILD_SORT_BY_OLDEST_JOB);
 use OpenQA::Schema::Result::Jobs;
 use OpenQA::Utils;
@@ -14,6 +15,7 @@ use DateTime::Format::Pg;
 use List::Util qw(any);
 use Sort::Versions;
 use Time::Seconds;
+use List::Util 'any';
 
 use constant DEFAULT_BUILD_RESULTS_LIMIT => 400;
 
@@ -31,6 +33,92 @@ sub init_job_figures ($job_result) {
     $job_result->{total} = 0;
 }
 
+<<<<<<< HEAD
+||||||| parent of 2e6fad8cf (perf: handle huge job groups gracefully)
+sub count_job ($job, $jr, $labels) {
+    $jr->{total}++;
+    if ($job->state eq OpenQA::Jobs::Constants::DONE) {
+        if ($job->result eq OpenQA::Jobs::Constants::PASSED) {
+            $jr->{passed}++;
+            return;
+        }
+        if ($job->result eq OpenQA::Jobs::Constants::SOFTFAILED) {
+            $jr->{softfailed}++;
+            return;
+        }
+        if (grep { $job->result eq $_ } OpenQA::Jobs::Constants::ABORTED_RESULTS) {
+            $jr->{skipped}++;
+            return;
+        }
+        if (grep { $job->result eq $_ } OpenQA::Jobs::Constants::NOT_OK_RESULTS) {
+            my $comment_data = $labels->{$job->id};
+            $jr->{failed}++;
+            if ($comment_data) {
+                $jr->{labeled}++ if $comment_data->{reviewed};
+                $jr->{comments}++ if $comment_data->{comments} || $comment_data->{reviewed};
+            }
+            return;
+        }
+        # note: Incompletes and timeouts are accounted to both categories - failed and skipped.
+    }
+    if ($job->state eq OpenQA::Jobs::Constants::CANCELLED) {
+        $jr->{skipped}++;
+        return;
+    }
+    my $state = $job->state;
+    log_error('Encountered not-implemented state:' . $job->state . ' result:' . $job->result)
+      unless grep { /$state/ } (OpenQA::Jobs::Constants::PENDING_STATES);
+    $jr->{unfinished}++;
+    return;
+}
+
+=======
+sub _reset_stats_for_oversized_build ($jr, $total_for_build) {
+    init_job_figures($jr);
+    $jr->{total} = $total_for_build;
+    init_job_figures($_) for values %{$jr->{children} // {}};
+}
+
+my %META_MAP = (
+    PASSED() => 'passed',
+    SOFTFAILED() => 'softfailed',
+    ABORTED() => 'skipped',
+    FAILED() => 'failed',
+    NOT_COMPLETE() => 'failed',
+);
+
+sub _get_job_result_category ($state, $result) {
+    return $META_MAP{meta_result($result)} if $state eq DONE;
+    return 'skipped' if $state eq CANCELLED;
+    return 'unfinished';
+}
+
+sub _count_job_aggregated ($stat, $jr, $count) {
+    $jr->{total} += $count;
+    my $category = _get_job_result_category($stat->state, $stat->result);
+    $jr->{$category} += $count;
+}
+
+sub count_job ($job, $jr, $labels) {
+    _count_job_aggregated($job, $jr, 1);
+    my ($state, $result) = ($job->state, $job->result);
+    my $category = _get_job_result_category($state, $result);
+
+    if ($category eq 'failed') {
+        my $comment_data = $labels->{$job->id};
+        if ($comment_data) {
+            $jr->{labeled}++ if $comment_data->{reviewed};
+            $jr->{comments}++ if $comment_data->{comments} || $comment_data->{reviewed};
+        }
+    }
+    elsif ($category eq 'unfinished') {
+        log_error('Encountered not-implemented state:' . $state . ' result:' . $result)
+          unless any { $state eq $_ } (PENDING_STATES);
+    }
+    return;
+}
+
+>>>>>>> 2e6fad8cf (perf: handle huge job groups gracefully)
 sub add_review_badge ($build_res) {
     $build_res->{all_passed} = $build_res->{passed} + $build_res->{softfailed} >= $build_res->{total} ? 1 : 0;
     $build_res->{reviewed} = $build_res->{labeled} >= $build_res->{failed} ? 1 : 0;
@@ -61,11 +149,12 @@ sub _get_latest_job_ids ($jobs_resultset, $version, $buildnr, $group_ids) {
         {VERSION => $version, BUILD => $buildnr, group_id => {in => $group_ids}, clone_id => undef},
         {select => [{max => 'id'}], as => ['id'], group_by => [qw(TEST ARCH FLAVOR MACHINE)]})->all;
 }
-
 sub compute_build_results (
     $group, $limit, $time_limit_days, $tags, $subgroup_filter, $show_tags,
     $max_jobs_limit = undef,
-    $ignored_groups = undef
+    $ignored_groups = undef,
+    $max_jobs_per_build = undef,
+    $app = undef
   )
 {
     # find relevant child groups taking filter into account
@@ -83,6 +172,11 @@ sub compute_build_results (
         }
     }
 
+    if (!$max_jobs_per_build && $app) {
+        $max_jobs_per_build = $app->config->{misc_limits}->{build_results_max_jobs_per_build};
+    }
+    require OpenQA::Setup;
+    $max_jobs_per_build //= OpenQA::Setup::default_config()->{misc_limits}->{build_results_max_jobs_per_build};
     my $total_jobs_seen = 0;
     my $limit_exceeded = 0;
     my @sorted_results;
@@ -97,8 +191,8 @@ sub compute_build_results (
         });
     return \%result if defined($limit) && int($limit) <= 0;
     # build sorting
-    my $buildver_sort_mode = BUILD_SORT_BY_NAME;
-    $buildver_sort_mode = $group->build_version_sort if $group->can('build_version_sort');
+    my $buildver_sort_mode
+      = $group->can('build_version_sort') ? ($group->build_version_sort // BUILD_SORT_BY_NAME) : BUILD_SORT_BY_NAME;
     my $sort_column = $buildver_sort_mode == BUILD_SORT_BY_OLDEST_JOB ? 'oldest_job' : 'newest_job';
 
     # 400 is the max. limit selectable in the group overview
