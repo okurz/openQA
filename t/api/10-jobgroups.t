@@ -369,17 +369,45 @@ subtest 'prevent deleting non-empty job group' => sub() {
     $t->delete_ok('/api/v1/job_groups/1002')->status_is(409);
     is_deeply $t->tx->res->json, {error => 'Job group 1002 is not empty', error_status => 409};
     $t->get_ok('/api/v1/job_groups/1002/jobs')->status_is(200);
-    is_deeply $t->tx->res->json, {ids => [99961]}, '1002 contains one job';
+    is_deeply $t->tx->res->json, {ids => [99961], limit_exceeded => 0, total => 1}, '1002 contains one job';
     $t->get_ok('/api/v1/job_groups/1002/jobs?expired=1')->status_is(200);
-    is_deeply $t->tx->res->json, {ids => []}, '1002 contains no expired job';
+    is_deeply $t->tx->res->json, {ids => [], limit_exceeded => 0, total => 0}, '1002 contains no expired job';
     my $rd = 't/data/openqa/testresults/00099/00099961-opensuse-13.1-DVD-x86_64-Build0091-kde';
     ok -d $rd, 'result dir of job exists';
     $t->delete_ok('/api/v1/jobs/99961')->status_is(200);
     ok !-d $rd, 'result dir of job gone';
     $t->get_ok('/api/v1/job_groups/1002/jobs')->status_is(200);
-    is_deeply $t->tx->res->json, {ids => []}, '1002 contains no more jobs';
+    is_deeply $t->tx->res->json, {ids => [], limit_exceeded => 0, total => 0}, '1002 contains no more jobs';
     $t->delete_ok('/api/v1/job_groups/1002')->status_is(200);
     $t->get_ok('/api/v1/job_groups/1002/jobs')->status_is(404);
+};
+
+subtest 'list_jobs respects max limit' => sub() {
+    my $group = $schema->resultset('JobGroups')->create({name => 'Large Group'});
+    my $group_id = $group->id;
+    my $jobs = $schema->resultset('Jobs');
+    my @job_ids;
+    for my $i (1 .. 2100) {
+        my $job = $jobs->create(
+            {
+                state => 'done',
+                result => 'passed',
+                TEST => "dummy$i",
+                FLAVOR => 'DVD',
+                DISTRI => 'openSUSE',
+                BUILD => '123',
+                VERSION => '15.0',
+                ARCH => 'x86_64',
+                group_id => $group_id,
+            });
+        push @job_ids, $job->id;
+    }
+    $t->get_ok("/api/v1/job_groups/$group_id/jobs")->status_is(200);
+    my $res = $t->tx->res->json;
+    is scalar @{$res->{ids}}, 2000, 'returns only 2000 jobs when limit exceeded';
+    is $res->{limit_exceeded}, 2000, 'limit_exceeded is set correctly';
+    is $res->{total}, 2100, 'total shows actual count';
+    $group->delete;
 };
 
 subtest 'prevent deleting non-empty parent group' => sub() {

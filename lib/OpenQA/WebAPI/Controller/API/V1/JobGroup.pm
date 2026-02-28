@@ -327,14 +327,23 @@ List jobs belonging to a job group.
 sub list_jobs ($self) {
     return undef unless my $group = $self->find_group;
 
+    my $configured_limit = OpenQA::App->singleton->config->{misc_limits}->{tests_overview_max_jobs};
+    my $limit = $configured_limit + 1;
     my @jobs;
+    my $total_count;
     if ($self->param('expired')) {
         @jobs = @{$group->find_jobs_with_expired_results};
+        $total_count = scalar @jobs;
     }
     else {
-        @jobs = $group->jobs;
+        my $jobs_resultset = $group->jobs;
+        $total_count = $jobs_resultset->count;
+        @jobs = $jobs_resultset->search(undef, {rows => $limit})->all;
     }
-    return $self->render(json => {ids => [sort map { $_->id } @jobs]});
+    my $limit_exceeded = @jobs >= $limit ? $configured_limit : 0;
+    @jobs = @jobs[0 .. $configured_limit - 1] if $limit_exceeded;
+    return $self->render(
+        json => {ids => [sort map { $_->id } @jobs], limit_exceeded => $limit_exceeded, total => $total_count});
 }
 
 =over 4

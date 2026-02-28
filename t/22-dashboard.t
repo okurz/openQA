@@ -790,7 +790,6 @@ subtest 'Ignore job groups' => sub {
 
     $t->app->schema->txn_rollback;
 };
-
 subtest 'OpenQA::BuildResults::compute_build_results coverage' => sub {
     my $group = $job_groups->find(1001);
     $group->update({build_version_sort => OpenQA::Constants::BUILD_SORT_BY_NAME});
@@ -844,5 +843,4 @@ subtest 'OpenQA::BuildResults::compute_build_results coverage' => sub {
     $jobs->create({%$common, TEST => 'time2', DISTRI => 'd2', t_created => $t_str, state => DONE, result => PASSED});
     ok OpenQA::BuildResults::compute_build_results($parent, 10, undef, undef, [], undef), 'same timestamp';
 };
-
 done_testing;
