@@ -79,10 +79,7 @@ sub name {
     return $self->{_name};
 }
 
-sub gravatar {
-    my ($self, $size) = @_;
-    $size //= 40;
-
+sub gravatar ($self, $size = 40) {
     if (my $email = $self->email) {
         return '//www.gravatar.com/avatar/' . md5_hex(lc $email) . "?d=wavatar&s=$size";
     }

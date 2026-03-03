@@ -11,8 +11,7 @@ use OpenQA::Task::SignalGuard;
 use Feature::Compat::Try;
 use Carp qw(croak);
 
-sub register {
-    my ($self, $app) = @_;
+sub register ($self, $app) {
     $app->minion->add_task(delete_needles => sub { _task_delete_needles($app, @_) });
 }
 
