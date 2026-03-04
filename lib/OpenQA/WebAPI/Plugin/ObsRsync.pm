@@ -156,7 +156,7 @@ sub register ($self, $app, $config) {
 
     if (!$plugin_api_r) {
         # uncoverable statement
-        $app->log->error('API routes not configured, plugin ObsRsync will not have API configured')
+        $app->log->error('API routes not configured, plugin ObsRsync will be disabled')
           unless $plugin_r;
     }
     else {

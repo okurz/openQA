@@ -6,7 +6,7 @@ use Exporter 'import';
 
 our @EXPORT_OK = qw(now);
 
-sub add_timestamps {
+sub add_timestamps {    # no:style:signatures
     my $self = shift;
 
     $self->load_components(qw(InflateColumn::DateTime DynamicDefault));
@@ -24,7 +24,7 @@ sub add_timestamps {
     );
 }
 
-sub now {
+sub now {    # no:style:signatures
     DateTime->now(time_zone => 'UTC');
 }
 

@@ -13,7 +13,7 @@ use CommonMark;
 
 our @EXPORT_OK = qw(bugref_to_html is_light_color markdown_to_html);
 
-sub is_light_color {
+sub is_light_color {    # no:style:signatures
     my $color = shift;
     return undef unless $color =~ m/^#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})$/;
     my ($red, $green, $blue) = ($1, $2, $3);
@@ -21,7 +21,7 @@ sub is_light_color {
     return $sum > 380;
 }
 
-sub bugref_to_html ($bugref, $fancy = 0) {
+sub bugref_to_html ($bugref, $fancy = 0) {    # no:style:signatures
     my $app = OpenQA::App->singleton;
     my $bugs = $app->schema->resultset('Bugs');
     my $bug = $bugs->get_bug($bugref);
@@ -34,17 +34,17 @@ qq{<span title="$bugtitle" class="openqa-bugref"><a href="$bugurl"><i class="tes
     return qq{<a href="$bugurl" title="$bugtitle">$bugref</a>};
 }
 
-sub _label_to_html ($label_text) {
+sub _label_to_html ($label_text) {    # no:style:signatures
     $label_text =~ s/${\UNCONSTRAINED_BUGREF_REGEX}/bugref_to_html($+{match})/ge;
     return "<span class=\"openqa-label\">label:$label_text<\/span>";
 }
 
-sub _flag_to_html ($flag_text) {
+sub _flag_to_html ($flag_text) {    # no:style:signatures
     return "<span class=\"openqa-flag\">flag:$flag_text<\/span>";
 }
 
-sub markdown_to_html ($text) {
-    # Turn all URLs into links
+sub markdown_to_html ($text) {    # no:style:signatures
+                                  # Turn all URLs into links
     $text =~ s/(?<!['"(<>])($RE{URI}${\FRAGMENT_REGEX})/<$1>/gio;
 
     # Turn references to test modules and needling steps into links
@@ -67,7 +67,7 @@ sub markdown_to_html ($text) {
     return $html;
 }
 
-sub _custom ($full, $rules, $text) {
+sub _custom ($full, $rules, $text) {    # no:style:signatures
     if ($rules =~ /^color:(#[a-fA-F0-9]{6})$/) {
         my $color = $1;
         my $bg = is_light_color($color) ? 'black' : 'white';

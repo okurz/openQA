@@ -23,23 +23,23 @@ has name => 'openqa-cli';
 has host => 'http://localhost';
 has options => undef;
 
-sub client ($self, $url) {
+sub client ($self, $url) {    # no:style:signatures
     my $client = OpenQA::Client->new(apikey => $self->apikey, apisecret => $self->apisecret, api => $url->host)
       ->ioloop(Mojo::IOLoop->singleton);
     $client->transactor->name($self->name);
     return $client;
 }
 
-sub data_from_stdin {
+sub data_from_stdin {    # no:style:signatures
     vec(my $r = '', fileno(STDIN), 1) = 1;
     return !-t STDIN && (select $r, undef, undef, 0) ? join '', <STDIN> : '';
 }
 
-sub decode_args ($self, @args) {
+sub decode_args ($self, @args) {    # no:style:signatures
     return map { decode 'UTF-8', $_ } @args;
 }
 
-sub handle_result ($self, $tx, $orig_tx = undef) {
+sub handle_result ($self, $tx, $orig_tx = undef) {    # no:style:signatures
     my $res = $tx->res;
     my $is_json = ($res->headers->content_type // '') =~ m!application/json!;
 
@@ -75,11 +75,11 @@ sub handle_result ($self, $tx, $orig_tx = undef) {
     return $err ? 1 : 0;
 }
 
-sub parse_headers ($self, @headers) {
+sub parse_headers ($self, @headers) {    # no:style:signatures
     return {map { /^\s*([^:]+)\s*:\s*(.*+)$/ ? ($1, $2) : () } @headers};
 }
 
-sub parse_params ($self, $args, $param_file) {
+sub parse_params ($self, $args, $param_file) {    # no:style:signatures
     my %params;
     for my $arg (@{$args}) {
         next unless $arg =~ $PARAM_RE;
@@ -94,7 +94,7 @@ sub parse_params ($self, $args, $param_file) {
     return \%params;
 }
 
-sub run ($self, @args) {
+sub run ($self, @args) {    # no:style:signatures
     my %options = (pretty => 0, quiet => 0, links => 0, verbose => 0);
     OpenQA::CLI::get_opt(global => \@args, ['pass_through'], \%options);
     for (qw(apibase apikey apisecret name)) {
@@ -109,15 +109,15 @@ sub run ($self, @args) {
     return $self->options(\%options)->command(@args);
 }
 
-sub url_for ($self, $path) {
-    # Already absolute URL
+sub url_for ($self, $path) {    # no:style:signatures
+                                # Already absolute URL
     return Mojo::URL->new($path) if $path =~ m!^(?:[^:/?#]+:|//|#)!;
 
     $path = "/$path" unless $path =~ m!^/!;
     return Mojo::URL->new($self->apibase . $path)->to_abs(Mojo::URL->new($self->host));
 }
 
-sub retry_tx ($self, $client, $tx, $retries = undef, $delay = undef) {
+sub retry_tx ($self, $client, $tx, $retries = undef, $delay = undef) {    # no:style:signatures
     $client->connect_timeout($ENV{MOJO_CONNECT_TIMEOUT} // 30);
     $delay //= $ENV{OPENQA_CLI_RETRY_SLEEP_TIME_S} // 3;
     $retries //= $ENV{OPENQA_CLI_RETRIES} // 0;

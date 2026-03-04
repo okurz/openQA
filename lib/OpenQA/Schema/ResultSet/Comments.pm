@@ -20,7 +20,7 @@ the new comment from being considered edited.
 
 =cut
 
-sub create ($self, $data, @additional_args) {
+sub create ($self, $data, @additional_args) {    # no:style:signatures
     $data->{t_created} = $data->{t_updated} = DBIx::Class::Timestamps::now
       unless exists $data->{t_created} || exists $data->{t_updated};
     $self->SUPER::create($data, @additional_args);
@@ -36,7 +36,7 @@ Creates a comment and emits the app's comment create event.
 
 =cut
 
-sub create_with_event ($self, $comment_data, $event_data = {}) {
+sub create_with_event ($self, $comment_data, $event_data = {}) {    # no:style:signatures
     my $comment = $self->create($comment_data);
     OpenQA::App->singleton->emit_event(openqa_comment_create => {%{$comment->event_data}, %$event_data});
     return $comment;
@@ -52,7 +52,7 @@ Creates comments on the specified jobs handling special contents.
 
 =cut
 
-sub create_for_jobs ($self, $job_ids, $text, $user_id, $events = undef) {
+sub create_for_jobs ($self, $job_ids, $text, $user_id, $events = undef) {    # no:style:signatures
     for my $job_id (@$job_ids) {
         my %data = (job_id => $job_id, text => href_to_bugref($text), user_id => $user_id);
         my $comment;
@@ -75,7 +75,7 @@ Return a hashref of all bugs referenced by job comments.
 
 =cut
 
-sub referenced_bugs {
+sub referenced_bugs {    # no:style:signatures
     my ($self) = @_;
 
     my $comments = $self->search({-not => {job_id => undef}});
@@ -99,7 +99,7 @@ if you need the Bug objects themselves.
 
 =cut
 
-sub comment_data_for_jobs ($self, $jobs, $args = {}) {
+sub comment_data_for_jobs ($self, $jobs, $args = {}) {    # no:style:signatures
     my @job_ids = map { $_->id } ref $jobs eq 'ARRAY' ? @$jobs : $jobs->all;
     my $comments = $self->search({job_id => {in => \@job_ids}}, {order_by => 'me.id', select => [qw(text job_id)]});
     my $bugs = $self->result_source->schema->resultset('Bugs');

@@ -11,19 +11,19 @@ use Time::ParseDate;
 use Mojo::JSON 'encode_json';
 use OpenQA::WebAPI::ServerSideDataTable;
 
-sub index ($self) {
+sub index ($self) {    # no:style:signatures
     my $event_id = $self->param('eventid');
     $self->stash(audit_enabled => $self->app->config->{global}{audit_enabled});
     $self->stash(search => $event_id ? "id:$event_id" : $self->param('search'));
     $self->render('admin/audit_log/index');
 }
 
-sub productlog {
+sub productlog {    # no:style:signatures
     my ($self) = @_;
     $self->render('admin/audit_log/productlog');
 }
 
-sub productlog_ajax {
+sub productlog_ajax {    # no:style:signatures
     my ($self) = @_;
 
     my @searchable_columns = qw(me.distri me.version me.flavor me.arch me.build me.iso);
@@ -56,7 +56,7 @@ sub productlog_ajax {
     );
 }
 
-sub _add_single_query {
+sub _add_single_query {    # no:style:signatures
     my ($query, $key, $search_terms) = @_;
 
     return unless @$search_terms;
@@ -97,7 +97,7 @@ sub _add_single_query {
     }
 }
 
-sub _get_search_query ($self) {
+sub _get_search_query ($self) {    # no:style:signatures
 
     # construct query only from allowed columns
     my $query = {};
@@ -130,7 +130,7 @@ sub _get_search_query ($self) {
     return \@filter_conds;
 }
 
-sub ajax ($self, $filter_conds = undef) {
+sub ajax ($self, $filter_conds = undef) {    # no:style:signatures
     OpenQA::WebAPI::ServerSideDataTable::render_response(
         controller => $self,
         resultset => 'AuditEvents',
@@ -159,7 +159,7 @@ sub ajax ($self, $filter_conds = undef) {
     );
 }
 
-sub ajax_current_user ($self) {
+sub ajax_current_user ($self) {    # no:style:signatures
     return $self->render(json => {data => []}) unless my $current_user = $self->current_user;
     $self->ajax([{user_id => $current_user->id}, $self->_get_search_query]);
 }

@@ -22,8 +22,8 @@ use constant SCHEDULE_TICK_MS => $ENV{OPENQA_SCHEDULER_SCHEDULE_TICK_MS} // 2000
 
 our $RUNNING;
 
-sub startup ($self) {
-    # Provide help to users early to prevent failing later on misconfigurations
+sub startup ($self) {    # no:style:signatures
+                         # Provide help to users early to prevent failing later on misconfigurations
     return if $ENV{MOJO_HELP};
 
     OpenQA::Scheduler::Client::mark_current_process_as_scheduler;
@@ -60,15 +60,15 @@ sub startup ($self) {
     OpenQA::Setup::setup_plain_exception_handler($self);
 }
 
-sub run {
+sub run {    # no:style:signatures
     local $RUNNING = 1;
     __PACKAGE__->new->start;
 }
 
-sub wakeup { _reschedule(0) }
+sub wakeup { _reschedule(0) }    # no:style:signatures
 
-sub _reschedule ($time = undef) {
-    # Allow manual scheduling
+sub _reschedule ($time = undef) {    # no:style:signatures
+                                     # Allow manual scheduling
     return unless $RUNNING;
 
     # Reuse the existing timer if possible
@@ -83,7 +83,7 @@ sub _reschedule ($time = undef) {
     $timer = Mojo::IOLoop->recurring(($interval / 1000) => sub { OpenQA::Scheduler::Model::Jobs->singleton->schedule });
 }
 
-sub setup ($self) {
+sub setup ($self) {    # no:style:signatures
     OpenQA::Setup::read_config($self);
     setup_log($self);
 
@@ -104,9 +104,11 @@ sub setup ($self) {
         });
 }
 
-sub schema { OpenQA::Schema->singleton }
+sub schema { OpenQA::Schema->singleton }    # no:style:signatures
 
 # uncoverable statement
-sub _check_stale { OpenQA::Scheduler::Model::Jobs->singleton->incomplete_and_duplicate_stale_jobs }
+sub _check_stale {
+    OpenQA::Scheduler::Model::Jobs->singleton->incomplete_and_duplicate_stale_jobs;
+}    # no:style:signatures
 
 1;

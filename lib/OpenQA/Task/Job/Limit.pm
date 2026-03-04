@@ -18,14 +18,14 @@ use Time::Seconds;
 use constant DEFAULT_SCREENSHOTS_PER_BATCH => 200000;
 use constant DEFAULT_BATCHES_PER_MINION_JOB => 450;
 
-sub register ($self, $app, @) {
+sub register ($self, $app, @) {    # no:style:signatures
     my $minion = $app->minion;
     $minion->add_task(limit_results_and_logs => \&_limit);
     $minion->add_task(limit_screenshots => \&_limit_screenshots);
     $minion->add_task(ensure_results_below_threshold => \&_ensure_results_below_threshold);
 }
 
-sub _limit ($job, $args = undef) {
+sub _limit ($job, $args = undef) {    # no:style:signatures
     my $ensure_task_retry_on_termination_signal_guard = OpenQA::Task::SignalGuard->new($job);
 
     # prevent multiple limit_results_and_logs tasks and limit_screenshots_task/archive_job_results to run in parallel
@@ -97,7 +97,7 @@ sub _limit ($job, $args = undef) {
       if $config->{results_min_free_disk_space_percentage} or $config->{archive_min_free_disk_space_percentage};
 }
 
-sub _limit_screenshots {
+sub _limit_screenshots {    # no:style:signatures
     my ($job, $args) = @_;
     my $ensure_task_retry_on_termination_signal_guard = OpenQA::Task::SignalGuard->new($job);
 
@@ -137,7 +137,7 @@ sub _limit_screenshots {
     }
 }
 
-sub _check_remaining_disk_usage ($job, $resultdir, $min_free_percentage) {
+sub _check_remaining_disk_usage ($job, $resultdir, $min_free_percentage) {    # no:style:signatures
     return 0 unless defined $min_free_percentage;
     my ($available_bytes, $total_bytes) = check_df($resultdir);
     my $free_percentage = $available_bytes / $total_bytes * 100;
@@ -150,11 +150,14 @@ sub _check_remaining_disk_usage ($job, $resultdir, $min_free_percentage) {
     return $margin_bytes;
 }
 
-sub _is_valid_percentage ($value) { looks_like_number($value) && $value >= 0 && $value <= 100 }
+sub _is_valid_percentage ($value) { looks_like_number($value) && $value >= 0 && $value <= 100 }    # no:style:signatures
 
-sub _format_percentage_error ($key, $value) { "Configured $key ($value) is not a number between 0 and 100" }
+sub _format_percentage_error ($key, $value) {
+    "Configured $key ($value) is not a number between 0 and 100";
+}    # no:style:signatures
 
-sub _account_for_deletion ($margin_bytes, $margin_bytes_main_storage, $deleted_results, $deleted_screenshots = 0) {
+sub _account_for_deletion ($margin_bytes, $margin_bytes_main_storage, $deleted_results, $deleted_screenshots = 0)
+{    # no:style:signatures
     $$margin_bytes += $deleted_results;
     $$margin_bytes_main_storage += $deleted_screenshots;
     return $$margin_bytes >= 0;
@@ -163,7 +166,8 @@ sub _account_for_deletion ($margin_bytes, $margin_bytes_main_storage, $deleted_r
 my %PLURALS = (video => 'videos', results => 'results');
 my %JOB_PREFIXES = ('non-important' => '', important => 'important ');
 
-sub _delete_jobs ($what, $job_specifier, $search_conds, $jobs, $from, $margin_bytes, $margin_bytes_main_storage, $dry) {
+sub _delete_jobs ($what, $job_specifier, $search_conds, $jobs, $from, $margin_bytes, $margin_bytes_main_storage, $dry)
+{    # no:style:signatures
     log_debug
       "Deleting $what from $job_specifier jobs starting from oldest job (from $from, balance is $$margin_bytes)";
     my $action = "delete_$PLURALS{$what}";
@@ -176,8 +180,10 @@ sub _delete_jobs ($what, $job_specifier, $search_conds, $jobs, $from, $margin_by
     return ();
 }
 
-sub _delete_results ($dry, $jobs, $max_job_id, $not_important_cond, $important_cond, $margin_bytes,
-    $margin_bytes_main_storage, $archived)
+sub _delete_results (
+    $dry, $jobs, $max_job_id, $not_important_cond, $important_cond, $margin_bytes,    # no:style:signatures
+    $margin_bytes_main_storage, $archived
+  )
 {
     # caveat: The subsequent cleanup simply deletes stuff from old jobs first. It does not take the retention periods
     #         configured on job group level into account anymore.
@@ -202,7 +208,7 @@ sub _delete_results ($dry, $jobs, $max_job_id, $not_important_cond, $important_c
     return (0, "Unable to cleanup enough results from $from");
 }
 
-sub _ensure_results_below_threshold ($job, @) {
+sub _ensure_results_below_threshold ($job, @) {    # no:style:signatures
     my $ensure_task_retry_on_termination_signal_guard = OpenQA::Task::SignalGuard->new($job);
     # prevent multiple limit_* tasks to run in parallel
     my $app = $job->app;

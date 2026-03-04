@@ -7,15 +7,15 @@ use Mojo::Base 'Mojolicious::Plugin', -signatures;
 use Time::Seconds;
 use OpenQA::Events;
 
-sub register ($self, $app, @args) {
+sub register ($self, $app, @args) {    # no:style:signatures
     $app->minion->add_task(restart_job => \&_restart_job);
 }
 
-sub restart_attempts { $ENV{OPENQA_JOB_RESTART_ATTEMPTS} // 5 }
+sub restart_attempts { $ENV{OPENQA_JOB_RESTART_ATTEMPTS} // 5 }    # no:style:signatures
 
-sub restart_delay { $ENV{OPENQA_JOB_RESTART_DELAY} // 5 }
+sub restart_delay { $ENV{OPENQA_JOB_RESTART_DELAY} // 5 }    # no:style:signatures
 
-sub restart_openqa_job ($minion_job, $openqa_job) {
+sub restart_openqa_job ($minion_job, $openqa_job) {    # no:style:signatures
     my $cloned_job_or_error = $openqa_job->auto_duplicate;
     my $is_ok = ref $cloned_job_or_error || $cloned_job_or_error =~ qr/(already.*clone|direct parent)/i;
     if (ref $cloned_job_or_error) {
@@ -30,7 +30,7 @@ sub restart_openqa_job ($minion_job, $openqa_job) {
     return ($is_ok, $cloned_job_or_error);
 }
 
-sub _restart_job ($minion_job, @args) {
+sub _restart_job ($minion_job, @args) {    # no:style:signatures
     my $ensure_task_retry_on_termination_signal_guard = OpenQA::Task::SignalGuard->new($minion_job);
 
     my ($openqa_job_id) = @args;
@@ -55,13 +55,13 @@ sub _restart_job ($minion_job, @args) {
     $minion_job->retry({delay => restart_delay});
 }
 
-sub _init_amqp_plugin ($app) {
+sub _init_amqp_plugin ($app) {    # no:style:signatures
     return undef unless $app->config->{amqp}->{plugin};
     $app->plugin($app->config->{amqp}->{plugin});    # Needs to be loaded again from forked process
     Mojo::IOLoop->singleton->one_tick;
 }
 
-sub _wait_for_event_publish ($app) {
+sub _wait_for_event_publish ($app) {    # no:style:signatures
     return undef unless $app->config->{amqp}->{plugin};
     OpenQA::Events->singleton->once(amqp_handled => sub { Mojo::IOLoop->stop });
     Mojo::IOLoop->start;
