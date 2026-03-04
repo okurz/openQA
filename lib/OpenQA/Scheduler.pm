@@ -107,7 +107,7 @@ sub setup ($self) {    # no:style:signatures
 sub schema { OpenQA::Schema->singleton }    # no:style:signatures
 
 # uncoverable statement
-sub _check_stale {
+sub _check_stale {    # no:style:signatures
     OpenQA::Scheduler::Model::Jobs->singleton->incomplete_and_duplicate_stale_jobs;
 }    # no:style:signatures
 

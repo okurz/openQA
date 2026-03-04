@@ -23,7 +23,7 @@ sub parse ($self, @args) { $self }    # Do nothing here.
 sub _write_all ($self, $res, $dir) {
     path($dir)->make_path unless -d $dir;
     my $total = 0;
-    $self->$res->each(sub ($b, $i) { $total += $b->write($dir) });
+    $self->$res->each(sub ($item, $i) { $total += $item->write($dir) });
     return $total;
 }
 
