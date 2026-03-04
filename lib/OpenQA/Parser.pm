@@ -33,7 +33,8 @@ sub parser (@args) {
 }
 }
 
-sub _build_parser ($wanted_parser = 'Base', @args) {
+sub _build_parser ($wanted_parser = undef, @args) {
+    $wanted_parser //= 'Base';
     my $parser_name = "OpenQA::Parser::Format::${wanted_parser}";
     my $p_instance;
     {
@@ -46,7 +47,7 @@ sub _build_parser ($wanted_parser = 'Base', @args) {
     $p_instance;
 }
 
-sub load ($self, $file) {
+sub load ($self, $file = undef) {
     croak 'You need to specify a file' if !$file;
     my $file_content = $self->_read_file($file);
     confess "Failed reading file $file" if !$file_content;
@@ -55,7 +56,7 @@ sub load ($self, $file) {
     $self;
 }
 
-sub parse ($self, $content) { croak 'parse() not implemented by base class' }
+sub parse ($self, $content = undef) { croak 'parse() not implemented by base class' }
 
 sub _read_file ($self, $path) { path($path)->slurp() }
 
@@ -134,7 +135,7 @@ sub restore_el ($obj) {
 
 sub restore_tree_section ($ref) {
     try {
-        walker $ref => sub ($key, $value, $keys) {
+        walker $ref => sub ($key, $value, $keys, $parent) {
             my $hash = $ref;
             for (my $i = 0; $i < scalar @$keys - 1; $i++) {
                 my ($type, $kk) = @{$keys->[$i]};

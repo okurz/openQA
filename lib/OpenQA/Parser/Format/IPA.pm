@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package OpenQA::Parser::Format::IPA;
-use Mojo::Base 'OpenQA::Parser::Format::Base';
+use Mojo::Base 'OpenQA::Parser::Format::Base', -signatures;
 
 # Translates to JSON IPA format -> OpenQA internal representation
 # The parser results will be a collection of OpenQA::Parser::Result::IPA::Test
@@ -10,11 +10,10 @@ use Carp qw(croak confess);
 use Mojo::JSON;
 use OpenQA::Parser::Result::Test;
 
-sub _add_single_result { shift->results->add(OpenQA::Parser::Result::OpenQA->new(@_)) }
+sub _add_single_result ($self, @args) { $self->results->add(OpenQA::Parser::Result::OpenQA->new(@args)) }
 
 # Parser
-sub parse {
-    my ($self, $json) = @_;
+sub parse ($self, $json) {
     confess 'No JSON given/loaded' unless $json;
     my $decoded_json = Mojo::JSON::from_json($json);
     my %unique_names;
@@ -60,7 +59,7 @@ sub parse {
 
         my $details = {result => $result->{result}};
         my $text_fn = "IPA-$t_name.txt";
-        my $content = join "\n", $t_name, $result->{result};
+        my $content = CORE::join "\n", $t_name, $result->{result};
 
         $details->{text} = $text_fn;
         $details->{title} = $t_name;
@@ -77,6 +76,8 @@ sub parse {
             flags => {},
             category => 'IPA',
             name => $t_name,
+            log => $res->{test}->{log},
+            duration => $res->{test}->{duration},
             script => undef,
             result => $result->{result});
         $self->tests->add($t);
@@ -88,70 +89,9 @@ sub parse {
 }
 
 package OpenQA::Parser::Result::IPA::Info {
-    use Mojo::Base 'OpenQA::Parser::Result';
+    use Mojo::Base 'OpenQA::Parser::Result', -signatures;
 
     has [qw(distro platform image instance region results_file log_file timestamp)];
 }
-
-=head1 NAME
-
-OpenQA::Parser::Format::IPA - IPA file parser
-
-=head1 SYNOPSIS
-
-    use OpenQA::Parser::Format::IPA;
-
-    my $parser = OpenQA::Parser::Format::IPA->new()->load('file.json');
-
-    # Alternative interface
-    use OpenQA::Parser qw(parser p);
-
-    my $parser = p('IPA')->include_result(1)->load('file.json');
-
-    my $parser = parser( IPA => 'file.json' );
-
-    my $result_collection = $parser->results();
-    my $test_collection   = $parser->tests();
-    my $extra_collection  = $parser->extra();
-
-    my $info = $parser->extra()->first;  # Get system information
-
-    my $arrayref = $extra_collection->to_array;
-
-    $parser->results->remove(0);
-
-    my $passed_results = $parser->results->search( result => qr/ok/ );
-    my $size = $passed_results->size;
-
-=head1 DESCRIPTION
-
-OpenQA::Parser::Format::IPA is the parser for the ipa file format.
-The parser is making use of the C<tests()>, C<results()>, C<output()> and C<extra()> collections.
-
-With the attribute C<include_result()> set to true, it will include inside the
-results the respective test that generated it (inside the C<test()> attribute).
-See also L<OpenQA::Parser::Result::OpenQA>.
-
-The C<extra()> collection can include the environment of the tests shared among the results.
-After the parsing, depending on the processed file, it should contain one element,
-which is the environment.
-
-    my $parser = parser( IPA => 'file.json' );
-
-    my $environment = $parser->extra()->first;
-
-Results objects are of specific type, as they are including additional attributes that are
-supported only by the format (thus not by openQA).
-
-=head1 ATTRIBUTES
-
-OpenQA::Parser::Format::IPA inherits all attributes from L<OpenQA::Parser::Format::Base>.
-
-=head1 METHODS
-
-OpenQA::Parser::Format::IPA inherits all methods from L<OpenQA::Parser::Format::Base>, it only overrides
-C<parse()> to generate a tree of results.
-
-=cut
 
 1;
