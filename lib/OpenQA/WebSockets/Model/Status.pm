@@ -65,8 +65,7 @@ sub add_worker_connection ($self, $worker_id, $controller) {
     return $worker;
 }
 
-sub remove_worker_connection {
-    my ($self, $transaction) = @_;
+sub remove_worker_connection ($self, $transaction) {
     return delete $self->worker_by_transaction->{$transaction};
 }
 
