@@ -719,10 +719,10 @@ sub detect_current_version ($path) {
 
 # Resolves a path to class
 # path is expected to be in the form of the keys of %INC. e.g. : foo/bar/baz.pm
-sub path_to_class { substr join('::', split /\//, shift), 0, -3 }
+sub path_to_class ($path) { substr CORE::join('::', split /\//, $path), 0, -3 }
 
 # Returns all modules that are loaded into memory
-sub loaded_modules {
+sub loaded_modules () {
     map { path_to_class($_); } sort keys %INC;
 }
 
@@ -833,31 +833,24 @@ sub any_array_item_contained_by_hash ($array, $hash) {
     return 0;
 }
 
-sub base_host { Mojo::URL->new($_[0])->host || $_[0] }
+sub base_host ($url) { Mojo::URL->new($url)->host || $url }
 
-sub change_sec_to_word ($second = undef) {
-    return undef unless $second;
-    return undef if ($second !~ /^[[:digit:]]+$/);
-    my %time_numbers = (
-        d => ONE_DAY,
-        h => ONE_HOUR,
-        m => ONE_MINUTE,
-        s => 1
-    );
-    my $time_word = '';
-    for my $key (qw(d h m s)) {
-        $time_word .= int($second / $time_numbers{$key}) . $key . ' '
-          if (int($second / $time_numbers{$key}));
-        $second = int($second % $time_numbers{$key});
+# returns the URL to the web UI from the perspective of an external client
+sub web_ui_url ($c = undef) {
+    my $url;
+    if ($c) {
+        $url = $c->url_for('/')->to_abs;
+        $url->base(Mojo::URL->new($ENV{OPENQA_WEBUI_URL})) if $ENV{OPENQA_WEBUI_URL};
     }
-    $time_word =~ s/\s$//g;
-    return $time_word;
+    else {
+        $url = Mojo::URL->new($ENV{OPENQA_WEBUI_URL} // 'http://localhost');
+    }
+    return $url;
 }
 
-sub find_video_files { path(shift)->list_tree->grep(VIDEO_FILE_NAME_REGEX) }
+sub find_video_files ($dir) { path($dir)->list_tree->grep(VIDEO_FILE_NAME_REGEX) }
 
-# workaround https://github.com/mojolicious/mojo/issues/1629
-sub fix_top_level_help { @ARGV = () if ($ARGV[0] // '') =~ qr/^(-h|(--)?help)$/ }
+sub fix_top_level_help () { @ARGV = () if ($ARGV[0] // '') =~ qr/^(-h|(--)?help)$/ }
 
 sub looks_like_url_with_scheme ($value) { !!Mojo::URL->new($value)->scheme }
 

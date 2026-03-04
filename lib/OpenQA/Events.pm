@@ -4,7 +4,7 @@
 package OpenQA::Events;
 use Mojo::Base 'Mojo::EventEmitter', -signatures;
 
-sub singleton { state $events = shift->SUPER::new }
+sub singleton ($class) { state $events = $class->SUPER::new }
 
 # emits an event allowing to pass the usual arguments via named parameter
 # note: Supposed to be used from non-controller context. Use the equally named helper

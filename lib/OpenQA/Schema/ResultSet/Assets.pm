@@ -16,7 +16,7 @@ use Feature::Compat::Try;
 use constant {STATUS_CACHE_FILE => '/webui/cache/asset-status.json'};
 use constant TYPES => (qw(iso repo hdd other));
 
-sub status_cache_file {
+sub status_cache_file ($class = undef) {
     return prjdir() . STATUS_CACHE_FILE;
 }
 

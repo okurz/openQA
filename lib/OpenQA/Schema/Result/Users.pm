@@ -67,9 +67,7 @@ __PACKAGE__->has_many(comments => 'OpenQA::Schema::Result::Comments', 'user_id')
 __PACKAGE__->has_many(audit_events => 'OpenQA::Schema::Result::AuditEvents', 'user_id');
 __PACKAGE__->add_unique_constraint([qw(username provider)]);
 
-sub name {
-    my ($self) = @_;
-
+sub name ($self) {
     if (!$self->{_name}) {
         $self->{_name} = $self->nickname;
         if (!$self->{_name}) {

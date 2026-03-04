@@ -13,7 +13,7 @@ use OpenQA::Log qw(log_debug);
 
 has [qw(workers worker_by_transaction)] => sub { {} };
 
-sub singleton { state $status ||= __PACKAGE__->new }
+sub singleton ($class) { state $status ||= $class->new }
 
 sub _is_limit_exceeded ($self, $worker_db, $worker_is_new, $controller) {
     my $misc_limits = $controller->app->config->{misc_limits};

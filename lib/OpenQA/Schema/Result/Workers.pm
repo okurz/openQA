@@ -64,8 +64,7 @@ __PACKAGE__->inflate_column(
         deflate => sub { encode_json(shift) },
     });
 
-sub name {
-    my ($self) = @_;
+sub name ($self) {
     return $self->host . ':' . $self->instance;
 }
 
