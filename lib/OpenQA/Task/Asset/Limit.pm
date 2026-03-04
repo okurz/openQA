@@ -14,7 +14,7 @@ use Data::Dump 'pp';
 use Time::Seconds;
 use Feature::Compat::Try;
 
-sub register ($self, $app) {
+sub register ($self, $app, $conf = undef) {
     $app->minion->add_task(limit_assets => sub { _limit($app, @_) });
 }
 

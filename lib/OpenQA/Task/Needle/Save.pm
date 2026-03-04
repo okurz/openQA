@@ -16,7 +16,7 @@ use Mojo::JSON 'decode_json';
 use Feature::Compat::Try;
 use Time::Seconds 'ONE_HOUR';
 
-sub register ($self, $app) {
+sub register ($self, $app, $conf = undef) {
     $app->minion->add_task(save_needle => sub { _save_needle($app, @_) });
 }
 
