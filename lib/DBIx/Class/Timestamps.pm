@@ -1,13 +1,12 @@
 package DBIx::Class::Timestamps;
 
-use Mojo::Base 'DBIx::Class';
+use Mojo::Base 'DBIx::Class', -signatures;
 use DateTime;
 use Exporter 'import';
 
 our @EXPORT_OK = qw(now);
 
-sub add_timestamps {    # no:style:signatures
-    my $self = shift;
+sub add_timestamps ($self) {
 
     $self->load_components(qw(InflateColumn::DateTime DynamicDefault));
 
@@ -24,7 +23,7 @@ sub add_timestamps {    # no:style:signatures
     );
 }
 
-sub now {    # no:style:signatures
+sub now () {
     DateTime->now(time_zone => 'UTC');
 }
 

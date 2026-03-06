@@ -46,7 +46,6 @@ __PACKAGE__->has_many(
 sub name ($self) {
     CORE::join '-', map { $self->$_ } qw(distri version flavor arch);
 }
-}
 
 # give all flavors of a "product" a common name
 # used in the job groups display

@@ -128,7 +128,6 @@ sub discard_changes ($self, @args) { undef $self->{_settings}; $self->SUPER::dis
 sub to_string ($self) {
     return join '-', grep { $_ ne '' } ($self->distri, $self->version, $self->flavor, $self->arch, $self->build);
 }
-}
 
 sub to_hash ($self, %args) {
     my %result;

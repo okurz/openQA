@@ -11,20 +11,18 @@ use Time::ParseDate;
 use Mojo::JSON 'encode_json';
 use OpenQA::WebAPI::ServerSideDataTable;
 
-sub index ($self) {    # no:style:signatures
+sub index ($self) {
     my $event_id = $self->param('eventid');
     $self->stash(audit_enabled => $self->app->config->{global}{audit_enabled});
     $self->stash(search => $event_id ? "id:$event_id" : $self->param('search'));
     $self->render('admin/audit_log/index');
 }
 
-sub productlog {    # no:style:signatures
-    my ($self) = @_;
+sub productlog ($self) {
     $self->render('admin/audit_log/productlog');
 }
 
-sub productlog_ajax {    # no:style:signatures
-    my ($self) = @_;
+sub productlog_ajax ($self) {
 
     my @searchable_columns = qw(me.distri me.version me.flavor me.arch me.build me.iso);
     my @filter_conds;
@@ -56,8 +54,7 @@ sub productlog_ajax {    # no:style:signatures
     );
 }
 
-sub _add_single_query {    # no:style:signatures
-    my ($query, $key, $search_terms) = @_;
+sub _add_single_query ($query, $key, $search_terms) {
 
     return unless @$search_terms;
     my $search = join ' ', @$search_terms;
@@ -97,7 +94,7 @@ sub _add_single_query {    # no:style:signatures
     }
 }
 
-sub _get_search_query ($self) {    # no:style:signatures
+sub _get_search_query ($self) {
 
     # construct query only from allowed columns
     my $query = {};
@@ -130,7 +127,7 @@ sub _get_search_query ($self) {    # no:style:signatures
     return \@filter_conds;
 }
 
-sub ajax ($self, $filter_conds = undef) {    # no:style:signatures
+sub ajax ($self, $filter_conds = undef) {
     OpenQA::WebAPI::ServerSideDataTable::render_response(
         controller => $self,
         resultset => 'AuditEvents',
@@ -159,7 +156,7 @@ sub ajax ($self, $filter_conds = undef) {    # no:style:signatures
     );
 }
 
-sub ajax_current_user ($self) {    # no:style:signatures
+sub ajax_current_user ($self) {
     return $self->render(json => {data => []}) unless my $current_user = $self->current_user;
     $self->ajax([{user_id => $current_user->id}, $self->_get_search_query]);
 }

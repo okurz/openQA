@@ -27,7 +27,7 @@ use constant STARVATION_PROTECTION_PRIORITY_OFFSET => $ENV{OPENQA_SCHEDULER_STAR
 has scheduled_jobs => sub { {} };
 has shuffle_workers => 1;
 
-sub determine_free_workers ($shuffle = 0) {    # no:style:signatures
+sub determine_free_workers ($shuffle = 0) {
     my @free_workers = grep { !$_->dead } OpenQA::Schema->singleton->resultset('Workers')->search(
         {
             job_id => undef,
@@ -39,12 +39,12 @@ sub determine_free_workers ($shuffle = 0) {    # no:style:signatures
     return $shuffle ? shuffle(\@free_workers) : \@free_workers;
 }
 
-sub determine_scheduled_jobs ($self) {    # no:style:signatures
+sub determine_scheduled_jobs ($self) {
     $self->_update_scheduled_jobs;
     return $self->scheduled_jobs;
 }
 
-sub _allocate_jobs ($self, $free_workers) {    # no:style:signatures
+sub _allocate_jobs ($self, $free_workers) {
     my ($allocated_workers, $allocated_jobs) = ({}, {});
     my $scheduled_jobs = $self->scheduled_jobs;
     my $schema = OpenQA::Schema->singleton;
@@ -138,7 +138,7 @@ sub _allocate_jobs ($self, $free_workers) {    # no:style:signatures
     return ($allocated_workers, $allocated_jobs);
 }
 
-sub _allocate_worker_with_priority ($self, $prio, $job_info, $j, $allocated_workers, $worker) {    # no:style:signatures
+sub _allocate_worker_with_priority ($self, $prio, $job_info, $j, $allocated_workers, $worker) {
     if ($prio > 0) {
         # this means we will by default increase the offset per half-assigned job,
         # so if we miss 1/25 jobs, we'll bump by +24
@@ -156,7 +156,7 @@ sub _allocate_worker_with_priority ($self, $prio, $job_info, $j, $allocated_work
     }
 }
 
-sub schedule ($self) {    # no:style:signatures
+sub schedule ($self) {
     my $start_time = time;
     my $schema = OpenQA::Schema->singleton;
     my $free_workers = determine_free_workers($self->shuffle_workers);
@@ -324,9 +324,9 @@ sub schedule ($self) {    # no:style:signatures
     return (\@successfully_allocated);
 }
 
-sub singleton { state $jobs ||= __PACKAGE__->new }    # no:style:signatures
+sub singleton () { state $jobs ||= __PACKAGE__->new }
 
-sub _matching_workers ($jobinfo, $free_workers, $rejected = {}) {    # no:style:signatures
+sub _matching_workers ($jobinfo, $free_workers, $rejected = {}) {
     my @filtered;
     my @needed = sort @{$jobinfo->{worker_classes}};
     for my $worker (@$free_workers) {
@@ -337,17 +337,17 @@ sub _matching_workers ($jobinfo, $free_workers, $rejected = {}) {    # no:style:
     return \@filtered;
 }
 
-sub _jobs_in_execution ($need) {    # no:style:signatures
+sub _jobs_in_execution ($need) {
     my $jobs_rs = OpenQA::Schema->singleton->resultset('Jobs');
     $jobs_rs->search({id => {-in => $need}, state => [OpenQA::Jobs::Constants::EXECUTION_STATES]})->all;
 }
 
-sub _worker_info_of_job ($job) {    # no:style:signatures
+sub _worker_info_of_job ($job) {
     return undef unless my $assigned_worker = $job->assigned_worker;
     return {host => $assigned_worker->host, one_host_only => $assigned_worker->get_property('PARALLEL_ONE_HOST_ONLY')};
 }
 
-sub _worker_info_of_cluster ($jobinfo, $running_cluster_jobs) {    # no:style:signatures
+sub _worker_info_of_cluster ($jobinfo, $running_cluster_jobs) {
     my $worker_info;
     my $worker_one_host_only = 0;
     for my $j (keys %{$jobinfo->{cluster_jobs}}) {
@@ -360,7 +360,7 @@ sub _worker_info_of_cluster ($jobinfo, $running_cluster_jobs) {    # no:style:si
     return ($worker_info, $worker_one_host_only);
 }
 
-sub _pick_siblings_of_running ($self, $allocated_jobs, $allocated_workers) {    # no:style:signatures
+sub _pick_siblings_of_running ($self, $allocated_jobs, $allocated_workers) {
     my $scheduled_jobs = $self->scheduled_jobs;
     my @need;
     # determine the IDs of unallocated jobs in parallel clusters of currently scheduled jobs
@@ -405,8 +405,8 @@ sub _pick_siblings_of_running ($self, $allocated_jobs, $allocated_workers) {    
     }
 }
 
-sub _to_be_scheduled_recurse ($job_info, $scheduled, $visited) {    # no:style:signatures
-       # return falsy value if the cluster is not fully scheduled (e.g. blocked_by is set or there are Gru dependencies)
+sub _to_be_scheduled_recurse ($job_info, $scheduled, $visited) {
+    # return falsy value if the cluster is not fully scheduled (e.g. blocked_by is set or there are Gru dependencies)
     return 0 unless defined($job_info) && defined(my $job_id = $job_info->{id});
 
     # keep track of visited jobs; return early if already visited
@@ -420,12 +420,12 @@ sub _to_be_scheduled_recurse ($job_info, $scheduled, $visited) {    # no:style:s
     return 1;
 }
 
-sub _to_be_scheduled ($job_info, $scheduled) {    # no:style:signatures
+sub _to_be_scheduled ($job_info, $scheduled) {
     my %visited;
     _to_be_scheduled_recurse($job_info, $scheduled, \%visited) ? [values %visited] : undef;
 }
 
-sub _update_scheduled_jobs ($self) {    # no:style:signatures
+sub _update_scheduled_jobs ($self) {
     my $cur_time = DateTime->now(time_zone => 'UTC');
     my $max_job_scheduled_time = OpenQA::App->singleton->config->{scheduler}->{max_job_scheduled_time};
 
@@ -491,8 +491,7 @@ sub _update_scheduled_jobs ($self) {    # no:style:signatures
 #  * Provides a 'flat' list of involved job IDs as 2nd return value.
 #  * See subtest 'serialize sequence of directly chained dependencies' in
 #    t/05-scheduler-serialize-directly-chained-dependencies.t for examples.
-sub _serialize_directly_chained_job_sequence ($first_job_id, $cluster_info, $sort_function = undef)
-{    # no:style:signatures
+sub _serialize_directly_chained_job_sequence ($first_job_id, $cluster_info, $sort_function = undef) {
     my %visited = ($first_job_id => 1);
     my $sequence
       = _serialize_directly_chained_job_sub_sequence([$first_job_id], \%visited,
@@ -501,10 +500,8 @@ sub _serialize_directly_chained_job_sequence ($first_job_id, $cluster_info, $sor
     return ($sequence, [keys %visited]);
 }
 
-sub _serialize_directly_chained_job_sub_sequence (
-    $output_array, $visited, $child_job_ids, $cluster_info,    # no:style:signatures
-    $sort_function
-  )
+sub _serialize_directly_chained_job_sub_sequence ($output_array, $visited, $child_job_ids, $cluster_info,
+    $sort_function)
 {
     for my $current_job_id (@{$sort_function->($child_job_ids)}) {
         my $current_job_info = $cluster_info->{$current_job_id};
@@ -519,9 +516,8 @@ sub _serialize_directly_chained_job_sub_sequence (
     return $output_array;
 }
 
-sub _assign_multiple_jobs_to_worker ($self, $jobs, $worker, $directly_chained_job_sequence, $job_ids)
-{    # no:style:signatures
-     # prepare job data for the worker
+sub _assign_multiple_jobs_to_worker ($self, $jobs, $worker, $directly_chained_job_sequence, $job_ids) {
+    # prepare job data for the worker
     my $worker_id = $worker->id;
     my %job_data;
     my %job_info = (
@@ -542,7 +538,7 @@ sub _assign_multiple_jobs_to_worker ($self, $jobs, $worker, $directly_chained_jo
     return OpenQA::WebSockets::Client->singleton->send_jobs(\%job_info);
 }
 
-sub incomplete_and_duplicate_stale_jobs ($self) {    # no:style:signatures
+sub incomplete_and_duplicate_stale_jobs ($self) {
     try {
         my $schema = OpenQA::Schema->singleton;
         for my $job ($schema->resultset('Jobs')->stale_ones) {

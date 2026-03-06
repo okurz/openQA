@@ -29,7 +29,6 @@ __PACKAGE__->has_many(needles => 'OpenQA::Schema::Result::Needles', 'dir_id');
 sub set_name_from_job ($self, $job) {
     $self->name(sprintf '%s-%s', $job->DISTRI, $job->VERSION);
 }
-}
 
 sub is_symlink ($self) { $self->path ne (realpath($self->path) // '') }
 

@@ -10,7 +10,6 @@ use Mojo::UserAgent;
 use POSIX 'strftime';
 use File::Which qw(which);
 use OpenQA::Log qw(log_error);
-use HTTP::Status qw(:constants);
 
 my $dirty_status_filename = '.dirty_status';
 my $api_repo_filename = '.api_repo';
@@ -156,7 +155,7 @@ sub register ($self, $app, $config) {
 
     if (!$plugin_api_r) {
         # uncoverable statement
-        $app->log->error('API routes not configured, plugin ObsRsync will be disabled')
+        $app->log->error('API routes not configured, plugin ObsRsync will not have API configured')
           unless $plugin_r;
     }
     else {
@@ -181,7 +180,7 @@ sub _is_obs_project_status_dirty ($self, $url, $project, $repo, $helper) {
     my $tx = $ua->get($url);
     my $res = $tx->result;
     # Retry if authentication is required
-    if ($res->code == HTTP_UNAUTHORIZED) {
+    if ($res->code == 401) {
         my $username = $helper->username;
         my $ssh_key_file = $helper->ssh_key_file;
         my $auth_header = _bs_ssh_auth($res->headers->www_authenticate, $username, $ssh_key_file);
@@ -264,8 +263,8 @@ sub _get_last_test_id ($c, $alias) {
     return _read_test_id(Mojo::File->new($home, $alias, '.run_last'));
 }
 
-sub _read_test_id {
-    my $cmdlog = shift->child('openqa.cmd.log');
+sub _read_test_id ($dir) {
+    my $cmdlog = $dir->child('openqa.cmd.log');
     return '' unless -f $cmdlog;
     my $fh = $cmdlog->open('<');
     my $res = '';
@@ -407,6 +406,7 @@ sub _get_builds_in_file ($file, $seen) {
 # and from Media*.lst, for repositories
 # these files are updated from ObsRsync Gru tasks
 sub _get_builds_in_folder ($folder) {
+
     my %seen;
     _get_builds_in_file(Mojo::File->new($folder, $files_iso_filename), \%seen);
     Mojo::File->new($folder)->list()->grep($files_media_filemask)->each(
@@ -475,15 +475,15 @@ sub _check_and_render_error ($c, @args) {
 }
 
 sub _check_error ($home, $alias, $subfolder = undef, $filename = undef) {
-    return (HTTP_METHOD_NOT_ALLOWED, 'Home directory is not set') unless $home;
-    return (HTTP_METHOD_NOT_ALLOWED, 'Home directory not found') unless -d $home;
-    return (HTTP_BAD_REQUEST, 'Project has invalid characters') if $alias && $alias =~ m!/!;
-    return (HTTP_BAD_REQUEST, 'Subfolder has invalid characters') if $subfolder && $subfolder =~ m!/!;
-    return (HTTP_BAD_REQUEST, 'Filename has invalid characters') if $filename && $filename =~ m!/!;
+    return (405, 'Home directory is not set') unless $home;
+    return (405, 'Home directory not found') unless -d $home;
+    return (400, 'Project has invalid characters') if $alias && $alias =~ m!/!;
+    return (400, 'Subfolder has invalid characters') if $subfolder && $subfolder =~ m!/!;
+    return (400, 'Filename has invalid characters') if $filename && $filename =~ m!/!;
 
     my ($project, $batch) = _split_alias(undef, $alias);
-    return (HTTP_NOT_FOUND, "Invalid Project {$project}") if $project && !-d Mojo::File->new($home, $project);
-    return (HTTP_NOT_FOUND, "Invalid Batch {$project|$batch}")
+    return (404, "Invalid Project {$project}") if $project && !-d Mojo::File->new($home, $project);
+    return (404, "Invalid Batch {$project|$batch}")
       if $project && $batch && !-d Mojo::File->new($home, $project, $batch);
     return 0;
 }

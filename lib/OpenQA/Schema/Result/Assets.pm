@@ -140,7 +140,6 @@ sub refresh_size ($self, $current_size = undef) {
 sub is_type_hidden ($type) {
     return grep { $_ eq $type } split / /, OpenQA::App->singleton->config->{global}->{hide_asset_types};
 }
-}
 
 sub hidden ($self) {
     return is_type_hidden($self->type);

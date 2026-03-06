@@ -11,8 +11,8 @@ has client => sub { OpenQA::Client->new };
 
 has api_path => '/api/v1/';
 
-sub _build_url ($self, $uri) {    # no:style:signatures
-                                  # Check and make it Mojo::URL if wasn't already
+sub _build_url ($self, $uri) {
+    # Check and make it Mojo::URL if wasn't already
     $self->client->base_url(Mojo::URL->new($self->client->base_url)) unless ref $self->client->base_url eq 'Mojo::URL';
 
     my $base_url = $self->client->base_url->clone;
@@ -24,8 +24,8 @@ sub _build_url ($self, $uri) {    # no:style:signatures
     return $base_url;
 }
 
-sub _build_post { $_[0]->client->build_tx(POST => shift->_build_url(+shift) => form => +shift) }    # no:style:signatures
+sub _build_post ($self, $uri, $form) { $self->client->build_tx(POST => $self->_build_url($uri) => form => $form) }
 
-sub is_local ($self) { is_host_local($self->_build_url('/')->to_abs->host) }    # no:style:signatures
+sub is_local ($self) { is_host_local($self->_build_url('/')->to_abs->host) }
 
 1;

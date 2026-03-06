@@ -19,16 +19,16 @@ my $specfile = "$RealBin/../public/openqa-cli.yaml";
 $specfile = "$RealBin/../client/openqa-cli.yaml" unless -f $specfile;
 
 my $app_spec;
-sub _get_global_options { $app_spec->{options} }    # no:style:signatures
+sub _get_global_options () { $app_spec->{options} }
 
-sub _get_options ($name) { $app_spec->{subcommands}->{$name}->{options}; }    # no:style:signatures
+sub _get_options ($name) { $app_spec->{subcommands}->{$name}->{options}; }
 
-sub run ($self, @args) {    # no:style:signatures
+sub run ($self, @args) {
     $app_spec = YAML::PP::LoadFile($specfile);
     return $self->SUPER::run(@args);
 }
 
-sub get_opt ($type, $args, $p, $result) {    # no:style:signatures
+sub get_opt ($type, $args, $p, $result) {
     my $opts = $type eq 'global' ? _get_global_options() : _get_options($type);
     my %getopt;
     for my $option (@$opts) {
@@ -46,7 +46,7 @@ sub get_opt ($type, $args, $p, $result) {    # no:style:signatures
     getopt $args, $p, %getopt;
 }
 
-sub _help ($self, $name = undef) {    # no:style:signatures
+sub _help ($self, $name = undef) {
     my $help = '';
     my $global_opts = _print_options('Options (for all commands):', _get_global_options());
     if ($name) {
@@ -61,7 +61,7 @@ sub _help ($self, $name = undef) {    # no:style:signatures
     return encode 'UTF-8' => $help;
 }
 
-sub _print_options ($label, $options) {    # no:style:signatures
+sub _print_options ($label, $options) {
     my @rows;
     my @getopts;
     for my $option (@$options) {
@@ -81,7 +81,7 @@ sub _print_options ($label, $options) {    # no:style:signatures
     return $label . $usage;
 }
 
-sub _option_hash_to_spec ($opt) {    # no:style:signatures
+sub _option_hash_to_spec ($opt) {
     my $name = $opt->{name};
     my $spec = $name;
     my $aliases = $opt->{aliases};

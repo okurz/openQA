@@ -31,7 +31,6 @@ has 'content';
 sub parser (@args) {
     @args > 1 && ref $args[0] ne 'HASH' ? _build_parser(shift @args)->load(shift @args) : _build_parser(shift @args);
 }
-}
 
 sub _build_parser ($wanted_parser = undef, @args) {
     $wanted_parser //= 'Base';
