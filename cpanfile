@@ -99,9 +99,11 @@ requires 'warnings';
 
 on 'test' => sub {
     requires 'App::cpanminus';
+    requires 'Parallel::ForkManager';
     requires 'Selenium::Remote::Driver', '>= 1.23';
     requires 'Selenium::Remote::WDKeys';
     requires 'Test::Compile';
+    requires 'Test2::IPC';
     requires 'Test::Exception';
     requires 'Test::Fatal';
     requires 'Test::Mock::Time';
