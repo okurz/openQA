@@ -8,6 +8,15 @@ use JSON::PP qw(decode_json);
 
 sub register ($self, $app, $conf = {}) {
     my $dist_path = $app->home->child('public', 'dist');
+    # Robustness: If app->home is set to something else (e.g. t/data), look in current dir
+    unless (-d $dist_path) {
+        my $root_dist = path('public', 'dist');
+        if (-d $root_dist) {
+            $dist_path = $root_dist->realpath;
+            push @{$app->static->paths}, $root_dist->dirname->realpath->to_string;
+        }
+    }
+
     my $manifest_file = $dist_path->child('.vite', 'manifest.json');
     my $manifest;
 
@@ -55,7 +64,37 @@ sub register ($self, $app, $conf = {}) {
                 $test_name =~ s/\.(js|css)$/.test.$1/;
             }
 
-            my $entry = $manifest->{$test_name} || $manifest->{$name};
+            # Try to find the entry in the manifest
+            my $entry;
+            for my $candidate ($test_name, $name) {
+                # 1. Exact match
+                $entry = $manifest->{$candidate};
+                last if $entry;
+
+                # 2. Try with prefixes
+                my $entry_path = $candidate;
+                if ($entry_path =~ /\.css$/) {
+                    $entry_path =~ s/\.css$/.scss/;
+                    $entry = $manifest->{"entry/$entry_path"} || $manifest->{"stylesheets/$entry_path"};
+                }
+                elsif ($entry_path =~ /\.js$/) {
+                    $entry = $manifest->{"entry/$entry_path"} || $manifest->{"javascripts/$entry_path"};
+                }
+                elsif ($entry_path =~ /\.(png|svg|jpg|jpeg|gif|ico)$/) {
+                    $entry = $manifest->{"images/$entry_path"};
+                }
+                last if $entry;
+
+                # 3. Try searching by 'name' field in manifest
+                foreach my $key (keys %$manifest) {
+                    if (($manifest->{$key}->{name} // '') eq $candidate) {
+                        $entry = $manifest->{$key};
+                        last;
+                    }
+                }
+                last if $entry;
+            }
+
             if ($entry) {
                 return $c->url_for('/dist/' . $entry->{file});
             }

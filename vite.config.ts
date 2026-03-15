@@ -64,8 +64,19 @@ export default defineConfig({
         'terminal.svg': resolve(__dirname, 'assets/images/terminal.svg'),
         'suse.png': resolve(__dirname, 'assets/images/suse.png'),
         'audio.svg': resolve(__dirname, 'assets/images/audio.svg')
+      },
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('ace-builds')) return 'ace-vendor';
+            if (id.includes('d3') || id.includes('dagre')) return 'graph-vendor';
+            if (id.includes('bootstrap') || id.includes('jquery')) return 'core-vendor';
+            return 'vendor';
+          }
+        }
       }
-    }
+    },
+    chunkSizeWarningLimit: 1000
   },
   css: {
     postcss: {
@@ -73,11 +84,13 @@ export default defineConfig({
     },
     preprocessorOptions: {
       scss: {
-        loadPaths: [resolve(__dirname, 'node_modules')]
+        loadPaths: [resolve(__dirname, 'node_modules')],
+        quietDeps: true,
+        // Silence deprecations that are prevalent in Bootstrap 5.3 and older SCSS
+        silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'if-function']
       }
     }
   },
-
   resolve: {
     alias: {
       // Handle imports that were relative to assets/ in AssetPack
