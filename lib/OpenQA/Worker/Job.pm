@@ -192,7 +192,7 @@ sub _handle_timeout ($self, $engine = undef) {
     # prevent to determine status of job from exit_status
     eval {
         if (my $child = $engine->{child}) {
-            $child->session->_protect(sub { $child->unsubscribe('collected') });
+            $child->session->_protect(sub { $child->unsubscribe('collected') });    # uncoverable statement
         }
     } if $engine;
     # abort job
