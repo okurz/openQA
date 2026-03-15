@@ -9,51 +9,30 @@ use Mojo::Base -strict, -signatures;
 use Mojolicious;
 use Mojo::File qw(path);
 use Mojo::Home;
-use Mojolicious::Plugin::AssetPack;
+use OpenQA::Plugin::Vite;
 use YAML::PP qw(LoadFile);
 use Feature::Compat::Try;
 
 use constant ASSET_PACK_VERSION_NO_RETRY => 2.13;
 
 sub setup ($server) {
-    # setup asset pack, note that the config file is shared with tools/generate-packed-assets
-    $server->plugin(AssetPack => LoadFile($server->home->child('assets', 'assetpack.yml')));
-
-    # The feature was added in the 2.14 release, the version check can be removed once openQA depends on a newer version
-    $server->asset->store->retries(5) if $Mojolicious::Plugin::AssetPack::VERSION > ASSET_PACK_VERSION_NO_RETRY;
-
-    # -> read assets/assetpack.def
-    local $SIG{CHLD};
-    try { $server->asset->process }
-    catch ($e) {
-        $e    # uncoverable statement
-          .= 'If you invoked this service for development (from a Git checkout) you probably just need to'
-          . ' invoke "make node_modules" before running this service. If you invoked this service via a packaged binary/service'
-          . " then there is probably a problem with the packaging.\n"
-          if $e =~ qr/could not find input asset.*node_modules/i;    # uncoverable statement
-        die $e;    # uncoverable statement
-    }
-
-    # Clean up file handles to avoid "Too many open files"
-    for my $asset (map { @$_ } values %{$server->asset->{by_topic} // {}}) {
-        delete $asset->{_asset}{handle} if $asset->{_asset} && $asset->{_asset}->isa('Mojo::Asset::File');
-    }
-    delete $server->asset->{input};
-    delete $server->asset->store->{assets};
+    # setup Vite plugin for asset management
+    $server->plugin('OpenQA::Plugin::Vite');
 }
 
 sub _path ($url) { path('assets', ref $url eq 'Mojo::URL' ? $url->path : $url)->realpath->to_rel }
 
 sub list ($server = Mojolicious->new(home => Mojo::Home->new('.'))) {
-    setup $server unless $server->can('asset');
-    my %asset_urls;
-    my $assets_by_checksum = $server->asset->{by_checksum};
-    $asset_urls{_path($assets_by_checksum->{$_}->url)} = 1 for keys %$assets_by_checksum;
-    my $assets_by_topic = $server->asset->{by_topic};
-    for my $topic (keys %$assets_by_topic) {
-        $asset_urls{_path($_->url)} = 1 for @{$assets_by_topic->{$topic}};
-    }
-    say $_ for keys %asset_urls;
+    # This function is used at install-time to list assets that need to be packaged.
+    # We should return all files in public/dist.
+    my $dist = path('public', 'dist');
+    return unless -d $dist;
+    $dist->list_tree->each(
+        sub ($file, $) {
+            say $file->to_rel;
+        });
 }
+
+
 
 1;

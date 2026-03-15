@@ -139,9 +139,7 @@ sub register ($self, $app, $config) {
 
     $app->helper(
         icon_url => sub ($c, $icon) {
-            my $icon_asset = $c->app->asset->processed($icon)->[0];
-            die "Could not find icon '$icon' in assets" unless $icon_asset;
-            return $c->url_for(assetpack => $icon_asset->TO_JSON);
+            return $c->vite($icon);
         });
 
     $app->helper(
