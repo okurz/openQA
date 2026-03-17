@@ -466,4 +466,13 @@ subtest 'concurrent asset creation' => sub {
     };
 };
 
+subtest 'JobsAssets coverage' => sub {
+    my $job = $schema->resultset('Jobs')->create({TEST => 'fresh-job-for-ja'});
+    my $asset = $assets->first;
+    my $ja = $schema->resultset('JobsAssets')->create({job_id => $job->id, asset_id => $asset->id});
+    ok $ja, 'created';
+    is $ja->job->id, $job->id, 'job relation';
+    is $ja->asset->id, $asset->id, 'asset relation';
+};
+
 done_testing();
