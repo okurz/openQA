@@ -56,4 +56,14 @@ subtest 'warnings in sub processes are fatal test failures' => sub {
     is $test_would_have_failed, 0, 'manual termination via stop_service does not trigger _fail_and_exit';
 };
 
+subtest 'OpenQA::Events coverage' => sub {
+    require OpenQA::Events;
+    my $events = OpenQA::Events->singleton;
+    my $hit = 0;
+    $events->on(test_event => sub { $hit++ });
+    $events->emit_event('test_event', data => 'foo');
+    is $hit, 1, 'event hit';
+    dies_ok { $events->emit_event(undef) } 'missing type dies';
+};
+
 done_testing();
