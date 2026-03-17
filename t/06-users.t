@@ -55,4 +55,28 @@ subtest 'auth provider mismatch' => sub {
     lives_ok { $users->create_user('collision_user', provider => '') } 'works if provider matches existing one';
 };
 
+subtest 'name method' => sub {
+    my $user = $users->create({username => 'testuser', nickname => 'nick'});
+    is $user->name, 'nick', 'prefers nickname';
+    $user->{_name} = undef;
+    $user->nickname(undef);
+    is $user->name, 'testuser', 'falls back to username';
+};
+
+subtest 'anonymize and is_deleted' => sub {
+    my $user = $users->create({username => 'anon-test'});
+    ok !$user->is_deleted, 'initially not deleted';
+    $user->anonymize;
+    $user->discard_changes;
+    ok $user->is_deleted, 'now deleted';
+    $user->anonymize;    # should return immediately
+};
+
+subtest '_anonymize_event_data' => sub {
+    is OpenQA::Schema::Result::Users::_anonymize_event_data(undef, 'user'), undef, 'undef event_data';
+    is OpenQA::Schema::Result::Users::_anonymize_event_data('data', undef), 'data', 'undef username';
+    is OpenQA::Schema::Result::Users::_anonymize_event_data('user performed action', 'user'),
+      'deleted-user performed action', 'positive case';
+};
+
 done_testing();
