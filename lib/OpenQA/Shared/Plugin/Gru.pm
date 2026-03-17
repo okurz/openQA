@@ -58,7 +58,7 @@ sub register_tasks ($self) {
 # hard/impossible to mock due to name collision of "remove" method on
 # Test::MockObject, hence marking as
 # uncoverable statement
-sub _allow_unauthenticated_minion_stats ($app) {
+sub _allow_unauthenticated_minion_stats ($app) {    # uncoverable statement
     my $route = $app->routes->find('minion_stats')->remove;    # uncoverable statement
     $app->routes->any('/minion')->add_child($route);    # uncoverable statement
 }
