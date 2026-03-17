@@ -475,4 +475,20 @@ subtest 'JobsAssets coverage' => sub {
     is $ja->asset->id, $asset->id, 'asset relation';
 };
 
+subtest '_getDirSize' => sub {
+    my $tempdir = Mojo::File::tempdir;
+    $tempdir->child('file1')->spew('abc');
+    $tempdir->child('subdir')->make_path->child('file2')->spew('def');
+    is OpenQA::Schema::Result::Assets::_getDirSize($tempdir->to_string), 6, '_getDirSize matches';
+};
+
+subtest 'refresh_size for repo' => sub {
+    my $tempdir = Mojo::File::tempdir;
+    $tempdir->child('file1')->spew('abc');
+    my $asset = $schema->resultset('Assets')->create({type => 'repo', name => 'testrepo', size => undef});
+    my $asset_mock = Test::MockModule->new('OpenQA::Schema::Result::Assets');
+    $asset_mock->redefine(disk_file => $tempdir->to_string);
+    is $asset->refresh_size, 3, 'refresh_size calls _getDirSize for repo';
+};
+
 done_testing();

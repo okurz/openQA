@@ -168,4 +168,13 @@ subtest 'handling failed job cancellation' => sub {
     $schema->txn_rollback;
 };
 
+subtest 'real _generate_jobs' => sub {
+    $scheduled_products_mock->unmock('_generate_jobs');
+    my $res
+      = $scheduled_product->_generate_jobs({DISTRI => 'opensuse', VERSION => '15.1', FLAVOR => 'DVD', ARCH => 'x86_64'},
+        [], 0, 0);
+    ok $res, 'called real _generate_jobs';
+    $scheduled_products_mock->redefine(_generate_jobs => undef);
+};
+
 done_testing();
