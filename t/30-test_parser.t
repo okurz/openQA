@@ -30,6 +30,14 @@ subtest 'Result base class object' => sub {
     my $j = $res->to_json;
     my $res2 = OpenQA::Parser::Result->new()->from_json($j);
     is_deeply $res2->to_hash(), {bar => 4, foo => 2}, 'to_hash maps correctly' or die always_explain $res2;
+
+    subtest 'OpenQA::Parser::Result write' => sub {
+        my $tempdir = tempdir;
+        my $res = OpenQA::Parser::Result->new({foo => 'bar'});
+        my $file = path($tempdir)->child('res.json');
+        is $res->write($file), 13, 'wrote 13 bytes';
+        ok -f $file, 'file exists';
+    };
 };
 
 subtest 'Results base class object' => sub {
@@ -117,9 +125,9 @@ package NestedResults {    # uncoverable statement count:2
 package NestedResult {
     use Mojo::Base 'OpenQA::Parser::Result';
 
-    # uncoverable statement count:2
+    # uncoverable statement count:1
     has result1 => sub { NestedResult->new() };
-    # uncoverable statement count:2
+    # uncoverable statement count:1
     has result2 => sub { NestedResult->new() };
     has 'val';
 }    # uncoverable statement
@@ -238,6 +246,12 @@ subtest 'Parser base class object' => sub {
     $copy = parser('Base')->_load_tree($alt_parser->_build_tree);
 
     is $copy->results->first->{foobar}, 'barbaz', 'Result is there';
+
+    subtest 'OpenQA::Parser::Result::Node' => sub {
+        my $node = OpenQA::Parser::Result::Node->new(val => {foo => 'bar'});
+        is $node->foo->val, 'bar', 'autoload works';
+        is $node->get('foo')->val, 'bar', 'get works';
+    };
 };
 
 subtest 'Nested results' => sub {
@@ -335,6 +349,21 @@ subtest 'Nested results' => sub {
 
     ok "$serialized" ne "$parser_nested";
     is $serialized->results->get(2)->first->first->result1->val, '2_0_0_result1_val', 'Can use the objects normally';
+
+    subtest 'OpenQA::Parser::Format::Base' => sub {
+        my $base = OpenQA::Parser::Format::Base->new;
+        throws_ok { $base->write_output } qr/You need to specify a directory/, 'write_output dies without dir';
+        throws_ok { $base->write_test_result } qr/You need to specify a directory/,
+          'write_test_result dies without dir';
+
+        my $tempdir = tempdir;
+        $base->_add_output(file => 'test.txt', content => 'test');
+        $base->write_output($tempdir);
+        ok -f path($tempdir)->child('test.txt'), 'output written';
+
+        $base->_add_test(name => 'test_suite');
+        is $base->tests->first->name, 'test_suite', 'test added';
+    };
 };
 
 sub test_junit_file {
@@ -613,6 +642,23 @@ subtest tap_parse_invalid => sub {
     my $parser = OpenQA::Parser::Format::TAP->new;
 
     throws_ok { $parser->load($tap_test_file) } qr{A valid TAP starts with filename.tap}, 'Invalid TAP example';
+};
+
+subtest 'OpenQA::Parser::Format::IPA complex regex' => sub {
+    my $ipa = OpenQA::Parser::Format::IPA->new;
+    my $json
+      = '{"tests": [{"nodeid": "path/file.py::method[http://1.2.3.4-param.service]", "outcome": "passed", "test": {"log": "log", "duration": 1}}]}';
+    $ipa->parse($json);
+    is $ipa->results->first->name, 'path_file_method_param', 'complex regex works';
+};
+
+subtest 'OpenQA::Parser::Format::JUnit coverage' => sub {
+    my $junit = OpenQA::Parser::Format::JUnit->new;
+    my $xml
+      = '<?xml version="1.0" encoding="UTF-8"?><testsuites><testsuite package="pkg" id="0" errors="1"><testcase name="tc" status="error"><system-out>out</system-out></testcase></testsuite></testsuites>';
+    $junit->parse($xml);
+    is $junit->results->first->name, '1_pkg', 'id mapping works';
+    is $junit->results->first->result, 'fail', 'error status mapping works';
 };
 
 sub test_ltp_file {
