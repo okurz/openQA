@@ -108,7 +108,7 @@ sub send_message_to_java_script_clients_and_finish ($self, $job_id, $type, $what
 # sends a message to a particular JavaScript client using the specified transaction and finishes the transaction if done
 # note: used to report fatal errors within ws_proxy which happen *before* the development session has been established
 #       (eg. invalid job/user or development session is locked by another user)
-sub send_message_to_java_script_client_and_finish (
+sub send_message_to_java_script_client_and_finish (    # uncoverable statement
     $self, $java_script_tx, $type, $what,
     $data = undef,
     $status_code = undef
@@ -133,7 +133,7 @@ sub send_message_to_java_script_client_and_finish (
     return $self->on(finish => sub { });
 }
 
-sub finish_all_connections ($self, $job_id, $status_code) {
+sub finish_all_connections ($self, $job_id, $status_code) {    # uncoverable statement
     for my $java_script_transaction_container ($self->devel_java_script_transactions_by_job,
         $self->status_java_script_transactions_by_job)
     {

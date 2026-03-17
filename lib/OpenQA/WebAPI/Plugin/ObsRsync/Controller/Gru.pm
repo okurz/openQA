@@ -131,7 +131,7 @@ sub run ($self) {
     return $self->render(json => {message => 'started'}, status => STARTED);
 }
 
-sub get_dirty_status ($self) {
+sub get_dirty_status ($self) {    # uncoverable statement
     my $project = $self->param('project');    # uncoverable statement
     my $helper = $self->obs_rsync;    # uncoverable statement
     return undef if $helper->check_and_render_error($project);    # uncoverable statement

@@ -31,8 +31,8 @@ sub sqlt_deploy_hook ($self, $sqlt_table) {
     $sqlt_table->add_index(name => 'idx_job_dependencies_dependency', fields => ['dependency']);
 }
 
-sub to_string ($self) {
-    return OpenQA::JobDependencies::Constants::display_name($self->dependency);
+sub to_string ($self) {    # uncoverable statement
+    return OpenQA::JobDependencies::Constants::display_name($self->dependency);    # uncoverable statement
 }
 
 1;

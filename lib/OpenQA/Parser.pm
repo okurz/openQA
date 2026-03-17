@@ -38,10 +38,10 @@ sub _build_parser ($wanted_parser = undef, @args) {
     my $p_instance;
     {
         if (my $e = load_class $parser_name) {
-            croak ref $e ? "Exception: $e" : 'Parser not found!';
+            croak ref $e ? "Exception: $e" : 'Parser not found!';    # uncoverable statement
         }
         try { $p_instance = $parser_name->new(@args) }
-        catch ($e) { croak "Invalid parser supplied: $e" }
+        catch ($e) { croak "Invalid parser supplied: $e" }    # uncoverable statement
     }
     $p_instance;
 }

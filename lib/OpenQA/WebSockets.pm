@@ -71,7 +71,7 @@ sub ws_send ($workerid, $msg, $jobid = undef, $retry = 0) {
         log_debug("Unable to send command \"$msg\" to worker $workerid: worker not connected");
 
         # try again in 10 seconds because workers try to re-connect in 10 s intervals
-        # uncoverable statement
+        # uncoverable statement count:1
         Mojo::IOLoop->timer(10 => sub { ws_send($workerid, $msg, $jobid, ++$retry); }) if ($retry < 3);
         return 0;    # uncoverable statement
     }

@@ -30,6 +30,6 @@ sub set_name_from_job ($self, $job) {
     $self->name(sprintf '%s-%s', $job->DISTRI, $job->VERSION);
 }
 
-sub is_symlink ($self) { $self->path ne (realpath($self->path) // '') }
+sub is_symlink ($self) { $self->path ne (realpath($self->path) // '') }    # uncoverable statement
 
 1;

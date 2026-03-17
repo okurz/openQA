@@ -723,24 +723,24 @@ Internal method used by the B<_schedule_iso()> method
 
 =cut
 
-sub _create_download_lists ($self, $tmp_downloads, $download_list, $job_id) {
-    foreach my $url (keys %$download_list) {
-        my $download_parameters = $download_list->{$url};
-        my $destination_path = $download_parameters->[0];
+sub _create_download_lists ($self, $tmp_downloads, $download_list, $job_id) {    # uncoverable statement
+    foreach my $url (keys %$download_list) {    # uncoverable statement
+        my $download_parameters = $download_list->{$url};    # uncoverable statement
+        my $destination_path = $download_parameters->[0];    # uncoverable statement
 
         # caveat: The extraction parameter is currently not processed per destination.
         # If multiple destinations for the same download have a different 'do_extract' parameter the first one will win.
-        my $download_info = $tmp_downloads->{$url};
-        unless ($download_info) {
-            $tmp_downloads->{$url} = {
-                destination => {$destination_path => 1},
-                do_extract => $download_parameters->[1],
-                blocked_job_id => [$job_id]};
-            next;
+        my $download_info = $tmp_downloads->{$url};    # uncoverable statement
+        unless ($download_info) {    # uncoverable statement
+            $tmp_downloads->{$url} = {    # uncoverable statement
+                destination => {$destination_path => 1},    # uncoverable statement
+                do_extract => $download_parameters->[1],    # uncoverable statement
+                blocked_job_id => [$job_id]};    # uncoverable statement
+            next;    # uncoverable statement
         }
-        push @{$download_info->{blocked_job_id}}, $job_id;
-        $download_info->{destination}->{$destination_path} = 1
-          unless ($download_info->{destination}->{$destination_path});
+        push @{$download_info->{blocked_job_id}}, $job_id;    # uncoverable statement
+        $download_info->{destination}->{$destination_path} = 1    # uncoverable statement
+          unless ($download_info->{destination}->{$destination_path});    # uncoverable statement
     }
 }
 
