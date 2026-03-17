@@ -941,6 +941,21 @@ subtest 'marking Minion jobs as obsolete' => sub {
     ok $app->minion->job($job_id)->info->{notes}->{obsolete}, "job $job_id marked as obsolete";
 };
 
+subtest 'OpenQA::Schema::Result::GruTasks coverage' => sub {
+    my $gru_tasks = $schema->resultset('GruTasks');
+    my $jobs = $schema->resultset('Jobs');
+
+    my $job = $jobs->create({TEST => 'gru-fail-test'});
+    my $task = $gru_tasks->create({taskname => 'fail-test', args => {}, run_at => DateTime->now, priority => 0});
+    $schema->resultset('GruDependencies')->create({gru_task_id => $task->id, job_id => $job->id});
+
+    combined_like { $task->fail('Test reason') } qr/_carry_over_candidate/, 'no unexpected log output from resultset';
+    $job->discard_changes;
+    is $job->result, 'incomplete', 'job is incomplete after task fail';
+    like $job->reason, qr/preparation failed: Test reason/, 'reason is set';
+    ok !$gru_tasks->find($task->id), 'task is deleted';
+};
+
 done_testing();
 
 # clear gru task queue at end of execution so no 'dangling' tasks
