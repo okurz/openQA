@@ -89,4 +89,27 @@ subtest 'bugurl and labels' => sub {
     is url_from_label('foo'), undef, 'url_from_label invalid';
 };
 
+subtest 'fix_top_level_help' => sub {
+    local @ARGV = ('--help');
+    fix_top_level_help();
+    is_deeply \@ARGV, [], 'cleared ARGV on --help';
+};
+
+subtest 'set_listen_address' => sub {
+    local $ENV{MOJO_LISTEN};
+    set_listen_address(1234);
+    like $ENV{MOJO_LISTEN}, qr/http:\/\/127.0.0.1:1234/, 'set MOJO_LISTEN';
+};
+
+subtest 'service_port' => sub {
+    is service_port('webui'), 9526, 'webui port';
+    is service_port('scheduler'), 9529, 'scheduler port';
+};
+
+subtest 'regex_match' => sub {
+    ok regex_match('foo', 'foobar'), 'match';
+    ok !regex_match('baz', 'foobar'), 'no match';
+    throws_ok { regex_match('(', 'foobar') } qr/invalid regex/, 'invalid regex throws';
+};
+
 done_testing();
