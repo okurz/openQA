@@ -4,6 +4,7 @@
 
 use Test::Most;
 use Test::Mojo;
+use Test::MockModule;
 use Test::Warnings ':report_warnings';
 use Date::Format 'time2str';
 use Time::Seconds;
@@ -118,6 +119,22 @@ subtest 'anonymize audit event data' => sub {
     $audit_event->discard_changes;
     is $audit_event->event_data, 'User deleted-user performed an action', 'event_data anonymized';
     is $audit_event->user_id, 99903, 'audit event association preserved';
+};
+
+subtest 'AuditLog search queries' => sub {
+    my $audit_log_mock = Test::MockModule->new('OpenQA::WebAPI::Controller::Admin::AuditLog');
+    my $query = {};
+    # Testing _add_single_query directly
+    OpenQA::WebAPI::Controller::Admin::AuditLog::_add_single_query($query, 'owner', ['alice']);
+    is_deeply $query->{'owner.nickname'}, ['owner.nickname' => {-like => '%alice%'}], 'search by owner';
+
+    $query = {};
+    OpenQA::WebAPI::Controller::Admin::AuditLog::_add_single_query($query, 'id', ['123']);
+    is_deeply $query->{id}, ['CAST(me.id AS text)' => {-like => '%123%'}], 'search by id';
+
+    $query = {};
+    OpenQA::WebAPI::Controller::Admin::AuditLog::_add_single_query($query, 'older', ['today']);
+    ok exists $query->{'me.t_created'}, 'search by older today';
 };
 
 done_testing();
