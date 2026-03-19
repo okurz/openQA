@@ -4,6 +4,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 use Test::Most;
+use Mojo::Base -signatures;
+
+BEGIN { $ENV{OPENQA_SCHEDULER_STARVATION_PROTECTION_PRIORITY_OFFSET} = 5 }
 use FindBin;
 use lib "$FindBin::Bin/lib", "$FindBin::Bin/../external/os-autoinst-common/lib";
 use OpenQA::Scheduler::Model::Jobs;
@@ -48,28 +51,26 @@ my %default_job_settings = (
     NICTYPE => 'tap',
 );
 
-sub _job_create {
-    my ($settings, $parallel_jobs, $start_after_jobs, $start_directly_after_jobs) = @_;
+sub _job_create ($settings, $parallel_jobs, $start_after_jobs, $start_directly_after_jobs) {
     $settings = {%default_job_settings, TEST => $settings} unless ref $settings;
     $settings->{_PARALLEL_JOBS} = $parallel_jobs if $parallel_jobs;
     $settings->{_START_AFTER_JOBS} = $start_after_jobs if $start_after_jobs;
     $settings->{_START_DIRECTLY_AFTER_JOBS} = $start_directly_after_jobs if $start_directly_after_jobs;
     my $job = $jobs->create_from_settings($settings);
-    $job->discard_changes;    # reload all values from database so we can check against default values
+    $job->discard_changes;
     return $job;
 }
 
-sub _jobs_update_state {
-    my ($jobs, $state, $result) = @_;
+sub _jobs_update_state ($jobs, $state, $result) {
     for my $job (@$jobs) {
         $job->state($state);
         $job->result($result) if $result;
         $job->update;
     }
 }
-sub _job_deps { $jobs->find(shift, {prefetch => [qw(settings parents children)]})->to_hash(deps => 1) }
+sub _job_deps ($job_id) { $jobs->find($job_id, {prefetch => [qw(settings parents children)]})->to_hash(deps => 1) }
 
-sub _schedule {
+sub _schedule () {
     my $scheduling_info = OpenQA::Scheduler::Model::Jobs->singleton->schedule();
     _jobs_update_state([$jobs->find($_->{job})], RUNNING) for @$scheduling_info;
 }
@@ -277,8 +278,7 @@ my %exp_cluster_jobs = (
     },
 );
 
-sub exp_cluster_jobs_for {
-    my ($job) = @_;
+sub exp_cluster_jobs_for ($job) {
 
     # note: The actual dependency info is the same for every job within the cluster.
     #       The only difference is the 'is_parent_or_initial_job' flag (which is used
@@ -294,7 +294,7 @@ sub exp_cluster_jobs_for {
     return \%exp_cluster_jobs;
 }
 
-sub log_job_info {
+sub log_job_info () {
     my %jobs = (A => $jobA, B => $jobB, C => $jobC, D => $jobD, E => $jobE, F => $jobF);    # uncoverable statement
     note 'job IDs:';    # uncoverable statement
     note "job $_: " . $jobs{$_}->id for sort keys %jobs;    # uncoverable statement
@@ -340,7 +340,7 @@ subtest 'failed parallel parent causes parallel children to fails as PARALLEL_FA
     is $job->{state}, RUNNING, 'job_set_done changed state';
 };
 
-sub _check_mm_api {
+sub _check_mm_api () {
     my $explain_tx_res = sub {
         always_explain $t->tx->res->body;    # uncoverable statement
     };

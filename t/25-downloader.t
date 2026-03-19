@@ -51,13 +51,12 @@ my $server_instance = process sub {
   _default_blocking_signal => POSIX::SIGTERM,
   kill_sleeptime => 0;
 
-sub start_server {
+sub start_server () {
     $server_instance->set_pipes(0)->start;
     wait_for_or_bail_out { IO::Socket::INET->new(PeerAddr => '127.0.0.1', PeerPort => $port) } 'worker';
 }
 
-sub stop_server {
-    # now kill the worker
+sub stop_server () {
     $server_instance->stop();
 }
 

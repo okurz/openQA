@@ -66,7 +66,7 @@ END { session->clean }
 
 my $server_instance;
 
-sub start_server {
+sub start_server () {
     $server_instance = start sub {
         Mojo::Server::Daemon->new(app => fake_asset_server, listen => ["http://$host"], silent => 1)->run;
         Devel::Cover::report() if Devel::Cover->can('report');

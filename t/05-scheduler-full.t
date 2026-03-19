@@ -5,6 +5,7 @@
 
 use Test::Most;
 use Test::Warnings ':report_warnings';
+use Mojo::Base -signatures;
 
 BEGIN {
     # require the scheduler to be fixed in its actions since tests depends on timing
@@ -64,8 +65,7 @@ my $sharedir = setup_share_dir($ENV{OPENQA_BASEDIR});
 my $resultdir = path($ENV{OPENQA_BASEDIR}, 'openqa', 'testresults')->make_path;
 ok -d $resultdir, "results directory created under $resultdir";
 
-sub create_worker {
-    my ($apikey, $apisecret, $host, $instance, $log) = @_;
+sub create_worker ($apikey, $apisecret, $host, $instance, $log) {
     my @connect_args = ("--instance=${instance}", "--apikey=${apikey}", "--apisecret=${apisecret}", "--host=${host}");
     note "Starting standard worker. Instance: $instance for host $host";
     # save testing time as we do not test a webUI host being down for
@@ -76,17 +76,14 @@ sub create_worker {
     return $log ? start \@cmd, \undef, '>&', $log : start \@cmd;
 }
 
-sub stop_workers { stop_service($_, 1) for @workers }
+sub stop_workers () { stop_service($_, 1) for @workers }
 
-sub dead_workers {
-    my $schema = shift;
+sub dead_workers ($schema) {
     $_->update({t_seen => DateTime->from_epoch(epoch => time - DEFAULT_WORKER_TIMEOUT - DB_TIMESTAMP_ACCURACY)})
       for $schema->resultset('Workers')->all();
 }
 
-sub wait_for_worker {
-    my ($schema, $id) = @_;
-
+sub wait_for_worker ($schema, $id) {
     note "Waiting for worker with ID $id";    # uncoverable statement
     for (0 .. 40) {
         my $worker = $schema->resultset('Workers')->find($id);

@@ -271,48 +271,45 @@ done_testing;
 
 package Job;
 
-sub new {
-    my ($class) = @_;
-    my $self = bless {}, $class;
+sub new ($class) {
+    my $self = bless({}, $class);
     $self->{worker} = Worker->new;
     return $self;
 }
-sub id { 42 }
-sub worker { shift->{worker} }
-sub state { OpenQA::Jobs::Constants::RUNNING }
-sub result { OpenQA::Jobs::Constants::NONE }
-sub modules { FakeSchema::Find->new }
-sub results { {details => [qw(foo bar baz)]} }
-sub name { 'foobar' }
+sub id () { 42 }
+sub worker () { shift->{worker} }
+sub state () { OpenQA::Jobs::Constants::RUNNING }
+sub result () { OpenQA::Jobs::Constants::NONE }
+sub modules () { FakeSchema::Find->new }
+sub results () { {details => [qw(foo bar baz)]} }
+sub name () { 'foobar' }
 
 package Worker;
 use Mojo::File 'tempdir';
 
-sub new {
-    my ($class) = @_;
-    my $self = bless {}, $class;
+sub new ($class) {
+    my $self = bless({}, $class);
     $self->{WORKER_TMPDIR} = tempdir;
     return $self;
 }
 
-sub id { 43 }
-sub job_id { 42 }
-sub get_property { shift->{WORKER_TMPDIR} }
+sub id () { 43 }
+sub job_id () { 42 }
+sub get_property () { shift->{WORKER_TMPDIR} }
 
 package Mojo::Transaction::Fake;
 use Mojo::Base 'Mojo::Transaction', -signatures;
 sub resume ($self) { ++$self->{writing} and return $self->emit('resume') }
 sub connection ($self) { $self->{fakestream} }
-sub remote_address { '::1' }
-sub error { $fake_error }
+sub remote_address ($self) { '::1' }
+sub error ($self) { $fake_error }
 sub finish ($self) { $self->emit(finish => $self) }
 
 package FakeSchema;
 use Mojo::Base -signatures;
 
-sub new {
-    my ($class) = @_;
-    my $self = bless {}, $class;
+sub new ($class) {
+    my $self = bless({}, $class);
     $self->{resultset} = Worker->new;
     return $self;
 }
