@@ -76,7 +76,7 @@ sub setup_mojo_app_with_default_worker_timeout ($class = 'Mojolicious') {
     return $app;
 }
 
-sub cache_minion_worker {
+sub cache_minion_worker () {
     process(
         sub {
 
@@ -91,7 +91,7 @@ sub cache_minion_worker {
         })->set_pipes(0)->separate_err(0)->blocking_stop(1)->channels(0);
 }
 
-sub cache_worker_service {
+sub cache_worker_service () {
     process(
         sub {
 
@@ -107,7 +107,7 @@ sub cache_worker_service {
         })->set_pipes(0)->separate_err(0)->blocking_stop(1)->channels(0);
 }
 
-sub fake_asset_server {
+sub fake_asset_server () {
     my $mock = Mojolicious->new;
     $mock->mode('test');
     my $r = $mock->routes;
@@ -197,10 +197,7 @@ sub fake_asset_server {
 
 # define internal helper functions to keep track of Perl warnings produced by sub processes spawned by
 # the subsequent create_…-functions
-sub _setup_sub_process {
-    # log the PID of the sub process and exit immediately when a Perl warning occurs
-    # note: This function is supposed to be called from within the sub process.
-    my ($process_name) = @_;
+sub _setup_sub_process ($process_name) {
     $0 = $process_name;
     note "PID of $process_name: $$";
     $SIG{__WARN__} = sub {    # uncoverable statement
@@ -208,7 +205,7 @@ sub _setup_sub_process {
         _exit 42;    # uncoverable statement
     };
 }
-sub _fail_and_exit { fail shift; done_testing; exit shift }    # uncoverable statement
+sub _fail_and_exit ($msg, $exit_code) { fail $msg; done_testing; exit $exit_code }    # uncoverable statement
 my %RELEVANT_CHILD_PIDS;
 my $SIGCHLD_HANDLER = sub {
     # produces a test failure in case any relevant sub process terminated with a non-zero exit code
@@ -226,26 +223,23 @@ my $SIGCHLD_HANDLER = sub {
     }
 };
 
-sub _pids_from_ipc_run_harness {
-    my ($ipc_run_harness, $error_message) = @_;
+sub _pids_from_ipc_run_harness ($ipc_run_harness, $error_message) {
     my $children = ref $ipc_run_harness->{KIDS} eq 'ARRAY' ? $ipc_run_harness->{KIDS} : [];
     my @pids = map { ref $_ eq 'HASH' ? ($_->{PID}) : () } @$children;
     BAIL_OUT($error_message) if $error_message && !@pids;
     return \@pids;
 }
 
-sub _setup_sigchld_handler {
+sub _setup_sigchld_handler ($child_name, $ipc_run_harness) {
     # adds the PIDs from the specified $ipc_run_harness to the PIDs considered by $SIGCHLD_HANDLER and
     # ensures $SIGCHLD_HANDLER is called
-    my ($child_name, $ipc_run_harness) = @_;
     $RELEVANT_CHILD_PIDS{$_} = $child_name
       for @{_pids_from_ipc_run_harness($ipc_run_harness, "IPC harness for $child_name contains no PIDs")};
     $SIG{CHLD} = $SIGCHLD_HANDLER;
     return $ipc_run_harness;
 }
 
-sub stop_service {
-    my ($h, $forced) = @_;
+sub stop_service ($h, $forced) {
     return unless $h;
 
     delete $RELEVANT_CHILD_PIDS{$_} for @{_pids_from_ipc_run_harness($h)};
@@ -343,8 +337,7 @@ sub create_scheduler ($port = service_port 'scheduler') {
     };
 }
 
-sub create_live_view_handler {
-    my ($port) = @_;
+sub create_live_view_handler ($port = undef) {
     $port //= service_port 'livehandler';
     _setup_sigchld_handler 'openqa-livehandler', start sub {
         _setup_sub_process 'openqa-livehandler';
@@ -355,8 +348,7 @@ sub create_live_view_handler {
     };
 }
 
-sub setup_share_dir {
-    my ($sharedir) = @_;
+sub setup_share_dir ($sharedir) {
     $sharedir = path($sharedir, 'openqa', 'share')->make_path;
 
     path($sharedir, 'factory', 'iso')->make_path;
@@ -375,8 +367,7 @@ sub setup_share_dir {
     return $sharedir;
 }
 
-sub setup_fullstack_temp_dir {
-    my ($test_name) = @_;
+sub setup_fullstack_temp_dir ($test_name) {
     my $tempdir = $ENV{OPENQA_FULLSTACK_TEMP_DIR} ? path($ENV{OPENQA_FULLSTACK_TEMP_DIR}) : tempdir;
     my $basedir = $tempdir->child($test_name);
     $basedir->remove_tree({keep_root => 1});
@@ -397,14 +388,13 @@ sub setup_fullstack_temp_dir {
     return $tempdir;
 }
 
-sub create_user_for_workers {
+sub create_user_for_workers () {
     my $schema = OpenQA::Schema->singleton;
     my $user = $schema->resultset('Users')->create({username => 'worker', is_operator => 1, is_admin => 1});
     return $schema->resultset('ApiKeys')->create({user_id => $user->id});
 }
 
-sub setup_worker {    # uncoverable statement
-    my ($worker, $host) = @_;    # uncoverable statement
+sub setup_worker ($worker, $host) {    # uncoverable statement
 
     $worker->settings->webui_hosts([]);    # uncoverable statement
     $worker->settings->webui_host_specific_settings({});    # uncoverable statement
@@ -505,7 +495,9 @@ sub shared_hash ($hash = undef) {
     lock_store $hash, $file->to_string;
 }
 
-sub embed_server_for_testing (%args) {
+sub embed_server_for_testing ($app, %args) {
+    my $server_name = $args{server_name};
+    my $client = $args{client};
     my $server_name = $args{server_name};
     my $client = $args{client};
 
@@ -592,6 +584,7 @@ sub prepare_clean_needles_dir ($dir = 't/data/openqa/share/tests/opensuse/needle
 
 sub prepare_default_needle ($dir) {
     my $dest = path($dir, 'inst-timezone-text.json');
+    my $dest = path($dir, 'inst-timezone-text.json');
     path('t/data/default-needle.json')->copy_to($dest);
     return $dest;
 }
@@ -609,7 +602,7 @@ sub mock_io_loop (%args) {
     return $io_loop_mock;
 }
 
-sub assume_all_assets_exist { OpenQA::Schema->singleton->resultset('Assets')->search({})->update({size => 0}) }
+sub assume_all_assets_exist () { OpenQA::Schema->singleton->resultset('Assets')->search({})->update({size => 0}) }
 
 sub schedule_iso ($t, $args, $status = 200, $query_params = {}, $msg = undef) {
     $t->post_ok(Mojo::URL->new('/api/v1/isos')->query($query_params), form => $args)->status_is($status, $msg)->tx->res;
