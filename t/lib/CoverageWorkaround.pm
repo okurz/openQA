@@ -1,6 +1,5 @@
 package CoverageWorkaround;
-use strict;
-use warnings;
+use Mojo::Base -strict, -signatures;
 
 =head1 DESCRIPTION
 
@@ -48,19 +47,17 @@ BEGIN { $INC{$_}++ for qw( DB/Skip.pm UDAG/VendorBox/Log/Auto.pm ) }
 #	(?: inlined\ sub\ for )
 #@x;
 
-sub B::Deparse::pp_await {    # fix await parsing
-    my ($self, $op, $cx) = @_;
+sub B::Deparse::pp_await ($self, $op, $cx) {    # fix await parsing
     return $self->maybe_parens_unop('await', $op->first, $cx);
 }
 
 # dumb way to handle these, simply silences them instead of deparsing them
 # optimally the code below would be implemented
-sub B::Deparse::pp_leaveasync { 'XXX;' }
-sub B::Deparse::pp_pushmark { 'XXX;' }
+sub B::Deparse::pp_leaveasync () { 'XXX;' }
+sub B::Deparse::pp_pushmark () { 'XXX;' }
 
 package Syntax::Keyword::Try::DeparseUDFix;
-use strict;
-use warnings;
+use Mojo::Base -strict, -signatures;
 
 use B::Deparse;    # keep original pp_leave sub for 134812 fix below
 my $orig_pp_leave;
@@ -76,17 +73,15 @@ my $patched_pp_leave;    # apply 134812 fix below
 }
 
 # fix https://rt.cpan.org/Ticket/Display.html?id=134812
-sub pp_leave {    ## no critic (Subroutines::RequireArgUnpacking)
-    my $self = shift;
-    my ($op) = @_;
+sub pp_leave ($self, $op) {
 
     my $enter = $op->first;
     no strict 'subs';    ## no critic (TestingAndDebugging::ProhibitNoStrict, TestingAndDebugging::ProhibitProlongedStrictureOverride)
     no warnings;    ## no critic (TestingAndDebugging::ProhibitNoWarnings)
-    return $self->$orig_pp_leave(@_) if $enter->type != OP_ENTER;
+    return $self->$orig_pp_leave($op) if $enter->type != OP_ENTER;
 
     my $meth = ref $enter->sibling eq 'B::COP' ? $orig_pp_leave : $patched_pp_leave;
-    return $self->$meth(@_);
+    return $self->$meth($op);
 }
 
 1;
