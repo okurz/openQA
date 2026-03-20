@@ -495,9 +495,7 @@ sub shared_hash ($hash = undef) {
     lock_store $hash, $file->to_string;
 }
 
-sub embed_server_for_testing ($app, %args) {
-    my $server_name = $args{server_name};
-    my $client = $args{client};
+sub embed_server_for_testing (%args) {
     my $server_name = $args{server_name};
     my $client = $args{client};
 
@@ -583,7 +581,6 @@ sub prepare_clean_needles_dir ($dir = 't/data/openqa/share/tests/opensuse/needle
 }
 
 sub prepare_default_needle ($dir) {
-    my $dest = path($dir, 'inst-timezone-text.json');
     my $dest = path($dir, 'inst-timezone-text.json');
     path('t/data/default-needle.json')->copy_to($dest);
     return $dest;

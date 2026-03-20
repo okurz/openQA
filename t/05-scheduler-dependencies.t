@@ -51,17 +51,17 @@ my %default_job_settings = (
     NICTYPE => 'tap',
 );
 
-sub _job_create ($settings, $parallel_jobs, $start_after_jobs, $start_directly_after_jobs) {
+sub _job_create ($settings = undef, $parallel_jobs = undef, $start_after_jobs = undef, $start_directly_after_jobs = undef) {
     $settings = {%default_job_settings, TEST => $settings} unless ref $settings;
     $settings->{_PARALLEL_JOBS} = $parallel_jobs if $parallel_jobs;
     $settings->{_START_AFTER_JOBS} = $start_after_jobs if $start_after_jobs;
     $settings->{_START_DIRECTLY_AFTER_JOBS} = $start_directly_after_jobs if $start_directly_after_jobs;
     my $job = $jobs->create_from_settings($settings);
-    $job->discard_changes;
+    $job->discard_changes;    # reload all values from database so we can check against default values
     return $job;
 }
 
-sub _jobs_update_state ($jobs, $state, $result) {
+sub _jobs_update_state ($jobs, $state, $result = undef) {
     for my $job (@$jobs) {
         $job->state($state);
         $job->result($result) if $result;
@@ -300,17 +300,17 @@ sub log_job_info () {
     note "job $_: " . $jobs{$_}->id for sort keys %jobs;    # uncoverable statement
 }
 subtest 'cluster info' => sub {
-    is_deeply $jobA->cluster_jobs, exp_cluster_jobs_for 'A', 'cluster info for job A';
+    is_deeply $jobA->cluster_jobs, (exp_cluster_jobs_for('A')), 'cluster info for job A';
     is $jobA->blocked_by_id, undef, 'job A is unblocked';
-    is_deeply $jobB->cluster_jobs, exp_cluster_jobs_for 'B', 'cluster info for job B';
+    is_deeply $jobB->cluster_jobs, (exp_cluster_jobs_for('B')), 'cluster info for job B';
     is $jobB->blocked_by_id, undef, 'job B is unblocked';
-    is_deeply $jobC->cluster_jobs, exp_cluster_jobs_for 'C', 'cluster info for job C';
+    is_deeply $jobC->cluster_jobs, (exp_cluster_jobs_for('C')), 'cluster info for job C';
     is $jobC->blocked_by_id, undef, 'job C is unblocked';
-    is_deeply $jobD->cluster_jobs, exp_cluster_jobs_for 'D', 'cluster info for job D';
+    is_deeply $jobD->cluster_jobs, (exp_cluster_jobs_for('D')), 'cluster info for job D';
     is $jobD->blocked_by_id, undef, 'job D is unblocked';
-    is_deeply $jobE->cluster_jobs, exp_cluster_jobs_for 'E', 'cluster info for job E';
+    is_deeply $jobE->cluster_jobs, (exp_cluster_jobs_for('E')), 'cluster info for job E';
     is $jobE->blocked_by_id, undef, 'job E is unblocked';
-    is_deeply $jobF->cluster_jobs, exp_cluster_jobs_for 'F', 'cluster info for job F';
+    is_deeply $jobF->cluster_jobs, (exp_cluster_jobs_for('F')), 'cluster info for job F';
     is $jobF->blocked_by_id, undef, 'job F is unblocked';
 } or log_job_info;
 
