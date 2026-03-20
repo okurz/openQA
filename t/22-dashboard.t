@@ -460,7 +460,7 @@ subtest 'build which has jobs with different DISTRIs links to overview with all 
 };
 
 # helper sub used by next two subtests
-sub check_builds ($build_names, $group, $msg, $parent) {
+sub check_builds ($build_names, $group, $msg, $parent = undef) {
     my $route = $parent ? 'parent_group_overview' : 'group_overview';
     my $div_class = $parent ? 'children-expanded' : 'no-children';
     $t->get_ok("/$route/" . $group->id . '?limit_builds=100')->status_is(200);

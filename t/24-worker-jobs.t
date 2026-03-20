@@ -45,8 +45,7 @@ my $workdir = tempdir("$FindBin::Script-XXXX", TMPDIR => 1);
 chdir $workdir;
 my $guard = scope_guard sub { chdir $FindBin::Bin };
 
-sub wait_for_job ($job, $check_message, $relevant_event, $check_function, $timeout) {
-    $timeout //= 15;
+sub wait_for_job ($job, $check_message, $relevant_event, $check_function = undef, $timeout = 15) {
 
     # Do not wait forever in case of problems
     my $error;
