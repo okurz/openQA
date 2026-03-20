@@ -81,9 +81,11 @@ sub pp_leave {    ## no critic (Subroutines::RequireArgUnpacking)
     my ($op) = @_;
 
     my $enter = $op->first;
-    no strict 'subs';    ## no critic (TestingAndDebugging::ProhibitNoStrict, TestingAndDebugging::ProhibitProlongedStrictureOverride)
-    no warnings;    ## no critic (TestingAndDebugging::ProhibitNoWarnings)
-    return $self->$orig_pp_leave(@_) if $enter->type != OP_ENTER;
+    {
+        no strict 'subs';    ## no critic (TestingAndDebugging::ProhibitNoStrict, TestingAndDebugging::ProhibitProlongedStrictureOverride)
+        no warnings;    ## no critic (TestingAndDebugging::ProhibitNoWarnings)
+        return $self->$orig_pp_leave(@_) if $enter->type != OP_ENTER;
+    }
 
     my $meth = ref $enter->sibling eq 'B::COP' ? $orig_pp_leave : $patched_pp_leave;
     return $self->$meth(@_);

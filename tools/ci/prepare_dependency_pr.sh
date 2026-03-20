@@ -8,7 +8,6 @@ git checkout -b dependency_"$depid"
 
 msg="chore(deps): Dependency cron $depid"
 git status
-
 set +o pipefail
 
 sha_file=tools/ci/autoinst.sha

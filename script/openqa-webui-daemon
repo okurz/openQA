@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-OPENQA_WEBUI_MODE=${OPENQA_WEBUI_MODE:-"production"}
+OPENQA_WEBUI_MODE=${OPENQA_WEBUI_MODE:-'production'}
 pid=
 pid_idx=0
 pid_dir=${OPENQA_BASEDIR:-/var/lib}/openqa/webui
@@ -27,7 +27,7 @@ function start_service {
     # terminate the previously started openQA instance gracefully
     [[ $pid_last ]] && kill -s SIGQUIT "$pid_last"
 
-    # keep running until openQA terminates (with the "wait"-builtin so bash can handle SIGHUP)
+    # keep running until openQA terminates (with the 'wait'-builtin so bash can handle SIGHUP)
     wait "$pid"
 }
 

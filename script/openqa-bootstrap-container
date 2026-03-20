@@ -1,7 +1,7 @@
 #!/bin/bash -e
-[ "$1" = "-h" ] || [ "$1" = "--help" ] && echo "Setup a working openQA installation in a systemd-nspawn container" && exit
+[ "$1" = '-h' ] || [ "$1" = '--help' ] && echo "Setup a working openQA installation in a systemd-nspawn container" && exit
 
-if [ "$(id -ru)" != "0" ]; then
+if [ "$(id -ru)" != '0' ]; then
     echo "$0 must be run as root"
     exit 1
 fi
@@ -10,7 +10,7 @@ set -euo pipefail
 # Enable -x only here to show above error message cleanly
 set -x
 
-CONTAINER_NAME="openqa1"
+CONTAINER_NAME='openqa1'
 CONTAINER_PATH="/var/lib/machines/${CONTAINER_NAME}"
 
 systemd_run_params=(-q -M "$CONTAINER_NAME")

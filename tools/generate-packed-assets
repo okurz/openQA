@@ -43,5 +43,5 @@ generate() {
     return "$rc"
 }
 
-generate "test" || exit $?
-generate "development" || exit $?
+generate 'test' || exit $?
+generate 'development' || exit $?

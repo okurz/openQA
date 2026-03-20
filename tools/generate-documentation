@@ -81,7 +81,7 @@ update_docs() {
         fi
 
         if [ -n "${COMMIT_AUTHOR_EMAIL}" ]; then
-            git config user.name "CI"
+            git config user.name 'CI'
             git config user.email "$COMMIT_AUTHOR_EMAIL"
         fi
         mkdir -p docs
@@ -172,7 +172,7 @@ green="\e[23m\e[1m"
 
 pandoc_bin="/bin/not/set"
 shortref=$(git rev-parse --short HEAD)
-verbose_doc_name=$(date +%Y%m%d)"_"${shortref} #we are not intending to run this off a git repository
+verbose_doc_name=$(date +%Y%m%d)'_'${shortref} #we are not intending to run this off a git repository
 scriptroot="$(
     cd "$(dirname "$0")"
     pwd -P
@@ -188,7 +188,7 @@ for format in ${FORMATS:-pdf html}; do formats["$format"]=1; done
 if [[ -z "${PULL_REQUEST_USER}" ]]; then
     check_branch_exists "$PUSH_REMOTE_URL" "$PUSH_BRANCH" || exit 0
 else
-    check_branch_exists "https://github.com/$PULL_REQUEST_USER/openQA" "gh-pages" || exit 0
+    check_branch_exists "https://github.com/$PULL_REQUEST_USER/openQA" 'gh-pages' || exit 0
 fi
 
 check_pandoc() {

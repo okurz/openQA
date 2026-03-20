@@ -12,7 +12,7 @@ Options:
  -v, --verbose          execute with verbose output
  -h, -?, --help         display this help
  -n, --dry-run          execute in dry-run mode, do not clone any openQA jobs
- -c --clone-job-args    pass additional parameters to 'openqa-clone-job', e.g.  '--clone-job-args="--show-progress"'.
+ -c --clone-job-args    pass additional parameters to 'openqa-clone-job', e.g.  '--clone-job-args='--show-progress''.
                         The default parameters are '$clone_args' defined in the env variable \$clone_args.
 
 Examples:
@@ -21,8 +21,8 @@ Examples:
  openqa-clone-custom-git-refspec -n -c '--show-progress' https://github.com/coolgw/os-autoinst-distri-opensuse/tree/nfs https://openqa.opensuse.org/tests/835060 DESKTOP=textmode
  openqa-clone-custom-git-refspec https://github.com/foursixnine/os-autoinst-distri-opensuse/tree/oopsitsbrokenagain https://openqa.opensuse.org/tests/3128467 NEEDLES_DIR='https://github.com/foursixnine/os-autoinst-needles-opensuse.git#oopsitsbrokenagain'
 
-To output in "Markdown mode" call with environment variable "MARKDOWN=1".
-To output in "Badge mode" call with environment variable "BADGE=1".
+To output in "Markdown mode" call with environment variable 'MARKDOWN=1'.
+To output in "Badge mode" call with environment variable 'BADGE=1'.
 
 To use authenticated requests, you need to either provide a GitHub token by
 adding 'GITHUB_TOKEN=...' to a configuration file at
@@ -30,7 +30,7 @@ adding 'GITHUB_TOKEN=...' to a configuration file at
 
 Use this snippet in your 'github-token.conf' to do so:
 
- GITHUB_TOKEN="YourTokenHere12345"
+ GITHUB_TOKEN='YourTokenHere12345'
 
 EOF
     exit "$1"
@@ -51,7 +51,7 @@ throw_json_error() {
 
 extract_urls_from_pr() {
     urls=$(echo "$pr_content" | jq -r '.body | capture("^(?<marker>.*@openqa: Clone )(?<url>http.*[0-9]*)") | .url')
-    if [[ $urls == *"http"* ]]; then
+    if [[ $urls == *'http'* ]]; then
         echo "$urls"
     fi
 }
@@ -70,7 +70,7 @@ elif [[ -f $config_file ]]; then
 fi
 
 curl_github="${curl_github:-"curl${AUTHENTICATED_REQUEST}"}"
-curl_openqa="${curl_openqa:-"curl"}"
+curl_openqa="${curl_openqa:-'curl'}"
 
 opts=$(getopt -o vhnc: --long verbose,dry-run,help,clone-job-args: -n "$0" -- "$@") || usage 1
 eval set -- "$opts"
@@ -100,12 +100,12 @@ job_list="${job:-"$2"}"
 
 if [[ -z "$repo_name" ]] || [[ -z "$pr" ]]; then
     first_arg="${1:?"Need 'url' as parameter pointing to a either a git branch, e.g. 'https://github.com/yourname/os-autoinst-distri-opensuse/tree/poo-12345', or a github pull request in the form of pull request url or a combination of 'repo_name' (sending repo) and 'pr' variables, e.g. either 'https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/1234' 'me/os-autoinst-distri-opensuse' and '1234' or 'branch'"}"
-    if [[ $first_arg == *"pull"* ]]; then
+    if [[ $first_arg == *'pull'* ]]; then
         pr_url=$first_arg
         target_repo_part=${pr_url%%/pull*}
         pr="${pr_url##*pull/}"
         pr="${pr%%/*}"
-    elif [[ $first_arg == *"tree"* ]]; then
+    elif [[ $first_arg == *'tree'* ]]; then
         #maybe a branch_url is given
         branch_url=$first_arg
         forked_repo_part=${branch_url%%/tree*}
@@ -120,7 +120,7 @@ if [[ -z "$branch" ]] || [[ -z "$repo_name" ]]; then
     pr_url=${target_repo_part/github.com/api.github.com/repos}/pulls/$pr
     pr_content=$(eval "${curl_github} -s $pr_url")
     label=$(echo "$pr_content" | jq -r '.head.label') || throw_json_error "$pr_url" "$pr_content"
-    if [[ "${label}" == "null" ]]; then
+    if [[ "${label}" == 'null' ]]; then
         echo "Github API rate limit might have been exceeded. If this is the case, generate one at
         https://github.com/settings/tokens and then export it as an environment variable"
         echo 'export GITHUB_TOKEN=foobar'

@@ -14,7 +14,7 @@ from urllib.parse import urljoin
 import requests
 
 logging.basicConfig()
-log = logging.getLogger(sys.argv[0] if __name__ == "__main__" else __name__)
+log = logging.getLogger(sys.argv[0] if __name__ == '__main__' else __name__)
 openqa_cmd = ""
 args = ""
 
@@ -31,17 +31,17 @@ specified options, on the specified server.""",
         formatter_class=CustomFormatter,
     )
     parser.add_argument(
-        "-v",
-        "--verbose",
+        '-v',
+        '--verbose',
         help="Increase verbosity level, specify multiple times to increase verbosity",
-        action="count",
+        action='count',
         default=1,
     )
     parser.add_argument("--build", help="The build for which to look for a failing module")
     parser.add_argument("--module", required=True, help="The failing module to look for")
     parser.add_argument("--groupid", default=None, help="Limits labeling to this group only")
     parser.add_argument(
-        "--openqa-host",
+        '--openqa-host',
         default="https://openqa.suse.de",
         help="The openQA host to act on",
     )
@@ -49,8 +49,8 @@ specified options, on the specified server.""",
     parser.add_argument("--label", default="", help="The label to write as comment for each found job")
     parser.add_argument("--dry-run", action="store_true", help="Do not do any action on openQA")
     parser.add_argument(
-        "--no-restart",
-        action="store_true",
+        '--no-restart',
+        action='store_true',
         help="Do not restart the jobs after labelling",
     )
     parser.add_argument("--timeout", type=float, default=60, help="Timeout for HTTP requests")
@@ -101,13 +101,13 @@ def _main() -> int:
     args = _parse_args()
     request_params = {"result": args.result, "latest": 1, "scope": "relevant"}
 
-    openqa_cmd = ["openqa-cli", "api", "--host", args.openqa_host]
+    openqa_cmd = ['openqa-cli', 'api', '--host', args.openqa_host]
 
     if args.groupid:
-        request_params.update({"groupid": args.groupid})
+        request_params.update({'groupid': args.groupid})
 
     if args.build:
-        request_params.update({"build": args.build})
+        request_params.update({'build': args.build})
 
     log.debug("args: %s", args)
     host = args.openqa_host if args.openqa_host.startswith("https://") else "https://" + args.openqa_host
@@ -115,7 +115,7 @@ def _main() -> int:
 
     r = requests.get(urljoin(host, url), params=request_params, timeout=args.timeout)
     r.raise_for_status()
-    jobs = r.json()["jobs"]
+    jobs = r.json()['jobs']
 
     if len(jobs) <= 0:
         log.error("No jobs found for: %s", r.url)

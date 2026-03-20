@@ -1,24 +1,24 @@
 #!/bin/bash -e
-: "${dbuser:="geekotest"}"
-: "${dbgroup:="nogroup"}"
+: "${dbuser:='geekotest'}"
+: "${dbgroup:='nogroup'}"
 
-: "${dist_name:=${dist:-"openSUSE"}}" # the display name, for the help message
-: "${dist:="opensuse"}"
+: "${dist_name:=${dist:-'openSUSE'}}" # the display name, for the help message
+: "${dist:='opensuse'}"
 : "${giturl:="https://github.com/os-autoinst/os-autoinst-distri-opensuse.git"}"
 : "${branch:=""}"
 : "${email:="openqa@$HOST"}"
 : "${username:="openQA web UI"}"
 : "${product:="$dist"}"
 
-: "${git_lfs:="0"}"
-: "${needles_separate:="1"}"
+: "${git_lfs:='0'}"
+: "${needles_separate:='1'}"
 : "${needles_giturl:="https://github.com/os-autoinst/os-autoinst-needles-opensuse.git"}"
 : "${needles_branch:=""}"
 
-: "${updateall:="0"}"
-: "${force:="0"}"
+: "${updateall:='0'}"
+: "${force:='0'}"
 
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
     printf "Get %s tests and needles from:\n\t\t%s\n" "${dist_name}" "${giturl}"
     if [ "$needles_separate" = 1 ]; then
         printf "\tand\t%s\n" "${needles_giturl}"
@@ -66,7 +66,7 @@ needlesdir() {
     if [ -d "$dir/$dist/products" ]; then
         echo "$dir/$dist/products/$product/needles"
     else
-        echo "needles"
+        echo 'needles'
     fi
 }
 
@@ -106,7 +106,7 @@ git_update() {
 # detached HEAD so we need to repair this
 git_update_needles() {
     git_update "$needles_branch"
-    if [ "$(git rev-parse --abbrev-ref --symbolic-full-name HEAD)" = "HEAD" ]; then
+    if [ "$(git rev-parse --abbrev-ref --symbolic-full-name HEAD)" = 'HEAD' ]; then
         base=$(get_git_base "$needles_branch")
         needles_branch=${base#origin/}
         git branch -D "$needles_branch"

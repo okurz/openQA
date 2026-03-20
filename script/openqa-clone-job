@@ -2,7 +2,7 @@
 # Copyright 2013-2021 SUSE LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
+# of this software and associated documentation files (the 'Software'), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
@@ -32,7 +32,7 @@ settings can be modified.
   openqa-clone-job [OPTIONS] JOBREF [KEY=[VALUE] ...]
 
   # clones job 42 (and any existing parents) from "openqa.opensuse.org" to the local openQA instance
-  # note: If job 42 is a parallel parent (e.g. a "server" job), its parallel children (e.g. "client"
+  # note: If job 42 is a parallel parent (e.g. a 'server' job), its parallel children (e.g. 'client'
   #       jobs) will be cloned as well.
   openqa-clone-job https://openqa.opensuse.org/t42
   openqa-clone-job --from https://openqa.opensuse.org/tests/42
@@ -58,7 +58,7 @@ parameters C<--from> or C<--within-instance>. The job ID can be specified as
 part of the URL or as its own parameter.
 
 API key and secret are read from "client.conf" if not specified via CLI
-arguments or environment variables "OPENQA_API_KEY" and "OPENQA_API_SECRET".
+arguments or environment variables 'OPENQA_API_KEY' and 'OPENQA_API_SECRET'.
 The config file is checked for under "$OPENQA_CONFIG", "~/.config/openqa" and
 "/etc/openqa" in this order. It must look like this:
 
@@ -78,15 +78,15 @@ Keep in mind that by default any additionally specified job settings are NOT
 added to the also cloned parent jobs. Specify C<--parental-inheritance> if
 this is wanted. It is also possible to specify the job a setting should be
 added to explicitly, e.g. C<WORKER_CLASS:create_hpc=special-worker>. In this
-example the setting "WORKER_CLASS" will only be set to the specified value for
-jobs where the setting "TEST" equals "create_hpc". For this keep in mind that
+example the setting 'WORKER_CLASS' will only be set to the specified value for
+jobs where the setting 'TEST' equals 'create_hpc'. For this keep in mind that
 the parameter parsing is executed in the order specified so changing the
-setting "TEST" should come after job-specific settings.
+setting 'TEST' should come after job-specific settings.
 
-Note that the child job is the one which has the "START_AFTER_TEST" or
-"PARALLEL_WITH" setting and the parent job is the one mentioned by that setting.
+Note that the child job is the one which has the 'START_AFTER_TEST' or
+'PARALLEL_WITH' setting and the parent job is the one mentioned by that setting.
 
-Cloning directly chained dependencies ("START_DIRECTLY_AFTER_TEST") is NOT
+Cloning directly chained dependencies ('START_DIRECTLY_AFTER_TEST') is NOT
 supported.
 
 =head1 OPTIONS
@@ -125,7 +125,7 @@ Do NOT clone parent jobs (which is done by default).
 
 =item B<--skip-chained-deps>
 
-Do NOT clone chained parent jobs (jobs specified via "START_AFTER_TEST").
+Do NOT clone chained parent jobs (jobs specified via 'START_AFTER_TEST').
 
 This makes the job use the downloaded HDD image instead of running the generator
 job again which is of course only possible if --host is the local machine.

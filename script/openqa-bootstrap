@@ -1,5 +1,5 @@
 #!/bin/bash -e
-if [[ $1 = "-h" ]] || [[ $1 = "--help" ]]; then
+if [[ $1 = '-h' ]] || [[ $1 = '--help' ]]; then
     echo "Setup a working openQA installation, automating the steps mentioned in the 'custom installation' documentation section. Supports to immediately clone an existing job simply by supplying 'openqa-clone-job' parameters directly for a quickstart"
     exit
 fi
@@ -13,8 +13,8 @@ set -xeuo pipefail
 
 OPENQA_DIR=${OPENQA_DIR:=/usr/share/openqa}
 
-dbname="${dbname:="openqa"}"
-dbuser="${dbuser:="geekotest"}"
+dbname="${dbname:='openqa'}"
+dbuser="${dbuser:='geekotest'}"
 running_systemd=
 skip_suse_specifics="${skip_suse_specifics:=""}"
 skip_suse_tests="${skip_suse_tests:=""}"
@@ -51,14 +51,14 @@ start-daemons() {
         pgrep -f openqa-websockets-daemon > /dev/null || su geekotest -c "$OPENQA_DIR/script/openqa-websockets-daemon" &
         pgrep -f openqa-gru > /dev/null || su geekotest -c "$OPENQA_DIR/script/openqa-gru" &
         pgrep -f openqa-livehandler-daemon > /dev/null || su geekotest -c "$OPENQA_DIR/script/openqa-livehandler-daemon" &
-        if [[ $setup_web_proxy == "nginx" ]]; then
+        if [[ $setup_web_proxy == 'nginx' ]]; then
             nginx
         else
             /usr/sbin/start_apache2 -k start
         fi
         pgrep -f openqa-webui-daemon > /dev/null || su geekotest -c "$OPENQA_DIR/script/openqa-webui-daemon" &
     else
-        if [[ $setup_web_proxy == "nginx" ]]; then
+        if [[ $setup_web_proxy == 'nginx' ]]; then
             systemctl enable --now nginx
         else
             systemctl enable --now apache2
@@ -95,10 +95,10 @@ command -v retry > /dev/null || zypper -n --gpg-auto-import-keys in retry
 # install packages
 pkgs=(qemu-arm qemu-ppc qemu-x86 qemu-tools sudo iputils os-autoinst-distri-opensuse-deps)
 
-if [[ "$(uname -m)" = "aarch64" ]]; then
+if [[ "$(uname -m)" = 'aarch64' ]]; then
     pkgs+=(qemu-uefi-aarch64)
 fi
-if [[ $setup_web_proxy == "nginx" ]]; then
+if [[ $setup_web_proxy == 'nginx' ]]; then
     pkgs+=(openQA-single-instance-nginx)
 else
     pkgs+=(openQA-single-instance)
@@ -135,7 +135,7 @@ if [[ -z $skip_suse_specifics ]] && ping -c1 download.suse.de. > /dev/null 2>&1 
         if [ "$NAME" = "openSUSE Leap" ]; then
             # avoid using `obs://…` URL to workaround https://bugzilla.opensuse.org/show_bug.cgi?id=1187425
             zypper -n addrepo "http://download.suse.de/ibs/SUSE:/CA/${VERSION}" 'SUSE:CA'
-        elif [ "$NAME" = "SLES" ]; then
+        elif [ "$NAME" = 'SLES' ]; then
             zypper -n addrepo "http://download.suse.de/ibs/SUSE:/CA/SLE_${VERSION/-/_}" 'SUSE:CA'
         else
             zypper -n addrepo obs://SUSE:CA SUSE:CA

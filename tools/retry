@@ -12,12 +12,12 @@ run_once() {
     "$@"
 }
 
-if [ "$RETRY" = "0" ]; then
+if [ "$RETRY" = '0' ]; then
     run_once "$@"
 else
     n=1
     while :; do
-        if [ "$STABILITY_TEST" = "0" ]; then
+        if [ "$STABILITY_TEST" = '0' ]; then
             [ $n -le "$RETRY" ] || exit 1
             [ $n -eq 0 ] || echo "Retry $n of $RETRY …"
             run_once "$@" && break

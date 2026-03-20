@@ -89,9 +89,9 @@ print help
 
 =item openqa-dump-templates --host openqa.example.com --group "openSUSE Tumbleweed" --full
 
-=item openqa-dump-templates --host openqa.example.com --test "gnome"
+=item openqa-dump-templates --host openqa.example.com --test 'gnome'
 
-=item openqa-dump-templates --host openqa.example.com --machine "64bit"
+=item openqa-dump-templates --host openqa.example.com --machine '64bit'
 
 =back
 

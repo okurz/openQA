@@ -18,7 +18,7 @@ while true; do
     case "$1" in
         -h | --help) usage 0 ;;
         -n | --dry-run)
-            dry_run="--dry-run"
+            dry_run='--dry-run'
             shift
             ;;
         --)

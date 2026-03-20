@@ -12,7 +12,7 @@ Trigger automatic system upgrade and reboot if devel:openQA packages are stable
 
 Set OPENQA_PACKAGE_CACHE_RETENTION to also clean the zypper cache from packages
 of the openQA development repository. This is useful in conjunction with the
-zypper repository setting "keeppackages=1" to allow for a more fine-tuned
+zypper repository setting 'keeppackages=1' to allow for a more fine-tuned
 descicion on what packages to keep. This cleanup is influenced by further
 environment variables:
   ZYPPER_PACKAGES_CACHE_DIR: the zypper cache dir in case a non-standard

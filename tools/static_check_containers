@@ -3,12 +3,12 @@
 set -euo pipefail
 
 # use github internal registry if available, e.g. within github actions
-if [ "$(curl -s -w "%{http_code}" https://ghcr.io/v2/ -o /dev/null)" = "401" ]; then
+if [ "$(curl -s -w "%{http_code}" https://ghcr.io/v2/ -o /dev/null)" = '401' ]; then
     img=hadolint/hadolint
 else
     img=ghcr.io/hadolint/hadolint
 fi
-cre="${cre:-"podman"}"
+cre="${cre:-'podman'}"
 dockerfiles=(container/*/Dockerfile*)
 echo "# Static check of Dockerfiles"
 set -x
