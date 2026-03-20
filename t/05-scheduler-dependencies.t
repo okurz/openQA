@@ -51,7 +51,13 @@ my %default_job_settings = (
     NICTYPE => 'tap',
 );
 
-sub _job_create ($settings = undef, $parallel_jobs = undef, $start_after_jobs = undef, $start_directly_after_jobs = undef) {
+sub _job_create (
+    $settings = undef,
+    $parallel_jobs = undef,
+    $start_after_jobs = undef,
+    $start_directly_after_jobs = undef
+  )
+{
     $settings = {%default_job_settings, TEST => $settings} unless ref $settings;
     $settings->{_PARALLEL_JOBS} = $parallel_jobs if $parallel_jobs;
     $settings->{_START_AFTER_JOBS} = $start_after_jobs if $start_after_jobs;
