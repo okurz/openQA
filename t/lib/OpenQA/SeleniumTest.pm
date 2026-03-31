@@ -240,12 +240,16 @@ sub mock_js_functions (%functions_to_mock) {
 
 # asserts that an element is visible and optionally whether it does (not) contain the expected phrases
 sub element_visible ($selector, $like = undef, $unlike = undef, $test_description = undef) {
-    my @elements = $_driver->find_elements($selector);
-    is(scalar @elements, 1, $selector . ' present exactly once');
-
-    my $element = $elements[0];
-    ok($element, $selector . ' exists') or return;
-    ok($element->is_displayed(), $test_description // ($selector . ' visible'));
+    my $element;
+    wait_until(
+        sub {
+            my @elements = $_driver->find_elements($selector);
+            return 0 unless @elements == 1;
+            $element = $elements[0];
+            return $element->is_displayed;
+        },
+        $test_description // ($selector . ' visible'));
+    return unless $element;
 
     # assert the element's text
     my $element_text = $element->get_text();
@@ -269,10 +273,14 @@ sub element_visible ($selector, $like = undef, $unlike = undef, $test_descriptio
 
 # asserts that an element is part of the page but hidden
 sub element_hidden ($selector, $test_description = undef) {
-    my @elements = $_driver->find_elements($selector);
-    is scalar @elements, 1, $selector . ' present exactly once';
-    my $hidden = !$elements[0]->is_displayed || $elements[0]->get_css_attribute('display') eq 'none';
-    ok $hidden, $test_description // ($selector . ' hidden');
+    wait_until(
+        sub {
+            my @elements = $_driver->find_elements($selector);
+            return 0 unless @elements == 1;
+            my $element = $elements[0];
+            return !$element->is_displayed || $element->get_css_attribute('display') eq 'none';
+        },
+        $test_description // ($selector . ' hidden'));
 }
 
 # asserts that an element is not part of the page
