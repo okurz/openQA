@@ -1052,7 +1052,8 @@ padding-top: 20px;
             <header id="title-block-header">
         <h1 class="title">openQA Documentation</h1>
                 </header>
-       <h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction</h1>
+       <p><a id="gettingstarted"></a></p>
+<h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction</h1>
 <p>openQA is an automated test tool that makes it possible to test the
 whole installation process of an operating system. It uses virtual
 machines to reproduce the process, check the output (both serial console
@@ -1072,16 +1073,13 @@ GitHub</a>.</p>
 The main goal is to provide a general overview of the tool, with all the
 information needed to become a happy user.</p>
 <p>For a quick start, if you already have an openQA instance available
-you can refer to the section <a href="UsersGuide.md#cloning_existing_jobs_openqa_clone_job">Cloning
-existing jobs - openqa-clone-job</a> directly to trigger a new test
-based on already existing job. For a quick installation refer directly
-to <a href="Installing.md#bootstrapping">Quick bootstrapping under
-openSUSE</a> or <a href="Installing.md#container_setup">Container based
-setup</a>.</p>
-<p>For the installation of openQA in general see the <a href="Installing.md#installing">Installation Guide</a>, as a user of an
-existing instance see the <a href="UsersGuide.md#usersguide">Users
-Guide</a>. More advanced topics can be found in other documents. All
-documents are also available in the <a href="https://github.com/os-autoinst/openQA">official
+you can refer to the section <a href="#cloning_existing_jobs_openqa_clone_job">Cloning existing jobs -
+openqa-clone-job</a> directly to trigger a new test based on already
+existing job. For a quick installation refer directly to <a href="#bootstrapping">Quick bootstrapping under openSUSE</a> or <a href="#container_setup">Container based setup</a>.</p>
+<p>For the installation of openQA in general see the <a href="#installing">Installation Guide</a>, as a user of an existing
+instance see the <a href="#usersguide">Users Guide</a>. More advanced
+topics can be found in other documents. All documents are also available
+in the <a href="https://github.com/os-autoinst/openQA">official
 repository</a>.</p>
 <h1 data-number="2" id="architecture"><span class="header-section-number">2</span> Architecture</h1>
 <p>Although the project as a whole is referred to as openQA, there are
@@ -1201,12 +1199,11 @@ critical was not satisfied at some point.</p></li>
 issue has been found. That could be that workaround needles are in
 place, a softfailure has been recorded explicitly via
 <code>record_soft_failure</code> (from os-autoinst) or a job failure has
-been ignored explicitly via a <a href="UsersGuide.md#labels">job
-label</a>.</p></li>
+been ignored explicitly via a <a href="#labels">job label</a>.</p></li>
 <li><p><strong>timeout_exceeded</strong> The job was aborted because
 <code>MAX_JOB_TIME</code> or <code>MAX_SETUP_TIME</code> has been
-exceeded, see <a href="WritingTests.md#changing_timeouts">Changing
-timeout</a> for details.</p></li>
+exceeded, see <a href="#changing_timeouts">Changing timeout</a> for
+details.</p></li>
 <li><p><strong>skipped</strong> Dependencies failed so the job was not
 started.</p></li>
 <li><p><strong>obsoleted</strong> The job was superseded by scheduling a
@@ -1293,6 +1290,7 @@ such as buttons and then click inside the matched area.</p>
 contains multiple click points you must pass it to
 <code>testapi::assert_and_click</code> to select which click point to
 use.</p>
+<p><a id="configuration"></a></p>
 <h2 data-number="3.4" id="configuration"><span class="header-section-number">3.4</span> Configuration</h2>
 <p>The different components of openQA read their configuration from the
 following files:</p>
@@ -1330,8 +1328,8 @@ maintainer</a> can place default values deviating from upstream
 defaults.</p>
 <p>The client configuration can also be put under
 <code>~/.config/openqa/client.conf</code>.</p>
-<p>For development, check out the section about <a href="Contributing.md#customize_configuration_directory">customizing the
-configuration directory</a>.</p>
+<p>For development, check out the section about <a href="#customize_configuration_directory">customizing the configuration
+directory</a>.</p>
 <h3 data-number="3.4.2" id="drop-in-configurations"><span class="header-section-number">3.4.2</span> Drop-in configurations</h3>
 <p>It is recommended to split the configuration into multiple files and
 store these &quot;drop-in&quot; configuration files in the <code>….d</code> sub
@@ -1397,7 +1395,7 @@ the same build can be shown together on the index page.</p>
 <p>openQA automatically archives and deletes data that it considers
 &quot;old&quot; based on different settings. For example old jobs and assets are
 deleted at some point. The settings can be adjusted on job-group-level
-and in the configuration file You can read the <a href="UsersGuide.md#cleanup">Cleanup</a> section for details.</p>
+and in the configuration file You can read the <a href="#cleanup">Cleanup</a> section for details.</p>
 <h1 data-number="4" id="using-the-client-script"><span class="header-section-number">4</span> Using the client script</h1>
 <p>Just as the worker uses an API key+secret every user of the
 <code>client script</code> must do the same. The same API key+secret as
@@ -1406,6 +1404,7 @@ previously created can be used or a new one created over the webUI.</p>
 <code>~/.config/openqa/client.conf</code> in the same format as
 previously described for the <code>client.conf</code>, i.e. sections for
 each machine, e.g. <code>localhost</code>.</p>
+<p><a id="get-testing"></a></p>
 <h1 data-number="5" id="testing-opensuse-or-fedora"><span class="header-section-number">5</span> Testing openSUSE or Fedora</h1>
 <p>An easy way to start using openQA is to start testing openSUSE or
 Fedora as they have everything setup and prepared to ease the initial
@@ -1421,11 +1420,10 @@ this, clone a subdirectory under <code>/var/lib/openqa/tests</code> for
 each test distribution you need, e.g.
 <code>/var/lib/openqa/tests/opensuse</code> for openSUSE tests. The
 repositories will be kept up-to-date if <code>git_auto_update</code> is
-enabled in <a href="GettingStarted.md#configuration">the web UI
-configuration</a> (which is the default). The updating is triggered when
-new tests are scheduled. For a periodic update (to avoid getting too far
-behind) you can enable the systemd unit
-<code>openqa-enqueue-git-auto-update.timer</code>.</p>
+enabled in <a href="#configuration">the web UI configuration</a> (which
+is the default). The updating is triggered when new tests are scheduled.
+For a periodic update (to avoid getting too far behind) you can enable
+the systemd unit <code>openqa-enqueue-git-auto-update.timer</code>.</p>
 <p>You can get openSUSE tests and needles from <a href="https://github.com/os-autoinst/os-autoinst-distri-opensuse">GitHub</a>.
 To make it easier, you can just run
 <code>/usr/share/openqa/script/fetchneedles</code>. It will download
@@ -1456,8 +1454,8 @@ possible extra arguments.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/var/lib/openqa/share/tests/fedora/fifloader.py</span> <span class="at">-c</span> <span class="at">-l</span> templates.fif.json templates-updates.fif.json</span></code></pre></div>
 <p>For this to work you need to have a <code>client.conf</code> with API
 key and secret, because fifloader doesn&#39;t support setting them on the
-command line. See the <a href="Client.md#client">openQA client</a>
-section for more details on this. Also see the docstring of
+command line. See the <a href="#client">openQA client</a> section for
+more details on this. Also see the docstring of
 <code>fifloader.py</code> for details on the alternative template format
 Fedora uses.</p>
 <p>Some Fedora tests require special hard disk images to be present in
@@ -1496,10 +1494,10 @@ supports a remote-download feature of assets from trusted domains.</p>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>         FLAVOR=Everything-boot-iso <span class="dt">\</span></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>         ARCH=x86_64 <span class="dt">\</span></span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>         BUILD=Rawhide-20160308.n.0</span></code></pre></div>
-<p>More details on triggering tests can also be found in the <a href="UsersGuide.md#usersguide">Users Guide</a>.</p>
+<p>More details on triggering tests can also be found in the <a href="#usersguide">Users Guide</a>.</p>
 <h1 data-number="6" id="pitfalls"><span class="header-section-number">6</span> Pitfalls</h1>
-<p>Take a look at <a href="Pitfalls.md#pitfalls">Documented
-Pitfalls</a>.</p>
+<p>Take a look at <a href="#pitfalls">Documented Pitfalls</a>.
+<a id="installing"></a></p>
 <h1 data-number="7" id="introduction-1"><span class="header-section-number">7</span> Introduction</h1>
 <p>openQA is an automated test tool that makes it possible to test the
 whole installation process of an operating system. It is free software
@@ -1509,8 +1507,8 @@ GitHub</a>.</p>
 <p>This document provides the information needed to install and setup
 the tool, as well as information useful for everyday administration of
 the system. It is assumed that the reader is already familiar with the
-concepts of openQA and has already read the <a href="GettingStarted.md#gettingstarted">Getting Started Guide</a>, also
-available at the <a href="https://github.com/os-autoinst/openQA">official
+concepts of openQA and has already read the <a href="#gettingstarted">Getting Started Guide</a>, also available at the
+<a href="https://github.com/os-autoinst/openQA">official
 repository</a>.</p>
 <p>Continue with the next section <a href="#container_setup">Container
 based setup</a> to setup a simple, ready-to-use container based openQA
@@ -1518,11 +1516,11 @@ instance which is useful for a single user setup. For a quick
 bootstrapping under openSUSE go to <a href="#bootstrapping">Quick
 bootstrapping</a>. Else, continue with the more advanced section about
 <a href="#custom_installation">Custom installation</a>. For a setup
-suitable to develop openQA itself, have a look at the <a href="Contributing.md#development-setup">Development setup</a>
-section.</p>
+suitable to develop openQA itself, have a look at the <a href="#development-setup">Development setup</a> section.</p>
 <p><a id="container_setup"></a></p>
 <h1 data-number="8" id="container-based-setup"><span class="header-section-number">8</span> Container based setup</h1>
 <p>openQA is provided in containers. Multiple variants exist.</p>
+<p><a id="single-instance-container"></a></p>
 <h2 data-number="8.1" id="single-instance-container"><span class="header-section-number">8.1</span> Single-instance container</h2>
 <p>The easiest and quickest way to spawn a single instance of openQA
 with a single command line using the <code>podman</code> container
@@ -1551,7 +1549,7 @@ e.g.:</p>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    NEEDLES_DIR=%%CASEDIR%%/needles</span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="ex">openqa-clone-job</span> https://openqa.opensuse.org/tests/1</span></code></pre></div>
-<p>More details on triggering tests can also be found in the <a href="UsersGuide.md#usersguide">Users Guide</a>.</p>
+<p>More details on triggering tests can also be found in the <a href="#usersguide">Users Guide</a>.</p>
 <p>You can also run the container and directly clone tests, e.g.:</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">podman</span> run <span class="at">-e</span> skip_suse_specifics= <span class="at">-e</span> skip_suse_tests= <span class="dt">\</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a> <span class="at">--name</span> openqa <span class="at">--device</span> /dev/kvm <span class="at">-p</span> 1080:80 <span class="at">-p</span> 1443:443 <span class="at">--rm</span> <span class="dt">\</span></span>
@@ -1559,9 +1557,9 @@ e.g.:</p>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a> https://openqa.opensuse.org/tests/1</span></code></pre></div>
 <p>The <code>skip_suse_specifics=</code> and
 <code>skip_suse_tests=</code> options ensure the test files and needles
-required for openSUSE/SUSE tests are downloaded. Refer to the <a href="Installing.md#how_to_run_a_test_with_single_instance_container_in_5_minutes">example
-video above</a> and the <a href="GettingStarted.md#get-testing">get
-testing</a> section for more details.</p>
+required for openSUSE/SUSE tests are downloaded. Refer to the <a href="#how_to_run_a_test_with_single_instance_container_in_5_minutes">example
+video above</a> and the <a href="#get-testing">get testing</a> section
+for more details.</p>
 <h2 data-number="8.2" id="separate-web-ui-and-worker-containers"><span class="header-section-number">8.2</span> Separate web UI and worker
 containers</h2>
 <p>As an alternative also separate containers are provided for both the
@@ -1596,15 +1594,14 @@ to to supply <code>workers.ini</code> and <code>client.conf</code>:</p>
 avoid doing a checkout, you can also grab the config files from the <a href="https://github.com/os-autoinst/openQA/tree/master/container/webui/conf">webui/conf</a>
 and <a href="https://github.com/os-autoinst/openQA/tree/master/container/worker/conf">worker/conf</a>
 directory listings on GitHub.</p>
-<p>To learn more about how to run workers check out the <a href="Installing.md#run_openqa_workers">Run openQA workers
-section</a>.</p>
-<p>For creating a first test job, check out the <a href="UsersGuide.md#triggering_tests">Triggering tests section</a>. Note
-that the commands mentioned there can also be invoked within a
-container, e.g.:</p>
+<p>To learn more about how to run workers check out the <a href="#run_openqa_workers">Run openQA workers section</a>.</p>
+<p>For creating a first test job, check out the <a href="#triggering_tests">Triggering tests section</a>. Note that the
+commands mentioned there can also be invoked within a container,
+e.g.:</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">podman</span> run <span class="dt">\</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>   <span class="at">--rm</span> <span class="at">-it</span> registry.opensuse.org/devel/openqa/containers16.0/openqa_webui:latest <span class="dt">\</span></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>   openqa-cli <span class="at">--help</span></span></code></pre></div>
-<p>Check out the <a href="ContainerizedSetup.md#containerizedsetup">containerized setup
+<p>Check out the <a href="#containerizedsetup">containerized setup
 section</a> for more details.</p>
 <p>Take a look at <a href="https://registry.opensuse.org/cgi-bin/cooverview?srch_term=project%3Ddevel%3AopenQA">openSUSE&#39;s
 registry</a> for all available container images.</p>
@@ -1634,8 +1631,8 @@ quickstart:</p>
 <p>The above command will bootstrap an openQA installation and
 immediately afterwards start a local test job clone from a test job from
 a remote instance with optional, overridden parameters. More information
-about <code>openqa-clone-job</code> can be found in <a href="UsersGuide.md#cloning_existing_jobs_openqa_clone_job">Cloning
-existing jobs - openqa-clone-job</a>.</p>
+about <code>openqa-clone-job</code> can be found in <a href="#cloning_existing_jobs_openqa_clone_job">Cloning existing jobs -
+openqa-clone-job</a>.</p>
 <p>You can also run <code>openqa-bootstrap</code> repeatedly. For
 example when you stop a container and the openQA daemons and database
 are stopped, calling <code>openqa-bootstrap start</code> will start
@@ -1776,8 +1773,8 @@ sources</h3>
 components of openQA can be called directly from the repository
 checkout.</p>
 <p>To install openQA from sources make sure to install all dependencies
-as explained in <a href="Contributing.md#dependencies">Dependencies</a>.
-Then one can call</p>
+as explained in <a href="#dependencies">Dependencies</a>. Then one can
+call</p>
 <div class="sourceCode" id="cb28"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> install</span></code></pre></div>
 <p>The directory prefix can be controlled with the optional environment
 variable <code>DESTDIR</code>.</p>
@@ -1791,6 +1788,7 @@ specifications are recommended per openQA worker instance:</p>
 <li><p>8GB RAM</p></li>
 <li><p>40GB HDD (preferably SSD or NVMe)</p></li>
 </ul>
+<p><a id="basic-configuration"></a></p>
 <h1 data-number="12" id="basic-configuration"><span class="header-section-number">12</span> Basic configuration</h1>
 <p>For a local instance setup you can simply execute the script:</p>
 <div class="sourceCode" id="cb29"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/usr/share/openqa/script/configure-web-proxy</span></span></code></pre></div>
@@ -1855,17 +1853,19 @@ and cert location in the config file). On openSUSE, you should also add
 looks like this in <code>/etc/sysconfig/apache2</code>:</p>
 <div class="sourceCode" id="cb33"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="va">APACHE_SERVER_FLAGS</span><span class="op">=</span><span class="st">&quot;SSL&quot;</span></span></code></pre></div>
 <p>If you don&#39;t have a TLS/SSL certificate for your host you must turn
-HTTPS off. You can do that in <a href="GettingStarted.md#configuration">the web UI configuration</a>:</p>
+HTTPS off. You can do that in <a href="#configuration">the web UI
+configuration</a>:</p>
 <div class="sourceCode" id="cb34"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[openid]</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="dt">httpsonly </span><span class="ot">=</span><span class="st"> </span><span class="dv">0</span></span></code></pre></div>
+<p><a id="database"></a></p>
 <h2 data-number="12.4" id="database"><span class="header-section-number">12.4</span> Database</h2>
 <p>openQA requires PostgreSQL 14 or newer. By default, a database with
 name <code>openqa</code> and <code>geekotest</code> user as owner is
 used. An automatic setup of a freshly installed PostgreSQL instance can
 be done using <a href="https://github.com/os-autoinst/openQA/blob/master/script/setup-db">this
-script</a>. The database connection can be configured in <a href="GettingStarted.md#configuration">the database configuration
-file</a>. (normally the <code>[production]</code> section is relevant).
-More info about the <code>dsn</code> value format can be found in the <a href="https://metacpan.org/pod/DBD">https://metacpan.org/pod/DBD</a>::Pg#DBI-Class-Methods[DBD::Pg
+script</a>. The database connection can be configured in <a href="#configuration">the database configuration file</a>. (normally the
+<code>[production]</code> section is relevant). More info about the
+<code>dsn</code> value format can be found in the <a href="https://metacpan.org/pod/DBD">https://metacpan.org/pod/DBD</a>::Pg#DBI-Class-Methods[DBD::Pg
 documentation].</p>
 <h3 data-number="12.4.1" id="example-for-connecting-to-local-postgresql-database"><span class="header-section-number">12.4.1</span> Example for connecting to
 local PostgreSQL database</h3>
@@ -1881,8 +1881,8 @@ remote PostgreSQL database</h3>
 <p>openQA supports four different authentication methods: OpenID
 (default), OAuth2, Fake (for development) and None (no
 authentication).</p>
-<p>Use the <code>auth</code> section in <a href="GettingStarted.md#configuration">the web UI configuration</a> to
-configure the method:</p>
+<p>Use the <code>auth</code> section in <a href="#configuration">the web
+UI configuration</a> to configure the method:</p>
 <div class="sourceCode" id="cb37"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[auth]</span></span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="co"># method name is case sensitive!</span></span>
 <span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="dt">method </span><span class="ot">=</span><span class="st"> OpenID</span></span></code></pre></div>
@@ -1900,7 +1900,7 @@ service that implements the time-sync target. Otherwise a &quot;timestamp
 mismatch&quot; may be reported when clocks are too far apart.</p>
 <h3 data-number="12.5.1" id="openid"><span class="header-section-number">12.5.1</span> OpenID</h3>
 <p>By default openQA uses OpenID with opensuse.org as OpenID provider.
-OpenID method has its own <code>openid</code> section in <a href="GettingStarted.md#configuration">the web UI configuration</a>:</p>
+OpenID method has its own <code>openid</code> section in <a href="#configuration">the web UI configuration</a>:</p>
 <div class="sourceCode" id="cb38"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[auth]</span></span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="co"># method name is case sensitive!</span></span>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="dt">method </span><span class="ot">=</span><span class="st"> OpenID</span></span>
@@ -2044,6 +2044,7 @@ failures which can be circumvented via
 <code>sysctl net.ipv4.tcp_migrate_req=1</code>, see <a href="https://lwn.net/Articles/853637">the according article on
 LWN.net</a>. Note that there is no corresponding setting for IPv6 but
 the setting for IPv4 seems to help with IPv6 connections as well.</p>
+<p><a id="run_openqa_workers"></a></p>
 <h1 data-number="14" id="run-openqa-workers"><span class="header-section-number">14</span> Run openQA workers</h1>
 <p>Workers are services running backends to perform the actual testing.
 The testing is commonly performed by running virtual machines but
@@ -2094,16 +2095,17 @@ trouble finding its perl modules.</p>
 host make sure to have synchronized clocks, for example using NTP, to
 prevent inconsistent test results.</p>
 <h1 data-number="15" id="where-to-now"><span class="header-section-number">15</span> Where to now?</h1>
-<p>From this point on, you can refer to the <a href="GettingStarted.md#get-testing">Getting Started</a> guide to fetch
-the tests cases and possibly take a look at <a href="WritingTests.md#writingtests">Test Developer Guide</a></p>
+<p>From this point on, you can refer to the <a href="#get-testing">Getting Started</a> guide to fetch the tests cases
+and possibly take a look at <a href="#writingtests">Test Developer
+Guide</a></p>
 <h1 data-number="16" id="advanced-configuration"><span class="header-section-number">16</span> Advanced configuration</h1>
 <h2 data-number="16.1" id="cleanup-1"><span class="header-section-number">16.1</span> Cleanup</h2>
 <p>The automated cleanup is enabled and configured by default. Cleanup
 tasks are scheduled via systemd timer units and run via
-<code>openqa-gru.service</code>. The configuration is done in <a href="GettingStarted.md#configuration">the web UI configuration file</a>
-and various places within the web UI. If you want to tweak the cleanup
-to your needs, have a look at the <a href="UsersGuide.md#cleanup">Cleanup of assets, results and other
-data</a> section.</p>
+<code>openqa-gru.service</code>. The configuration is done in <a href="#configuration">the web UI configuration file</a> and various
+places within the web UI. If you want to tweak the cleanup to your
+needs, have a look at the <a href="#cleanup">Cleanup of assets, results
+and other data</a> section.</p>
 <h2 data-number="16.2" id="setting-up-git-support"><span class="header-section-number">16.2</span> Setting up git support</h2>
 <p>If your tests and needles are stored in git, openQA can perform
 various operations:</p>
@@ -2155,8 +2157,7 @@ some reasonable defaults such as:</p>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="dt">    email </span><span class="ot">=</span><span class="st"> whatever@example.com</span></span>
 <span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="dt">    name </span><span class="ot">=</span><span class="st"> openQA web UI</span></span></code></pre></div>
 <p>To enable automatic pushing of the repo as well, you need to add the
-following to <a href="GettingStarted.md#configuration">the web UI
-configuration</a>:</p>
+following to <a href="#configuration">the web UI configuration</a>:</p>
 <div class="sourceCode" id="cb53"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[scm git]</span></span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="dt">do_push </span><span class="ot">=</span><span class="st"> </span><span class="kw">yes</span></span></code></pre></div>
 <p>Depending on your setup, you might need to generate and propagate ssh
@@ -2191,8 +2192,7 @@ which no longer exists. Job can be manually marked as important to
 prevent quick cleanup or referer can be set so when job is accessed from
 particular web page (for example bugzilla), this job is automatically
 labeled as linked and treated as important.</p>
-<p>List of recognized referrers is space separated list configured in <a href="GettingStarted.md#configuration">the web UI configuration
-file</a>:</p>
+<p>List of recognized referrers is space separated list configured in <a href="#configuration">the web UI configuration file</a>:</p>
 <div class="sourceCode" id="cb58"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[global]</span></span>
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="dt">recognized_referers </span><span class="ot">=</span><span class="st"> bugzilla.suse.com bugzilla.opensuse.org</span></span></code></pre></div>
 <h2 data-number="16.4" id="scheduler-configuration"><span class="header-section-number">16.4</span> Scheduler configuration</h2>
@@ -2250,10 +2250,10 @@ limit when it is active.</p>
 <h2 data-number="16.5" id="worker-settings"><span class="header-section-number">16.5</span> Worker settings</h2>
 <p>Default behavior for all workers is to use the QEMU backend and
 connect to http://localhost. If you want to change some of those
-options, you can do so in <a href="GettingStarted.md#configuration">the
-worker configuration</a>. For example to point the workers to the FQDN
-of your host (needed if test cases need to access files of the host) use
-the following setting:</p>
+options, you can do so in <a href="#configuration">the worker
+configuration</a>. For example to point the workers to the FQDN of your
+host (needed if test cases need to access files of the host) use the
+following setting:</p>
 <div class="sourceCode" id="cb60"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[global]</span></span>
 <span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="dt">HOST </span><span class="ot">=</span><span class="st"> http://openqa.example.com</span></span></code></pre></div>
 <p>The load of the system can affect test execution and cause failures
@@ -2276,13 +2276,11 @@ worker</h2>
 <li><p><code>openqa-worker-plain@.service</code>: standard worker
 service, this is the default and <code>openqa-worker@.service</code> is
 just a symlink to this service</p></li>
-<li><p><code>openqa-worker-no-cleanup@.service</code>: see <a href="WritingTests.md#snapshots-for-each-module">enabling
-snapshots</a></p></li>
+<li><p><code>openqa-worker-no-cleanup@.service</code>: see <a href="#snapshots-for-each-module">enabling snapshots</a></p></li>
 <li><p><code>openqa-worker-auto-restart@.service</code>: worker that
 restarts automatically after processing assigned jobs</p></li>
 <li><p><code>openqa-worker-cacheservice</code>/<code>openqa-worker-cacheservice-minion</code>:
-services for <a href="Installing.md#asset-caching">the asset
-cache</a></p></li>
+services for <a href="#asset-caching">the asset cache</a></p></li>
 <li><p><code>openqa-worker.target</code></p>
 <ul>
 <li><p>Starts <code>openqa-worker@.service</code> (but no other worker
@@ -2332,6 +2330,7 @@ without interrupting currently running jobs:</p>
 <span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ensure idling worker services stop now (`--kill-who=main` ensures only the</span></span>
 <span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a><span class="co"># worker receives the signal and *not* isotovideo)</span></span>
 <span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> kill <span class="at">--kill-who</span><span class="op">=</span>main <span class="at">--signal</span> HUP openqa-worker-auto-restart@<span class="dt">{</span><span class="dv">1</span><span class="dt">..</span><span class="dv">28</span><span class="dt">}</span></span></code></pre></div>
+<p><a id="configuring_remote_workers"></a></p>
 <h2 data-number="16.7" id="configuring-remote-workers"><span class="header-section-number">16.7</span> Configuring remote
 workers</h2>
 <p>There are some additional requirements to get remote worker running.
@@ -2352,13 +2351,12 @@ emission</h2>
 finished, …) to an AMQP message bus. The messages consist of a topic and
 a body. The body contains json encoded info about the event. See <a href="https://github.com/openSUSE/suse_msg/blob/master/amqp_infra.md">amqp_infra</a>
 for more info about the server and the message topic format or take a
-look at <a href="UsersGuide.md#amqp_events">Consuming AMQP events from
-openQA</a> to find detailed instructions how to configure the AMQP
-server.</p>
+look at <a href="#amqp_events">Consuming AMQP events from openQA</a> to
+find detailed instructions how to configure the AMQP server.</p>
 <p>To let openQA send messages to an AMQP message bus, first make sure
 that the <code>perl-Mojo-RabbitMQ-Client</code> RPM is installed. Then
-you will need to configure AMQP in <a href="GettingStarted.md#configuration">the web UI configuration
-file</a>:</p>
+you will need to configure AMQP in <a href="#configuration">the web UI
+configuration file</a>:</p>
 <div class="sourceCode" id="cb66"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Enable the AMQP plugin</span></span>
 <span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a><span class="kw">[global]</span></span>
 <span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a><span class="dt">plugins </span><span class="ot">=</span><span class="st"> AMQP</span></span>
@@ -2385,9 +2383,9 @@ secrets to all instances</p></li>
 <li><p>Shared storage from all instances must be properly
 mounted</p></li>
 </ul>
-<p>In <a href="GettingStarted.md#configuration">the worker
-configuration</a>, enter space-separated instance hosts and optionally
-configure where the shared storage is mounted. Example:</p>
+<p>In <a href="#configuration">the worker configuration</a>, enter
+space-separated instance hosts and optionally configure where the shared
+storage is mounted. Example:</p>
 <div class="sourceCode" id="cb67"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[global]</span></span>
 <span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a><span class="dt">HOST </span><span class="ot">=</span><span class="st"> openqa.opensuse.org openqa.fedora.fedoraproject.org</span></span>
 <span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2411,13 +2409,13 @@ matching worker class) can be assigned to it. Dependencies between jobs
 will be considered for ordering the job assignment. It is possible to
 mix local openQA instance with remote instances or use only remote
 instances.</p>
+<p><a id="asset-caching"></a></p>
 <h2 data-number="16.10" id="asset-and-testneedle-caching"><span class="header-section-number">16.10</span> Asset and test/needle
 caching</h2>
 <p>If your network is slow or you experience long time to load needles
 you might want to consider enabling caching on your remote workers. To
-enable caching, <code>CACHEDIRECTORY</code> must be set in <a href="GettingStarted.md#configuration">the worker configuration</a>.
-There are also further settings one can optionally configure.
-Example:</p>
+enable caching, <code>CACHEDIRECTORY</code> must be set in <a href="#configuration">the worker configuration</a>. There are also
+further settings one can optionally configure. Example:</p>
 <div class="sourceCode" id="cb68"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[global]</span></span>
 <span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a><span class="dt">HOST </span><span class="ot">=</span><span class="st"> http://webui</span></span>
 <span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a><span class="dt">CACHEDIRECTORY </span><span class="ot">=</span><span class="st"> /var/lib/openqa/cache # desired cache location</span></span>
@@ -2435,8 +2433,7 @@ repositories, said directory will be created for you.</p>
 the web UI and use them locally. The <code>TESTPOOLSERVER</code> setting
 causes also tests and needles to be downloaded via <code>rsync</code>
 from the specified location. You can find further examples in the
-comments in <a href="GettingStarted.md#configuration">the worker
-configuration</a>.</p>
+comments in <a href="#configuration">the worker configuration</a>.</p>
 <p>It is suggested to have the cache and pool directories on the same
 filesystem to ensure assets used by tests are available as long as
 needed. This is achieved by using hard links, resorting to symlinks in
@@ -2472,11 +2469,11 @@ times. In such case, one can setup local cache on their own (without
 using openqa-worker-cacheservice service) and share it with workers
 using some network filesystem (see [Installing.asciidoc#Configuring
 remote workers](Installing.md#Configuring remote workers) section
-above). Such setups can use <code>SYNC_ASSETS_HOOK</code> in <a href="GettingStarted.md#configuration">the web UI configuration</a> to
-ensure the cache is up to date before starting the job (or resuming test
-in developer mode). The setting takes a shell command that is executed
-just before evaluating assets. It is up to the system administrator to
-decide what it should do, but there are few suggestions:</p>
+above). Such setups can use <code>SYNC_ASSETS_HOOK</code> in <a href="#configuration">the web UI configuration</a> to ensure the cache
+is up to date before starting the job (or resuming test in developer
+mode). The setting takes a shell command that is executed just before
+evaluating assets. It is up to the system administrator to decide what
+it should do, but there are few suggestions:</p>
 <ul>
 <li><p>Call rsync, possibly via ssh on the cache host</p></li>
 <li><p>Wait for a lock file signaling that cache download is in progress
@@ -2496,9 +2493,10 @@ keys in <code>/etc/openqa/openqa.ini</code>.</p>
 <p>The files referenced by the configured keys should be located either
 under the root of <code>CASEDIR</code> or the data folder within
 <code>CASEDIR</code>.</p>
+<p><a id="custom_hook_scripts_job_done"></a>
+<a id="enable_custom_hook_scripts_on_job_done_based_on_result"></a></p>
 <h2 data-number="16.13" id="enable-custom-hook-scripts-on-job-done-based-on-result"><span class="header-section-number">16.13</span> Enable custom hook scripts on
 &quot;job done&quot; based on result</h2>
-<p><a id="custom_hook_scripts_job_done"></a></p>
 <p>If a job is done, especially if no label could be found for
 carry-over, often more steps are needed for the review of the test
 result or providing the information to either external systems or users.
@@ -2573,9 +2571,9 @@ the system logs of the openQA GRU service, except for messages in
 and stdout output is visible in the GRU minion job dashboard on the
 route <code>/minion/jobs?offset=0&amp;task=finalize_job_results</code>
 of the openQA instance.</p>
+<p><a id="automatic_cloning_incomplete_jobs"></a></p>
 <h2 data-number="16.14" id="automatic-cloning-of-incomplete-jobs"><span class="header-section-number">16.14</span> Automatic cloning of
 incomplete jobs</h2>
-<p><a id="automatic_cloning_incomplete_jobs"></a></p>
 <p>By default, when a worker reports an incomplete job due to a cache
 service related problem, the job is automatically cloned. It is possible
 to extend the regex to cover other types of incompletes as well by
@@ -2602,17 +2600,17 @@ by openQA workers are tracked under user whose API keys are workers
 using.</p>
 <p>Audit log is directly accessible from <code>Admin menu</code>.</p>
 <p>Auditing, by default enabled, can be disabled by global configuration
-option in <a href="GettingStarted.md#configuration">the web UI
-configuration file</a>:</p>
+option in <a href="#configuration">the web UI configuration
+file</a>:</p>
 <div class="sourceCode" id="cb78"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[global]</span></span>
 <span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a><span class="dt">audit_enabled </span><span class="ot">=</span><span class="st"> </span><span class="dv">0</span></span></code></pre></div>
-<p>The <code>audit</code> section of <a href="GettingStarted.md#configuration">the web UI configuration</a>
-allows to exclude some events from logging using a space separated
-blocklist:</p>
+<p>The <code>audit</code> section of <a href="#configuration">the web UI
+configuration</a> allows to exclude some events from logging using a
+space separated blocklist:</p>
 <div class="sourceCode" id="cb79"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[audit]</span></span>
 <span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a><span class="dt">blocklist </span><span class="ot">=</span><span class="st"> job_grab job_done</span></span></code></pre></div>
-<p>The <code>audit/storage_duration</code> section of <a href="GettingStarted.md#configuration">the web UI configuration</a>
-allows to set the retention policy for different audit event types:</p>
+<p>The <code>audit/storage_duration</code> section of <a href="#configuration">the web UI configuration</a> allows to set the
+retention policy for different audit event types:</p>
 <div class="sourceCode" id="cb80"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[audit/storage_duration]</span></span>
 <span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a><span class="dt">startup </span><span class="ot">=</span><span class="st"> </span><span class="dv">10</span></span>
 <span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a><span class="dt">jobgroup </span><span class="ot">=</span><span class="st"> </span><span class="dv">365</span></span>
@@ -2697,8 +2695,8 @@ configuration is analogous to <code>openQA-auto-update</code>.</p>
 <h1 data-number="19" id="migrating-from-older-databases"><span class="header-section-number">19</span> Migrating from older
 databases</h1>
 <p>For older versions of openQA, you can migrate from SQLite to
-PostgreSQL according to <a href="Pitfalls.md#db-migration">DB migration
-from SQLite to PostgreSQL</a>.</p>
+PostgreSQL according to <a href="#db-migration">DB migration from SQLite
+to PostgreSQL</a>.</p>
 <p>For migrating from older PostgreSQL versions read on.</p>
 <h1 data-number="20" id="migrating-postgresql-database-on-opensuse"><span class="header-section-number">20</span> Migrating PostgreSQL database on
 openSUSE</h1>
@@ -2907,8 +2905,8 @@ pages</a>.</p></li>
 <p><a id="filesystem"></a></p>
 <p>Tests, needles, assets, results and working directories (a.k.a. &quot;pool
 directories&quot;) are located in certain subdirectories within
-<code>/var/lib/openqa</code>. This directory is configurable (see <a href="Contributing.md#customize_base_directory">Customize base
-directory</a>). Here we assume the default is in place.</p>
+<code>/var/lib/openqa</code>. This directory is configurable (see <a href="#customize_base_directory">Customize base directory</a>). Here we
+assume the default is in place.</p>
 <p>Note that the sub directories within <code>/var/lib/openqa</code>
 must be accessible by the user that runs the openQA web UI (by default
 &#39;geekotest&#39;) or by the user that runs the worker/isotovideo (by default
@@ -3109,8 +3107,8 @@ worker1 host (and analog on other worker hosts):</p>
 <p>On all peers run now:</p>
 <div class="sourceCode" id="cb98"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a><span class="ex">zypper</span> <span class="at">-n</span> in wireguard-tools</span>
 <span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> enable <span class="at">--now</span> wg-quick@openqa</span></code></pre></div>
-<p>Then update <a href="GettingStarted.md#configuration">the worker
-configuration</a> on the workers like this:</p>
+<p>Then update <a href="#configuration">the worker configuration</a> on
+the workers like this:</p>
 <div class="sourceCode" id="cb99"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[global]</span></span>
 <span id="cb99-2"><a href="#cb99-2" aria-hidden="true" tabindex="-1"></a><span class="dt">HOST</span><span class="ot">=</span><span class="st">[fd0a::1]</span></span>
 <span id="cb99-3"><a href="#cb99-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -3142,6 +3140,7 @@ our Wiki about the openqa.opensuse.org setup</a>.</p>
 <p>Without taking any of those additional measures the openQA services
 will at least still run as a distinct user (when using upstream-provided
 systemd unit files).</p>
+<p><a id="authentication"></a></p>
 <h2 data-number="25.2" id="authentication"><span class="header-section-number">25.2</span> Authentication</h2>
 <p>Authentication via OpenID is enabled by default. Do
 <strong>not</strong> change the authentication method to
@@ -3207,13 +3206,14 @@ like this:</p>
 <p>Use <code>-4</code>/<code>-6</code> to check IPv4 vs. IPv6
 performance. Use <code>-R</code> to check in the other direction. Both
 can make a huge difference.</p>
-<p>More examples: <a href="https://fasterdata.es.net/performance-testing/network-troubleshooting-tools/iperf">https://fasterdata.es.net/performance-testing/network-troubleshooting-tools/iperf</a></p>
+<p>More examples: <a href="https://fasterdata.es.net/performance-testing/network-troubleshooting-tools/iperf">https://fasterdata.es.net/performance-testing/network-troubleshooting-tools/iperf</a>
+<a id="usersguide"></a></p>
 <h1 data-number="27" id="introduction-2"><span class="header-section-number">27</span> Introduction</h1>
 <p>This document provides additional information for use of the web
 interface or the REST API as well as administration information. For
-administrators it is recommend to have read the <a href="Installing.md#installing">Installation Guide</a> first to
-understand the structure of components as well as the configuration of
-an installed instance.</p>
+administrators it is recommend to have read the <a href="#installing">Installation Guide</a> first to understand the
+structure of components as well as the configuration of an installed
+instance.</p>
 <p><a id="job_templates"></a></p>
 <h1 data-number="28" id="using-job-templates-to-automate-jobs-creation"><span class="header-section-number">28</span> Using job templates to automate
 jobs creation</h1>
@@ -3308,6 +3308,7 @@ profile.</p></li>
 through an emulated USB stick.</p></li>
 </ul></li>
 </ul>
+<p><a id="medium_types_products"></a></p>
 <h2 data-number="28.3" id="medium-types-products"><span class="header-section-number">28.3</span> Medium Types (products)</h2>
 <p>A medium type (product) in openQA is a simple description without any
 concrete meaning. It basically consists of a name and a set of variables
@@ -3564,9 +3565,9 @@ URL, e.g. <code>https://bugzilla.suse.com/show_bug.cgi?id=1234</code>
 which will then be shortened automatically. A bug reference is rendered
 as link and a bug icon is displayed for the job in various places as
 shown in the figure below. A comment containing a bug reference will
-also be <a href="UsersGuide.md#carry-over">carried over</a> to reduce
-manual review work. Refer to the Flags section below for other ways to
-trigger automated comment carryover.</p>
+also be <a href="#carry-over">carried over</a> to reduce manual review
+work. Refer to the Flags section below for other ways to trigger
+automated comment carryover.</p>
 <blockquote>
 <p><strong>WARNING:</strong> If you want to reference a bug without
 making it count as a bug reference you need to wrap it into a label (see
@@ -3626,17 +3627,16 @@ be effective the according user needs to have at least operator
 permissions.</p>
 <blockquote>
 <p><strong>NOTE:</strong> <code>force_result</code>-labels are evaluated
-when when a comment is <a href="UsersGuide.md#carry-over">carried
-over</a>. However, the carry over will only happen when the comment
-<strong>also</strong> contains a bug reference or
-<code>flag:carryover</code>.</p>
+when when a comment is <a href="#carry-over">carried over</a>. However,
+the carry over will only happen when the comment <strong>also</strong>
+contains a bug reference or <code>flag:carryover</code>.</p>
 </blockquote>
 <h3 data-number="29.4.3" id="flags"><span class="header-section-number">29.4.3</span> Flags</h3>
 <p>Currently there is only one flag for job comments supported.</p>
 <h4 data-number="29.4.3.1" id="flagcarryover"><span class="header-section-number">29.4.3.1</span> flag:carryover</h4>
 <p>Adding <code>flag:carryover</code> to a comment, will result in this
-comment being <a href="UsersGuide.md#carry-over">carried over</a> to a
-new job failing for the same reason, without a bugref required.</p>
+comment being <a href="#carry-over">carried over</a> to a new job
+failing for the same reason, without a bugref required.</p>
 <h2 data-number="29.5" id="distinguish-product-and-test-issues-bugref-gh708"><span class="header-section-number">29.5</span> Distinguish product and test
 issues bugref <a href="https://github.com/os-autoinst/openQA/pull/708">gh#708</a></h2>
 <p>&quot;progress.opensuse.org&quot; is used to track test issues, bugzilla for
@@ -3865,6 +3865,7 @@ results:</p>
 <span id="cb110-9"><a href="#cb110-9" aria-hidden="true" tabindex="-1"></a><span class="dt">session-cleanup-script</span><span class="ot">=</span><span class="st">/etc/X11/xdm/Xreset</span></span>
 <span id="cb110-10"><a href="#cb110-10" aria-hidden="true" tabindex="-1"></a><span class="dt">autologin-user</span><span class="ot">=</span><span class="st">tux</span></span>
 <span id="cb110-11"><a href="#cb110-11" aria-hidden="true" tabindex="-1"></a><span class="dt">autologin-timeout</span><span class="ot">=</span><span class="dv">0</span></span></code></pre></div>
+<p><a id="carry-over"></a></p>
 <h2 data-number="29.18" id="carry-over-of-bug-references-from-previous-jobs-in-same-scenario"><span class="header-section-number">29.18</span> Carry over of bug references
 from previous jobs in same scenario</h2>
 <p>Many test failures within the same scenario might be due to the same
@@ -3883,13 +3884,13 @@ the latest bug reference is carried over.</p>
 <p><strong>NOTE:</strong> The lookup-depth is limited. The search for
 candidates will also stop early if too many different kinds of failures
 were seen. Check out the descriptions of the relevant settings in the
-<code>carry_over</code> section of <a href="GettingStarted.md#configuration">the web UI configuration</a> for
-details.</p>
+<code>carry_over</code> section of <a href="#configuration">the web UI
+configuration</a> for details.</p>
 </blockquote>
 <blockquote>
 <p><strong>NOTE:</strong> For an approach to add bug references based on
 a search expression found in the job reason for incomplete jobs or job
-logs consider to <a href="Installing.md#enable_custom_hook_scripts_on_job_done_based_on_result">Enable
+logs consider to <a href="#enable_custom_hook_scripts_on_job_done_based_on_result">Enable
 custom hook scripts on &quot;job done&quot; based on result</a>.</p>
 </blockquote>
 <h2 data-number="29.19" id="pinning-comments-as-group-description"><span class="header-section-number">29.19</span> Pinning comments as group
@@ -3925,8 +3926,8 @@ buttons providing further information about the different options are
 already contained on the web page itself. So I am not repeating that
 information here and rather explain the overall workflow.</p>
 <p>In case the developer mode in not working on your instance, try to
-follow the <a href="Pitfalls.md#debugdevelmode">steps for debugging the
-developer mode under &#39;Pitfalls&#39;</a>.</p>
+follow the <a href="#debugdevelmode">steps for debugging the developer
+mode under &#39;Pitfalls&#39;</a>.</p>
 <h3 data-number="29.21.1" id="workflow-for-creating-or-updating-needles"><span class="header-section-number">29.21.1</span> Workflow for creating or
 updating needles</h3>
 <ol type="1">
@@ -4219,6 +4220,7 @@ Schema</a> for more information).</p>
 <code>&lt;&lt;</code> is special. If you need the literal string
 <code>&lt;&lt;</code> (for example as a value in the job settings), you
 have to quote it.</p>
+<p><a id="rest_api"></a></p>
 <h1 data-number="31" id="use-of-the-rest-api"><span class="header-section-number">31</span> Use of the REST API</h1>
 <p>openQA includes a <em>client</em> script which - depending on the
 distribution - is packaged independently to allow interfacing with an
@@ -4226,9 +4228,9 @@ existing openQA instance without needing to install openQA itself. Call
 <code>openqa-cli --help</code> for help. The sub-commands provide
 further help, e.g. <code>openqa-cli api --help</code> contains a lot of
 examples.</p>
-<p>This section focuses on particular API use-cases. Check out the <a href="Client.md#client">openQA client</a> section for further
-information about the client itself, how authentication works and how
-plain <code>curl</code> can be used.</p>
+<p>This section focuses on particular API use-cases. Check out the <a href="#client">openQA client</a> section for further information about
+the client itself, how authentication works and how plain
+<code>curl</code> can be used.</p>
 <h2 data-number="31.1" id="finding-tests"><span class="header-section-number">31.1</span> Finding tests</h2>
 <p>The following example lists all jobs within the job group with the ID
 <code>1</code> and the setting <code>BUILD=20210707</code> on
@@ -4309,6 +4311,7 @@ two completely different settings.</p>
 <code>job_setting</code> parameter can be specified and it can also be
 combined with other filtering parameters, e.g.:</p>
 <div class="sourceCode" id="cb123"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb123-1"><a href="#cb123-1" aria-hidden="true" tabindex="-1"></a><span class="ex">openqa-cli</span> api jobs result=none job_setting=ISSUES[]=<span class="dt">{foo</span><span class="op">,</span><span class="dt">bar}</span> limit=50</span></code></pre></div>
+<p><a id="triggering_tests"></a></p>
 <h2 data-number="31.3" id="triggering-tests"><span class="header-section-number">31.3</span> Triggering tests</h2>
 <p>Tests can be triggered over multiple ways, using
 <code>openqa-clone-job</code>, <code>jobs post</code>,
@@ -4322,12 +4325,13 @@ copy the necessary settings and assets to another instance and schedule
 the test. For the test to be executed it has to be ensured that matching
 resources can be found, for example a worker with matching
 <code>WORKER_CLASS</code> must be registered. More details on
-<code>openqa-clone-job</code> can be found in <a href="WritingTests.md#writingtests">Writing Tests</a>.</p>
+<code>openqa-clone-job</code> can be found in <a href="#writingtests">Writing Tests</a>.</p>
 <h3 data-number="31.3.2" id="spawning-single-new-jobs---jobs-post"><span class="header-section-number">31.3.2</span> Spawning single new jobs -
 jobs post</h3>
 <p>Single jobs can be spawned using the <code>jobs post</code> API
 route. All necessary settings on a job must be supplied in the API
 request. The &quot;openQA client&quot; has examples for this.</p>
+<p><a id="further_examples_for_advanced_dependency_handling"></a></p>
 <h4 data-number="31.3.2.1" id="further-examples-for-advanced-dependency-handling"><span class="header-section-number">31.3.2.1</span> Further examples for
 advanced dependency handling</h4>
 <p>It is possible to spawn a single set of jobs using just one API call,
@@ -4346,24 +4350,24 @@ suffix that has been used, e.g.:</p>
 <p>To use colons within a settings key, just add a trailing
 <code>:</code>, e.g.:</p>
 <pre><code>openqa-cli api -X POST jobs TEST=test KEY:WITH:COLONS:=example</code></pre>
+<p><a id="spawning_multiple_jobs_based_on_templates_isos_post"></a></p>
 <h3 data-number="31.3.3" id="spawning-multiple-jobs-based-on-templates---isos-post"><span class="header-section-number">31.3.3</span> Spawning multiple jobs based
 on templates - isos post</h3>
 <p>The most common way of spawning jobs on production instances is using
 the <code>isos post</code> API route. Based on settings for media, job
 groups, machines and test suites jobs are triggered based on template
 matching. These settings need to be defined before on the corresponding
-pages of the web UI (accessible to operators from the user menu). The <a href="UsersGuide.md#job_templates">section on job templates</a> already
-explains details about these tables. Alternatively, these settings can
-be supplied via a <a href="UsersGuide.md#scenarios_yaml">YAML
-document</a>.</p>
+pages of the web UI (accessible to operators from the user menu). The <a href="#job_templates">section on job templates</a> already explains
+details about these tables. Alternatively, these settings can be
+supplied via a <a href="#scenarios_yaml">YAML document</a>.</p>
 <p>Additionally to the necessary template matching parameters
 <code>DISTRI</code>, <code>VERSION</code>, <code>FLAVOR</code> and
 <code>ARCH</code> more parameters can be specified. Those additional
 parameters will be added as jobs settings in all triggered jobs.</p>
 <p>If there is no medium type matching the specified
 <code>VERSION</code>, the lookup falls back to matching any medium with
-version <code>*</code>. Check out <a href="UsersGuide.md#medium_types_products">the section about medium
-types</a> for details.</p>
+version <code>*</code>. Check out <a href="#medium_types_products">the
+section about medium types</a> for details.</p>
 <p>The parameters <code>MACHINE</code> and <code>TEST</code>
 additionally act as filters and <code>TEST</code> supports multiple
 comma-separated values. So adding e.g. <code>TEST=foo,bar</code> will
@@ -4418,6 +4422,7 @@ timeouts by performing the task in background. This is recommended on
 big instances but means that the results (and possible errors) need to
 be polled via
 <code>openqa-cli api isos/$scheduled_product_id</code>.</p>
+<p><a id="statistical_investigation"></a></p>
 <h4 data-number="31.3.3.1" id="statistical-investigation"><span class="header-section-number">31.3.3.1</span> Statistical
 investigation</h4>
 <p>In case issues appear sporadically and are therefore hard to
@@ -4453,7 +4458,7 @@ request. No settings are stored/altered on the openQA instance.</p>
 use <code>SCENARIO_DEFINITIONS_YAML_FILE</code> which expects the file
 path of the YAML document on the openQA host. One can also specify an
 HTTP/HTTPs URL via that variable when <code>async=1</code> is used (see
-<a href="UsersGuide.md#spawning_multiple_jobs_based_on_templates_isos_post">UsersGuide.asciidoc#_spawning_multiple_jobs_based_on_templates_isos_post</a>
+<a href="#spawning_multiple_jobs_based_on_templates_isos_post">UsersGuide.asciidoc#_spawning_multiple_jobs_based_on_templates_isos_post</a>
 for details). Then this file is downloaded by the openQA host. The
 specified host name must be allowed via the configuration setting
 <code>scenario_definitions_allowed_hosts</code>.</p>
@@ -4509,8 +4514,7 @@ asset types from public view in the web-UI).</p>
 <p>Assets may be shared between the web-UI and the workers by having
 them literally use a shared file system (this used to be the only
 option), or by having the workers download them from the server when
-needed and cache them locally. Check out the documentation about <a href="Installing.md#asset-caching">asset caching</a> for more on
-this.</p>
+needed and cache them locally. Check out the documentation about <a href="#asset-caching">asset caching</a> for more on this.</p>
 <h2 data-number="32.1" id="specifying-assets-required-by-a-job"><span class="header-section-number">32.1</span> Specifying assets required by
 a job</h2>
 <p>The following job settings are specifying that an asset is required
@@ -4539,8 +4543,8 @@ subdirectory called <code>fixed</code> for any asset type and place
 assets there (e.g. in
 <code>/var/lib/openqa/share/factory/hdd/fixed</code> for
 <code>hdd</code>-type assets): this exempts them from the automatic
-cleanup described in the section about <a href="UsersGuide.md#asset_cleanup">asset cleanup</a>. Non-fixed assets
-are always subject to the cleanup.</p>
+cleanup described in the section about <a href="#asset_cleanup">asset
+cleanup</a>. Non-fixed assets are always subject to the cleanup.</p>
 <p><code>UEFI_PFLASH_VARS</code> is a special case: whether it is
 treated as an asset depends on the value. If the value looks like an
 absolute path (starts with <code>/</code>), it will not be treated as an
@@ -4556,9 +4560,8 @@ access some special handling for assets.</p>
 <p>The following suffixes exist:</p>
 <p>_URL Before starting these jobs, try to download these assets into
 the relevant asset directory of the openQA web-UI from trusted domains
-specified in <a href="GettingStarted.md#configuration">the web UI
-configuration file</a>. For example
-<code>ISO_1_URL=http://trusted.com/foo.iso</code> would, if
+specified in <a href="#configuration">the web UI configuration file</a>.
+For example <code>ISO_1_URL=http://trusted.com/foo.iso</code> would, if
 <code>trusted.com</code> is set as a trusted domain, cause openQA to
 download the file <code>foo.iso</code> to
 <code>/var/lib/openqa/share/factory/iso</code> and set
@@ -4600,8 +4603,8 @@ variable.</p>
 </blockquote>
 <blockquote>
 <p><strong>NOTE:</strong> When using this mechanism you will often also
-want to use the <a href="UsersGuide.md#variable_expansion">variable
-expansion</a> mechanism.</p>
+want to use the <a href="#variable_expansion">variable expansion</a>
+mechanism.</p>
 </blockquote>
 <h3 data-number="32.2.1" id="private-assets"><span class="header-section-number">32.2.1</span> Private assets</h3>
 <p>There is a mechanism to alter an asset&#39;s file name automatically to
@@ -4615,7 +4618,7 @@ to worry about naming conflicts.</p>
 <blockquote>
 <p><strong>IMPORTANT:</strong> This only works if the jobs uploading and
 consuming jobs have a chained dependency. For more on &quot;chained&quot; jobs,
-see the documentation of <a href="WritingTests.md#job_dependencies">job
+see the documentation of <a href="#job_dependencies">job
 dependencies</a>.</p>
 </blockquote>
 <blockquote>
@@ -4625,20 +4628,19 @@ explicitly prepending the ID of the creating job.</p>
 </blockquote>
 <h1 data-number="33" id="cleanup-of-assets-results-and-other-data"><span class="header-section-number">33</span> Cleanup of assets, results and
 other data</h1>
-<p>The cleanup of <a href="UsersGuide.md#asset_handling">assets</a>,
-test results and certain other data is automated. That means openQA
-removes assets, job results and other data automatically according to
-configurable limits.</p>
+<p>The cleanup of <a href="#asset_handling">assets</a>, test results and
+certain other data is automated. That means openQA removes assets, job
+results and other data automatically according to configurable
+limits.</p>
 <p>All cleanup jobs run within the Minion job queue, normally provided
 by <code>openqa-gru.service</code>. The dashboard for Minion jobs is
 accessible via the administrator menu in the web UI. Only one cleanup
 job can run at the same time unless <code>concurrent</code> is set to
-<code>1</code> in the <code>[cleanup]</code> settings of <a href="GettingStarted.md#configuration">the web UI configuration</a>.
-Many other cleanup-related settings can be found within the web UI
-configuration as well, e.g. the <code>[…_limits]</code> sections contain
-various tweaks and allow to change certain defaults. Check out the sub
-section <a href="UsersGuide.md#timers_and_triggers">Timers and
-triggers</a> to learn more about how those jobs are triggered.</p>
+<code>1</code> in the <code>[cleanup]</code> settings of <a href="#configuration">the web UI configuration</a>. Many other
+cleanup-related settings can be found within the web UI configuration as
+well, e.g. the <code>[…_limits]</code> sections contain various tweaks
+and allow to change certain defaults. Check out the sub section <a href="#timers_and_triggers">Timers and triggers</a> to learn more about
+how those jobs are triggered.</p>
 <p>The cleanup of <strong>assets</strong> and job
 <strong>results</strong> (and certain other data) is happening
 independently of each other using different strategies and retention
@@ -4674,17 +4676,16 @@ retained in the database after they finished. This limit only applies if
 it&#39;s higher than regular jobs.</p>
 <p>Further remarks:</p>
 <ul>
-<li><p>Checkout the <a href="UsersGuide.md#build_tagging">Build
-tagging</a> section for how to mark a job as important on job group
-level. Jobs can also be marked as important by adding a &quot;link label&quot;
-(e.g. <code>label:linked Job mentioned on https://…</code>) in a job
-comment. - New groups use the limits configured in the
-<code>[default_group_limits]</code> section of <a href="GettingStarted.md#configuration">the web UI configuration</a>.
-Jobs outside of any group use the limits configured in the
-<code>[no_group_limits]</code> section of the web UI
-configuration.</p></li>
-<li><p>The <a href="Installing.md#auditing">Auditing</a> section
-explains the cleanup of the audit log.</p></li>
+<li><p>Checkout the <a href="#build_tagging">Build tagging</a> section
+for how to mark a job as important on job group level. Jobs can also be
+marked as important by adding a &quot;link label&quot; (e.g.
+<code>label:linked Job mentioned on https://…</code>) in a job comment.
+- New groups use the limits configured in the
+<code>[default_group_limits]</code> section of <a href="#configuration">the web UI configuration</a>. Jobs outside of any
+group use the limits configured in the <code>[no_group_limits]</code>
+section of the web UI configuration.</p></li>
+<li><p>The <a href="#auditing">Auditing</a> section explains the cleanup
+of the audit log.</p></li>
 </ul>
 <h2 data-number="33.1" id="automatic-archiving-of-old-jobs"><span class="header-section-number">33.1</span> Automatic archiving of old
 jobs</h2>
@@ -4746,6 +4747,7 @@ algorithms also assume that screenshots and test results are stored on
 the same file system. The <code>…_min_free_disk_space_percentage</code>
 settings specifically are still experimental.</p>
 </blockquote>
+<p><a id="asset_cleanup"></a></p>
 <h2 data-number="33.3" id="cleanup-strategy-for-assets"><span class="header-section-number">33.3</span> Cleanup strategy for
 assets</h2>
 <p>To find out whether an asset should be removed, openQA determines by
@@ -4967,7 +4969,8 @@ for the necessary comment format or use the comment template from the
 openqa.suse.de comment edit window.</p></li>
 </ul>
 <h1 data-number="37" id="where-to-now-1"><span class="header-section-number">37</span> Where to now?</h1>
-<p>For test developers it is recommended to continue with the <a href="WritingTests.md#writingtests">Test Developer Guide</a>.</p>
+<p>For test developers it is recommended to continue with the <a href="#writingtests">Test Developer Guide</a>.
+<a id="writingtests"></a></p>
 <h1 data-number="38" id="introduction-3"><span class="header-section-number">38</span> Introduction</h1>
 <p>openQA is an automated test tool that makes it possible to test the
 whole installation process of an operating system. It&#39;s free software
@@ -5354,6 +5357,7 @@ on GitHub</a> for examples.</p>
 <p>Variables are accessible via the <strong>get_var</strong> and
 <strong>check_var</strong> functions.</p>
 <h1 data-number="43" id="advanced-test-features"><span class="header-section-number">43</span> Advanced test features</h1>
+<p><a id="changing_timeouts"></a></p>
 <h2 data-number="43.1" id="changing-timeouts"><span class="header-section-number">43.1</span> Changing timeouts</h2>
 <p>By default, tests are aborted after two hours by the worker. To
 change this limit, set the test variable <code>MAX_JOB_TIME</code> to
@@ -5418,7 +5422,8 @@ tracing</h3>
 <p>The test configuration of a specific test run can be viewed in form
 of job settings on the test details page. Those settings contain the
 specific test configuration. The specific system that was tested is also
-listed there in via the corresponding <a href="UsersGuide.md#asset_handling">asset variables</a>.</p>
+listed there in via the corresponding <a href="#asset_handling">asset
+variables</a>.</p>
 <p>In addition to that, the following variables can be found in the file
 <code>vars.json</code> when Git is used:</p>
 <ul>
@@ -5473,10 +5478,10 @@ different worker host has been chosen to run the job.</p>
 to clone it with a command like
 <code>openqa-clone-job --within-instance … CASEDIR=… NEEDLES_DIR=… WORKER_CLASS=…</code>
 instead of using the restart button. This way one can specify a concrete
-commit hash for tests and/or needles (see <a href="WritingTests.md#triggering_tests_based_on_an_any_remote_git_refspec_or_open_github_pull_request">Triggering
+commit hash for tests and/or needles (see <a href="#triggering_tests_based_on_an_any_remote_git_refspec_or_open_github_pull_request">Triggering
 … based on Git refspec …</a> for details) and a concrete worker host
-(see <a href="WritingTests.md#assigning_jobs_to_workers">Assigning jobs
-to workers</a>).</p>
+(see <a href="#assigning_jobs_to_workers">Assigning jobs to
+workers</a>).</p>
 <p>The <code>--reproduce</code> parameter of
 <code>openqa-clone-job</code> makes this easier by setting
 <code>CASEDIR=…</code> and <code>NEEDLES_DIR=…</code> automatically to
@@ -5489,8 +5494,9 @@ comment</a> with the findings.</p>
 external resource like online repositories because those are not
 controlled by openQA test variables.</p>
 <p>Sometimes issues are sporadic and therefore hard to reproduce. The
-section about <a href="UsersGuide.md#statistical_investigation">statistical
+section about <a href="#statistical_investigation">statistical
 investigation</a> might be helpful in this case.</p>
+<p><a id="assigning_jobs_to_workers"></a></p>
 <h2 data-number="43.4" id="assigning-jobs-to-workers"><span class="header-section-number">43.4</span> Assigning jobs to workers</h2>
 <p>By default, any worker can get any job with the matching
 architecture.</p>
@@ -5572,12 +5578,13 @@ the reproducibility, e.g. the used worker host and instance, any network
 related content, etc. By default openQA tests do not retry. The
 optional, additional description string is used only for reference and
 has no functional impact.</p>
-<p>See <a href="Installing.md#automatic_cloning_incomplete_jobs">Automatic cloning
-of incomplete jobs</a> for an additional solution intended for
+<p>See <a href="#automatic_cloning_incomplete_jobs">Automatic cloning of
+incomplete jobs</a> for an additional solution intended for
 administrators handling known issues causing incomplete jobs.</p>
-<p><a href="Installing.md#custom_hook_scripts_job_done">Custom hook
-scripts on &quot;job done&quot; based on result</a> can be used to apply more
-elaborate issue detection and retriggering of tests.</p>
+<p><a href="#custom_hook_scripts_job_done">Custom hook scripts on &quot;job
+done&quot; based on result</a> can be used to apply more elaborate issue
+detection and retriggering of tests.</p>
+<p><a id="job_dependencies"></a></p>
 <h2 data-number="43.7" id="job-dependencies"><span class="header-section-number">43.7</span> Job dependencies</h2>
 <p>There are different dependency <strong>types</strong>, most
 importantly <em>chained</em> and <em>parallel</em> dependencies.</p>
@@ -5587,22 +5594,22 @@ child jobs is <strong>orthogonal</strong> to the concept of types.</p>
 <p>A job can have multiple dependencies. So in conclusion, a job can
 have multiple children and multiple parents at the same time and each
 child/parent-relation can be of an arbitrary type.</p>
-<p>Additionally, dependencies can be machine-specific (see <a href="WritingTests.md#inter_machine_dependencies">Inter-machine
-dependencies</a> section).</p>
+<p>Additionally, dependencies can be machine-specific (see <a href="#inter_machine_dependencies">Inter-machine dependencies</a>
+section).</p>
 <h3 data-number="43.7.1" id="declaring-dependencies"><span class="header-section-number">43.7.1</span> Declaring dependencies</h3>
 <p>Dependencies are declared by adding a job setting on the child job
 specifying its parents. There is one variable for each dependency
 type.</p>
-<p>When starting jobs <a href="UsersGuide.md#spawning_multiple_jobs_based_on_templates_isos_post">based
-on templates</a> the relevant settings are
-<code>START_AFTER_TEST</code>, <code>START_DIRECTLY_AFTER_TEST</code>
-and <code>PARALLEL_WITH</code>. Details are explained for the different
-dependency types specifically in the subsequent sections. Generally, if
-declaring a dependency does not work as expected, be sure to check the
-&quot;scheduled product&quot; for the jobs (which is linked on the info box of the
-details page of any created job).</p>
+<p>When starting jobs <a href="#spawning_multiple_jobs_based_on_templates_isos_post">based on
+templates</a> the relevant settings are <code>START_AFTER_TEST</code>,
+<code>START_DIRECTLY_AFTER_TEST</code> and <code>PARALLEL_WITH</code>.
+Details are explained for the different dependency types specifically in
+the subsequent sections. Generally, if declaring a dependency does not
+work as expected, be sure to check the &quot;scheduled product&quot; for the jobs
+(which is linked on the info box of the details page of any created
+job).</p>
 <p>When starting a single set of new jobs, the dependencies must be
-declared as explained in the <a href="UsersGuide.md#further_examples_for_advanced_dependency_handling">Further
+declared as explained in the <a href="#further_examples_for_advanced_dependency_handling">Further
 examples for advanced dependency handling</a> section. The variables
 mentioned in the subsequent sections do <strong>not</strong> apply.</p>
 <h4 data-number="43.7.1.1" id="chained-dependencies"><span class="header-section-number">43.7.1.1</span> Chained dependencies</h4>
@@ -5678,6 +5685,7 @@ connection between worker hosts is problematic and should not be used
 needlessly. This feature is also still subject to change as we explore
 ways to make it more flexible.</p>
 </blockquote>
+<p><a id="inter_machine_dependencies"></a></p>
 <h3 data-number="43.7.2" id="inter-machine-dependencies"><span class="header-section-number">43.7.2</span> Inter-machine
 dependencies</h3>
 <p>Those dependencies make it possible to create job dependencies
@@ -5743,9 +5751,9 @@ which are not ok</p></li>
 </ul>
 <h3 data-number="43.7.4" id="handling-of-dependencies-when-cloning-jobs"><span class="header-section-number">43.7.4</span> Handling of dependencies
 when cloning jobs</h3>
-<p>Be sure to have read the <a href="WritingTests.md#_job_dependencies">job dependencies</a> section to
-have an understanding of different dependency types and the distinction
-between parents and children.</p>
+<p>Be sure to have read the <a href="#_job_dependencies">job
+dependencies</a> section to have an understanding of different
+dependency types and the distinction between parents and children.</p>
 <p>When cloning a job via <code>openqa-clone-job</code>, parent jobs are
 cloned as well by default, regardless of the type. Use
 <code>--skip-deps</code> to avoid cloning parent jobs. Use
@@ -5926,7 +5934,8 @@ complexity:</p>
 <li><p>Documenting the dependencies and order between individual
 tests</p></li>
 <li><p>Synchronization between individual tests</p></li>
-<li><p>Actual technical realization (i.e. <a href="Networking.md#networking">custom networking</a>)</p></li>
+<li><p>Actual technical realization (i.e. <a href="#networking">custom
+networking</a>)</p></li>
 </ol>
 <h2 data-number="43.9" id="test-synchronization-and-locking-api"><span class="header-section-number">43.9</span> Test synchronization and
 locking API</h2>
@@ -6718,6 +6727,7 @@ maintaining proper overlay chains internally</p></li>
 latter mode every test module is also considered <code>fatal</code>.
 This means the job is aborted after the first failed test module (unless
 subsequent modules are marked with <code>always_run</code>).</p>
+<p><a id="snapshots-for-each-module"></a></p>
 <h3 data-number="44.3.3" id="enable-snapshots-for-each-module"><span class="header-section-number">44.3.3</span> Enable snapshots for each
 module</h3>
 <ul>
@@ -6855,10 +6865,11 @@ isotovideo. For this reason, to schedule them, no path is needed.</p>
 <span id="cb215-9"><a href="#cb215-9" aria-hidden="true" tabindex="-1"></a><span class="kw">sub </span><span class="fu">post_run_hook</span> {}</span></code></pre></div>
 <p>For example this can be used in bug investigations or trying out new
 test modules which are hard to test locally. The section &quot;Asset
-handling&quot; in the <a href="UsersGuide.md#usersguide">Users Guide</a>
-describes how downloadable assets can be specified. It is important to
-note that the specified asset is only downloaded once. New versions must
-be supplied as new, unambiguous download target file names.</p>
+handling&quot; in the <a href="#usersguide">Users Guide</a> describes how
+downloadable assets can be specified. It is important to note that the
+specified asset is only downloaded once. New versions must be supplied
+as new, unambiguous download target file names.</p>
+<p><a id="triggering_tests_based_on_an_any_remote_git_refspec_or_open_github_pull_request"></a></p>
 <h2 data-number="44.5" id="triggering-tests-based-on-an-any-remote-git-refspec-or-open-github-pull-request"><span class="header-section-number">44.5</span> Triggering tests based on an
 any remote Git refspec or open GitHub pull request</h2>
 <p>openQA also supports to trigger tests using test code from a pull
@@ -6942,8 +6953,7 @@ distributions&#39; <a href="https://github.com/os-autoinst/os-autoinst-distri-ex
 <a href="https://github.com/os-autoinst/os-autoinst-distri-example/blob/master/scenario-definitions.yaml">scenario
 definitions</a> in a way that is independent from openQA&#39;s normal
 scheduling tables. This feature is explained in further detail in the
-corresponding <a href="UsersGuide.md#scenarios_yaml">users guide
-section</a>.</p>
+corresponding <a href="#scenarios_yaml">users guide section</a>.</p>
 </blockquote>
 <p>It is also possible to create a GitHub workflow that will clone and
 monitor an openQA job which is mentioned in the PR description or
@@ -7001,8 +7011,7 @@ back to GitHub.</p>
 <ol type="1">
 <li><p>Open <a href="https://github.com/settings/tokens/new">https://github.com/settings/tokens/new</a>
 and create a new token. It needs at least the scope &quot;repo&quot;.</p></li>
-<li><p>Add the previously created token to the <a href="GettingStarted.md#configuration">web UI configuration
-file</a>:</p></li>
+<li><p>Add the previously created token to the <a href="#configuration">web UI configuration file</a>:</p></li>
 </ol>
 <p>[secrets] github_token = $token</p>
 <ol start="3" type="1">
@@ -7062,7 +7071,7 @@ example:</p>
 <pre><code>openqa-cli api -X post jobs/$id/set_done result=passed</code></pre>
 <p>Additional information can be provided on such jobs, e.g. clickable
 URLs pointing to other resources in the settings or uploaded test
-reports and logs.</p>
+reports and logs. <a id="externalresults"></a></p>
 <h1 data-number="47" id="introduction-4"><span class="header-section-number">47</span> Introduction</h1>
 <p>From time to time, a test developer might want to use openQA to
 execute a test suite from a different test harness than openQA, but
@@ -7080,7 +7089,7 @@ include more formats, such as RSpec or TAP.</p>
 <a href="#parser-formats">parsers</a>.</p></li>
 <li><p>The test results can be uploaded via
 <code>testapi::parse_extra_log</code> within an openQA test.</p></li>
-<li><p>The test results can also be uploaded via web <a href="UsersGuide.md#rest_api">REST API</a>.</p></li>
+<li><p>The test results can also be uploaded via web <a href="#rest_api">REST API</a>.</p></li>
 </ul>
 <p>openQA will store these results in its own internal format for easier
 presentation, but still will allow the original file to be
@@ -7170,11 +7179,11 @@ the test modules to be registered into the database, this leads to the
 following relation: A test module&#39;s name is used to create a file with
 details (details-$testmodule.json), that will contain a reference to
 step details, which is a collection of references to files, using a
-field &quot;text&quot; as tie in, and expecting a filename. There are two ways to
-interact with openQA as a user. The web UI and the REST API. In this
-guide we will focus on the latter. You&#39;ve probably already seen a few
-examples of its use with <code>openqa-cli</code> earlier in the
-documentation.</p>
+field &quot;text&quot; as tie in, and expecting a filename. <a id="client"></a>
+There are two ways to interact with openQA as a user. The web UI and the
+REST API. In this guide we will focus on the latter. You&#39;ve probably
+already seen a few examples of its use with <code>openqa-cli</code>
+earlier in the documentation.</p>
 <p>Here we will start again from the very beginning to give you a more
 complete overview of its capabilities. To get started all you need is an
 openQA instance with a few jobs and <code>curl</code>. Just replace
@@ -7405,8 +7414,8 @@ or debugging purposes.</p>
 short).</p>
 <pre><code>openqa-cli archive --host http://openqa.example.com --with-thumbnails \
     408 ~/openqa_job_408</code></pre>
-<p>See also <a href="UsersGuide.md#archiving">Archiving</a> for
-automatic archiving of old jobs.</p>
+<p>See also <a href="#archiving">Archiving</a> for automatic archiving
+of old jobs. <a id="pitfalls"></a></p>
 <h1 data-number="55" id="needle-editing"><span class="header-section-number">55</span> Needle editing</h1>
 <ul>
 <li><p>If a new needle is created based on a failed test, the new needle
@@ -7467,6 +7476,7 @@ significantly faster, but uses lossy compression. To do that, install
 <code>pngquant</code> package and set <code>USE_PNGQUANT=1</code> in
 worker or job settings. Alternatively, you may disable optimizing images
 altogether via the setting <code>OPTIMIZE_IMAGES=0</code>.</p>
+<p><a id="db-migration"></a></p>
 <h1 data-number="59" id="db-migration-from-sqlite-to-postgresql"><span class="header-section-number">59</span> DB migration from SQlite to
 postgreSQL</h1>
 <p>As a first step to start using postgreSQL, please, configure
@@ -7485,6 +7495,7 @@ setup guide</a></p>
 </ul>
 <p>In case you need to migrate job groups, test suites, use
 openqa-dump-templates and openqa-load-templates scripts accordingly.</p>
+<p><a id="debugdevelmode"></a></p>
 <h1 data-number="60" id="steps-to-debug-developer-mode-setup"><span class="header-section-number">60</span> Steps to debug developer mode
 setup</h1>
 <p>This is basically a checklist to go through in case the developer
@@ -7538,10 +7549,11 @@ ports 20013, 20023, … and 20103.</p></li>
 </ol></li>
 <li><p>It can also help to look at the <a href="images/architecture.svg">architecture diagram</a> which shows
 which component needs access to which other components and the ports
-used by default. For tests using the QEMU backend the networking type
-used is controlled by the <code>NICTYPE</code> variable. If unset or
-empty <code>NICTYPE</code> defaults to <code>user</code>, i.e. <a href="#qemu-user-networking">QEMU User Networking</a> which requires no
-further configuration.</p></li>
+used by default. <a id="networking"></a> For tests using the QEMU
+backend the networking type used is controlled by the
+<code>NICTYPE</code> variable. If unset or empty <code>NICTYPE</code>
+defaults to <code>user</code>, i.e. <a href="#qemu-user-networking">QEMU
+User Networking</a> which requires no further configuration.</p></li>
 </ol>
 <p>For more advanced setups or tests that require multiple jobs to be in
 the same networking the <a href="#tap-based-network">TAP</a> or <a href="#vde-based-network">VDE</a> based modes can be used.</p>
@@ -7550,12 +7562,14 @@ Tests can be triggered in parallel same as for QEMU based ones and
 synchronization primitives can be used. For the physical network
 according separation needs to be ensured externally where needed as
 means for machines to be able to access each other.</p>
+<p><a id="qemu-user-networking"></a></p>
 <h1 data-number="61" id="qemu-user-networking"><span class="header-section-number">61</span> QEMU User Networking</h1>
 <p>With QEMU <a href="http://wiki.qemu.org/Documentation/Networking#User_Networking_.28SLIRP.29">user
 networking</a> each jobs gets its own isolated network with TCP and UDP
 routed to the outside. DHCP is provided by QEMU. The MAC address of the
 machine can be controlled with the <code>NICMAC</code> variable. If not
 set, it is <code>52:54:00:12:34:56</code>.</p>
+<p><a id="tap-based-network"></a></p>
 <h1 data-number="62" id="tap-based-network"><span class="header-section-number">62</span> TAP Based Network</h1>
 <p>os-autoinst can connect QEMU to TAP devices of the host system to
 leverage advanced network setups provided by the host by setting
@@ -7650,6 +7664,7 @@ will be added to the zone. IP-Forwarding will be enabled.</p>
 <span id="cb260-2"><a href="#cb260-2" aria-hidden="true" tabindex="-1"></a><span class="ex">firewall-cmd</span> <span class="at">--list-all-zones</span></span></code></pre></div>
 <h3 data-number="62.1.2" id="what-is-left-to-do-after-running-os-autoinst-setup-multi-machine"><span class="header-section-number">62.1.2</span> What is left to do after
 running os-autoinst-setup-multi-machine</h3>
+<p><a id="gre-tunnels"></a></p>
 <h4 data-number="62.1.2.1" id="gre-tunnels"><span class="header-section-number">62.1.2.1</span> GRE tunnels</h4>
 <p>By default all multi-machine workers have to be on a single physical
 machine. You can join multiple physical machines and its OVS bridges
@@ -7681,7 +7696,7 @@ as well.</p>
 </blockquote>
 <h4 data-number="62.1.2.2" id="configure-openqa-workers"><span class="header-section-number">62.1.2.2</span> Configure openQA
 workers</h4>
-<p>Allow worker instances to run multi-machine jobs by modifying <a href="GettingStarted.md#configuration">the worker configuration</a>:</p>
+<p>Allow worker instances to run multi-machine jobs by modifying <a href="#configuration">the worker configuration</a>:</p>
 <div class="sourceCode" id="cb263"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb263-1"><a href="#cb263-1" aria-hidden="true" tabindex="-1"></a><span class="ex">[global]</span></span>
 <span id="cb263-2"><a href="#cb263-2" aria-hidden="true" tabindex="-1"></a><span class="ex">WORKER_CLASS</span> = qemu_x86_64,tap</span></code></pre></div>
 <blockquote>
@@ -7806,8 +7821,8 @@ and tap2. They should have the same number.</p>
 </blockquote>
 <blockquote>
 <p><strong>NOTE:</strong> If the balance of the tap devices is wrong in
-<a href="GettingStarted.md#configuration">the worker configuration</a>,
-the tag cannot be assigned and the communication will be broken.</p>
+<a href="#configuration">the worker configuration</a>, the tag cannot be
+assigned and the communication will be broken.</p>
 </blockquote>
 <p>To list the rules which are effectively configured in the underlying
 netfilter (<code>nftables</code> or <code>iptables</code>) use one of
@@ -7965,7 +7980,7 @@ create a machine with the following settings:</p>
 <div class="sourceCode" id="cb278"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb278-1"><a href="#cb278-1" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> enable <span class="at">--now</span> openqa-vde_switch</span>
 <span id="cb278-2"><a href="#cb278-2" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> enable <span class="at">--now</span> openqa-slirpvde</span></code></pre></div>
 <p>With this setting all jobs on the same host would be in the same
-network and share the same SLIRP instance.</p>
+network and share the same SLIRP instance. <a id="contributing"></a></p>
 <h1 data-number="64" id="introduction-5"><span class="header-section-number">64</span> Introduction</h1>
 <p>openQA is an automated test tool that makes it possible to test the
 whole installation process of an operating system. It&#39;s free software
@@ -8032,8 +8047,7 @@ the style rules.</p>
 <ul>
 <li>All tests are passed. This is ensured by a CI system. You can also
 run local tests in your development environment to verify everything
-works as expected, see <a href="Contributing.md#testing">Conducting
-tests</a>)</li>
+works as expected, see <a href="#testing">Conducting tests</a>)</li>
 </ul>
 <!-- -->
 
@@ -8136,7 +8150,7 @@ framework for web development that will be extremely familiar to
 developers coming from other modern web frameworks like Sinatra and that
 have nice and comprehensive documentation available at its <a href="https://mojolicious.org/">home page</a>.</p>
 <p>In addition to Mojolicious and its dependencies, several other CPAN
-modules are required by the openQA package. See <a href="Contributing.md#dependencies">Dependencies</a> below.</p>
+modules are required by the openQA package. See <a href="#dependencies">Dependencies</a> below.</p>
 <p>openQA relies on PostgreSQL to store the information. It used to
 support SQLite, but that is no longer possible.</p>
 <p>As stated in the previous section, every feature implemented in both
@@ -8191,8 +8205,8 @@ general). You can leave out sections starting with
 <code>test_requires</code> for example.</p>
 <p>A CPAN client will by default also leave out modules for testing and
 development.</p>
-<p>As alternative you can try out the <a href="Installing.md#single-instance-container">Single-Instance
-Container</a> as a minimal runtime environment.</p>
+<p>As alternative you can try out the <a href="#single-instance-container">Single-Instance Container</a> as a
+minimal runtime environment.</p>
 <h2 data-number="69.2" id="development-dependencies"><span class="header-section-number">69.2</span> Development Dependencies</h2>
 <p>For openSUSE:</p>
 <div class="sourceCode" id="cb280"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb280-1"><a href="#cb280-1" aria-hidden="true" tabindex="-1"></a><span class="ex">zypper</span> install openQA-devel</span></code></pre></div>
@@ -8207,8 +8221,8 @@ recommended as soon as you plan a contribution. For the UI tests you
 need <code>perl-Selenium-Remote-Driver</code> as well as
 <code>chromedriver</code> and either <code>chrome</code> or
 <code>chromium</code>.</p>
-<p>See <a href="Contributing.md#run-tests-in-container">Run tests in a
-container</a> for a container with all dependencies.</p>
+<p>See <a href="#run-tests-in-container">Run tests in a container</a>
+for a container with all dependencies.</p>
 <h1 data-number="70" id="development-setup"><span class="header-section-number">70</span> Development setup</h1>
 <p>The following explains in detail what is necessary to develop openQA
 code.</p>
@@ -8219,9 +8233,9 @@ instructions.</p>
 <p>Otherwise follow the detailed steps below. This setup is applicable
 to a container environment as well as without.</p>
 <p>For developing openQA and os-autoinst itself it makes sense to check
-out the <a href="Contributing.md#repo-urls">Git repositories</a> and
-either execute existing tests or start the daemons manually.</p>
-<p>Install the necessary <a href="Contributing.md#development-dependencies">Development
+out the <a href="#repo-urls">Git repositories</a> and either execute
+existing tests or start the daemons manually.</p>
+<p>Install the necessary <a href="#development-dependencies">Development
 Dependencies</a> first.</p>
 <h2 data-number="70.1" id="conducting-tests"><span class="header-section-number">70.1</span> Conducting tests</h2>
 <p>To execute all existing checks and tests simply call:</p>
@@ -8331,10 +8345,10 @@ normally your regular user.</p></li>
 <code>createdb -O your_username openqa-local</code> where
 <code>openqa-local</code> is the name you want to use for the
 database</p></li>
-<li><p>Configure openQA to use PostgreSQL as described in the section <a href="Installing.md#database">Database</a> of the installation guide.
-User name and password are not required. Of course you need to change
-the <code>database.ini</code> file under your custom config directory
-(as you have probably done that in the previous section).</p></li>
+<li><p>Configure openQA to use PostgreSQL as described in the section <a href="#database">Database</a> of the installation guide. User name and
+password are not required. Of course you need to change the
+<code>database.ini</code> file under your custom config directory (as
+you have probably done that in the previous section).</p></li>
 <li><p>openQA will default-initialize the new database on the next
 startup.</p></li>
 </ol>
@@ -8384,8 +8398,7 @@ Git checkout.</p>
 instead start everything as your regular user as mentioned above.
 However, you need to ensure that your user has the permission to the
 &quot;openQA base directory&quot;. That is not the case by default so it makes
-sense to <a href="Contributing.md#customize_base_directory">customize
-it</a>.</p>
+sense to <a href="#customize_base_directory">customize it</a>.</p>
 <p>You do <strong>not</strong> need to setup an additional web server
 because the daemons already provide one. The port under which a service
 is available is logged on startup (the main web UI port is 9625 by
@@ -8400,8 +8413,8 @@ using the unit test database setup and data directory:</p>
 application using that specific database (ignoring the configuration
 from <code>database.ini</code>). Be aware that this may cause unwanted
 changes in the <code>t/data</code> directory.</p>
-<p>Also find more details in <a href="Contributing.md#run_tests_without_container">Run tests without
-Container</a>.</p>
+<p>Also find more details in <a href="#run_tests_without_container">Run
+tests without Container</a>.</p>
 <h3 data-number="70.5.1" id="further-tips"><span class="header-section-number">70.5.1</span> Further tips</h3>
 <ul>
 <li><p>It is also useful to start openQA with morbo which allows
@@ -8421,6 +8434,7 @@ extension.&quot; make sure you have all listed dependencies including the
 Tumbleweed have a look at the <a href="https://github.com/Martchus/openQA-helper">openQA-helper
 repository</a>.</p></li>
 </ul>
+<p><a id="quick-container-development-setup"></a></p>
 <h2 data-number="70.6" id="quick-container-development-setup"><span class="header-section-number">70.6</span> Quick container development
 setup</h2>
 <h3 data-number="70.6.1" id="requirements"><span class="header-section-number">70.6.1</span> Requirements</h3>
@@ -8601,7 +8615,8 @@ daemons.</p>
 <span id="cb300-16"><a href="#cb300-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb300-17"><a href="#cb300-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Worker</span></span>
 <span id="cb300-18"><a href="#cb300-18" aria-hidden="true" tabindex="-1"></a><span class="ex">worker</span> <span class="at">--isotovideo</span> <span class="st">&quot;</span><span class="va">$OPENQA_REPOS</span><span class="st">/os-autoinst/isotovideo&quot;</span> <span class="at">--instance</span> 1 <span class="at">--verbose</span> <span class="at">--apikey</span> <span class="va">$OPENQA_KEY</span> <span class="at">--apisecret</span> <span class="va">$OPENQA_SECRET</span></span></code></pre></div>
-<p>For running unit tests, see <a href="Contributing.md#testing">Conducting tests</a>.</p>
+<p>For running unit tests, see <a href="#testing">Conducting
+tests</a>.</p>
 <h1 data-number="71" id="handling-of-dependencies"><span class="header-section-number">71</span> Handling of dependencies</h1>
 <h2 data-number="71.1" id="javascript-and-css"><span class="header-section-number">71.1</span> JavaScript and CSS</h2>
 <p>Install third-party JavaScript and CSS files via their corresponding
@@ -8632,8 +8647,7 @@ dependency should be published as part of openSUSE Tumbleweed.</p>
 <ul>
 <li><p>The CI of os-autoinst and openQA uses the container made using
 <code>container/devel:openQA:ci/base/Dockerfile</code> and further
-dependencies listed in <code>tools/ci/ci-packages.txt</code> (see <a href="Contributing.md#circleci-workflow">CircleCI
-documentation</a>).</p></li>
+dependencies listed in <code>tools/ci/ci-packages.txt</code> (see <a href="#circleci-workflow">CircleCI documentation</a>).</p></li>
 <li><p>There is an additional check running using OBS to check builds of
 packages against openSUSE Tumbleweed and openSUSE Leap.</p></li>
 </ul>
@@ -8708,12 +8722,12 @@ web UI you can run either <code>./script/initdb --init_database</code>
 or <code>./script/upgradedb --upgrade_database</code>.</p>
 <p>Migrations that affect possibly big tables should be tested against a
 local import of a production database to see how much time they need.
-Check out the <a href="Contributing.md#importing_production_data">Importing production
+Check out the <a href="#importing_production_data">Importing production
 data</a> section for details.</p>
 <p>A migration can cause the analyser to regress so it produces worse
-query plans leading to impaired performance. Check out the <a href="Installing.md#working_on_database_related_performance_problems">Working
-on database-related performance problems</a> section for how to tackle
-this problem.</p>
+query plans leading to impaired performance. Check out the <a href="#working_on_database_related_performance_problems">Working on
+database-related performance problems</a> section for how to tackle this
+problem.</p>
 <h2 data-number="72.3" id="how-to-add-fixtures-to-the-database"><span class="header-section-number">72.3</span> How to add fixtures to the
 database</h2>
 <p>Note: This section is not about the fixtures for the testsuite. Those
@@ -8736,14 +8750,14 @@ created manually.</p>
 <h1 data-number="73" id="adding-new-authentication-module"><span class="header-section-number">73</span> Adding new authentication
 module</h1>
 <p>openQA comes with two authentication modules providing authentication
-methods: OpenID and Fake (see <a href="Installing.md#authentication">User authentication</a>).</p>
+methods: OpenID and Fake (see <a href="#authentication">User
+authentication</a>).</p>
 <p>All authentication modules reside in <code>lib/OpenQA/Auth</code>
 directory. During openQA start, the <code>[auth]/method</code> section
-of <a href="GettingStarted.md#configuration">the web UI
-configuration</a> is read and according to its value (or default OpenID)
-openQA tries to require <code>OpenQA::WebAPI::Auth::$method</code>. If
-successful, the module for the given method is imported or openQA ends
-with error.</p>
+of <a href="#configuration">the web UI configuration</a> is read and
+according to its value (or default OpenID) openQA tries to require
+<code>OpenQA::WebAPI::Auth::$method</code>. If successful, the module
+for the given method is imported or openQA ends with error.</p>
 <p>Each authentication module is expected to export
 <code>auth_login</code> and <code>auth_logout</code> functions. In case
 of request-response mechanism (as in OpenID), <code>auth_response</code>
@@ -8772,8 +8786,7 @@ container</h2>
 <p><a id="run_tests_without_container"></a></p>
 <p>Be sure to install all required dependencies. The package
 <code>openQA-devel</code> will provide them.</p>
-<p>For more information look into <a href="Contributing.md#development-dependencies">Development
-Dependencies</a>.</p>
+<p>For more information look into <a href="#development-dependencies">Development Dependencies</a>.</p>
 <p>To execute the testsuite use <code>make test</code>. This will also
 initialize a temporary PostgreSQL database used for testing. To do this
 step manually run <code>t/test_postgresql</code> to initialize a
@@ -8791,8 +8804,7 @@ watch the execution of the UI tests, set the environment variable
 container</h2>
 <p>The container used in this section of the documentation is not
 identical with the container used within the CI. To run tests within the
-CI environment locally, check out the <a href="Contributing.md#circleci-local-container">CircleCI
-documentation</a> below.</p>
+CI environment locally, check out the <a href="#circleci-local-container">CircleCI documentation</a> below.</p>
 <p>To run tests in a container please be sure that a container runtime
 environment, for example podman, is installed. To launch the test suite
 first it is required to pull the container image:</p>
@@ -8974,6 +8986,7 @@ the container and run tests as usual, e.g.:</p>
 <div class="sourceCode" id="cb312"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb312-1"><a href="#cb312-1" aria-hidden="true" tabindex="-1"></a><span class="ex">podman</span> run <span class="at">--rm</span> <span class="at">--name</span> t1 <span class="at">-v</span> <span class="va">$PWD</span>:/opt/testing_area localtest tail <span class="at">-f</span> /dev/null <span class="kw">&amp;</span> <span class="fu">sleep</span> 1</span>
 <span id="cb312-2"><a href="#cb312-2" aria-hidden="true" tabindex="-1"></a><span class="ex">podman</span> exec <span class="at">-it</span> t1 bash <span class="at">-c</span> <span class="st">&#39;make test TESTS=t/ui/25-developer_mode.t&#39;</span></span>
 <span id="cb312-3"><a href="#cb312-3" aria-hidden="true" tabindex="-1"></a><span class="ex">podman</span> stop <span class="at">-t</span> 0 t1</span></code></pre></div>
+<p><a id="circleci-local-container"></a></p>
 <h2 data-number="75.4" id="run-tests-using-the-circleci-tool"><span class="header-section-number">75.4</span> Run tests using the circleci
 tool</h2>
 <p>After installing the <code>circleci</code> tool the following
@@ -9114,9 +9127,10 @@ documentation. That could be handy for example in situations where you
 do not have the filesystem directly accessible (i.e. remote
 development). The magic line in this case would be:</p>
 <pre><code>podman run --rm -it -p 8000:8000 -v .:/opt/openqa openqa_devel:latest make serve-docs</code></pre>
-<p>You can alter the appearance of the openQA web UI to some extent
-through the &quot;branding&quot; mechanism. The <code>branding</code>
-configuration setting in the <code>global</code> section of <a href="GettingStarted.md#configuration">the web UI configuration</a>
+<p><a id="branding"></a> You can alter the appearance of the openQA web
+UI to some extent through the &quot;branding&quot; mechanism. The
+<code>branding</code> configuration setting in the <code>global</code>
+section of <a href="#configuration">the web UI configuration</a>
 specifies the branding to use. It defaults to &#39;openSUSE&#39;, and openQA
 also includes the &quot;plain&quot; branding, which is - as its name suggests -
 plain and generic.</p>
@@ -9136,10 +9150,9 @@ Anywhere that helper is called, the branding file with the matching name
 is being included.</p>
 <p>The branding files themselves are Mojolicious &#39;Embedded Perl&#39;
 templates just like the main template files. You can read the <a href="https://docs.mojolicious.org/Mojolicious/Guides/Rendering/">Mojolicious
-Documentation</a> for help with the format. The installation guide
-already contains simple one-liners for starting the web UI and workers
-in the <a href="Installing.md#container_setup">Container based setup
-section</a>.</p>
+Documentation</a> for help with the format.
+<a id="containerizedsetup"></a> The installation guide already contains
+simple one-liners for starting the web UI and workers in the <a href="#container_setup">Container based setup section</a>.</p>
 <p>This chapter describes how to deploy the containers for the openQA
 web UI and the workers using <code>docker-compose</code> or
 <code>podman-compose</code>.</p>
@@ -9184,9 +9197,9 @@ is written with this setup in mind.</p>
 the <code>openqa_data</code> container altogether (so you have only
 <code>webui</code> and <code>worker</code> containers and data is loaded
 and saved completely into your host system). If this is what you prefer,
-check out the sections <a href="ContainerizedSetup.md#keeping_all_data_in_the_data_volume_container">Keeping
-all data in the Data Volume Container</a> and <a href="ContainerizedSetup.md#keeping_all_data_on_the_host_system">Keeping
-all data on the host system</a> respectively.</p>
+check out the sections <a href="#keeping_all_data_in_the_data_volume_container">Keeping all data
+in the Data Volume Container</a> and <a href="#keeping_all_data_on_the_host_system">Keeping all data on the host
+system</a> respectively.</p>
 <p>Otherwise, when you want to have the big files (isos and disk images,
 tests and needles) outside of the Volume container, you should create
 this file structure from within the directory you are going to execute
@@ -9204,6 +9217,7 @@ connect to the web UI. If you use docker, as a workaround, run:</p>
 <pre><code>sudo iptables -A DOCKER --source 0.0.0.0/0 --destination 172.17.0.0/16 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 sudo iptables -A DOCKER --destination 0.0.0.0/0 --source 172.17.0.0/16 -j ACCEPT</code></pre>
 <p>on the host machine.</p>
+<p><a id="run_the_data_and_web_ui_containers"></a></p>
 <h2 data-number="82.3" id="run-the-data-and-web-ui-containers"><span class="header-section-number">82.3</span> Run the data and web UI
 containers</h2>
 <pre><code>podman run -d -h openqa_data --name openqa_data -v &quot;$PWD&quot;/data/factory:/data/factory -v &quot;$PWD&quot;/data/tests:/data/tests fedoraqa/openqa_data
@@ -9223,6 +9237,7 @@ credentials</h3>
 generate key and secret. Then run the following command substituting
 <code>KEY</code> and <code>SECRET</code> with the generated values:</p>
 <pre><code>exec -it openqa_data /scripts/client-conf set -l KEY SECRET</code></pre>
+<p><a id="run_the_worker_container"></a></p>
 <h2 data-number="82.4" id="run-the-worker-container"><span class="header-section-number">82.4</span> Run the worker container</h2>
 <pre><code>podman run -d -h openqa_worker_1 --name openqa_worker_1 --link openqa_webui:openqa_webui --volumes-from openqa_data --privileged fedoraqa/openqa_worker</code></pre>
 <p>Check whether the worker connected in the web UI&#39;s administration
@@ -9417,14 +9432,15 @@ you can use <code>--add-host</code> to add a line to
 <code>/data/conf/workers.ini</code> files in the data container. You
 will also need to adjust these files if you use non-standard ports (see
 above).</p>
+<p><a id="keeping_all_data_in_the_data_volume_container"></a></p>
 <h2 data-number="85.3" id="keeping-all-data-in-the-data-volume-container"><span class="header-section-number">85.3</span> Keeping all data in the Data
 Volume container</h2>
 <p>If you decided to keep all the data in the Volume container
 (<code>openqa_data</code>), run the following commands:</p>
 <pre><code>podman exec openqa_data mkdir -p data/factory/{iso,hdd} data/tests
 podman exec openqa_data chmod -R 777 data/factory/{iso,hdd} data/tests</code></pre>
-<p>In the <a href="ContainerizedSetup.md#run_the_data_and_web_ui_containers">section
-about running the web UI and data container</a>, use the
+<p>In the <a href="#run_the_data_and_web_ui_containers">section about
+running the web UI and data container</a>, use the
 <code>openqa_data</code> container like this instead:</p>
 <pre><code>podman run -d -h openqa_data --name openqa_data fedoraqa/openqa_data</code></pre>
 <p>And finally, download the tests and ISOs directly into the
@@ -9432,23 +9448,24 @@ container:</p>
 <pre><code>podman exec openqa_data git clone https://bitbucket.org/rajcze/openqa_fedora /data/tests/fedora
 podman exec openqa_data wget https://dl.fedoraproject.org/pub/alt/stage/22_Beta_RC3/Server/x86_64/iso/Fedora-Server-netinst-x86_64-22_Beta.iso -O /data/factory/iso/Fedora-Server-netinst-x86_64-22_Beta_RC3</code></pre>
 <p>The rest of the steps should be the same.</p>
+<p><a id="keeping_all_data_on_the_host_system"></a></p>
 <h2 data-number="85.4" id="keeping-all-data-on-the-host-system"><span class="header-section-number">85.4</span> Keeping all data on the host
 system</h2>
 <p>If you want to keep all the data in the host system and you prefer
 not to use a Volume Container, run the following commands:</p>
 <pre><code>cp -a openqa_data/data.template data
 chcon -Rt svirt_sandbox_file_t data</code></pre>
-<p>In the <a href="ContainerizedSetup.md#run_the_data_and_web_ui_containers">section
-about running the web UI and data container</a>, do <strong>not</strong>
-run the <code>openqa_data</code> container and run the
-<code>webui</code> container like this instead: podman run -d -h
-openqa_webui -v <code>pwd</code>/data:/data --name openqa_webui -p
-443:443 -p 80:80 fedoraqa/openqa_webui:4.1-3.12 Change OpenID provider
-in <code>data/conf/openqa.ini</code> under <code>provider</code> in
+<p>In the <a href="#run_the_data_and_web_ui_containers">section about
+running the web UI and data container</a>, do <strong>not</strong> run
+the <code>openqa_data</code> container and run the <code>webui</code>
+container like this instead: podman run -d -h openqa_webui -v
+<code>pwd</code>/data:/data --name openqa_webui -p 443:443 -p 80:80
+fedoraqa/openqa_webui:4.1-3.12 Change OpenID provider in
+<code>data/conf/openqa.ini</code> under <code>provider</code> in
 <code>[openid]</code> section and then put Key and Secret under both
 sections in <code>data/conf/client.conf</code>.</p>
-<p>In the <a href="ContainerizedSetup.md#run_the_worker_container">run
-worker container section</a>, run the worker as:</p>
+<p>In the <a href="#run_the_worker_container">run worker container
+section</a>, run the worker as:</p>
 <pre><code>podman run -h openqa_worker_1 --name openqa_worker_1 -d --link openqa_webui:openqa_webui -v `pwd`/data:/data --volumes-from openqa_webui --privileged fedoraqa/openqa_worker:4.1-3.12 1</code></pre>
 <p>Then continue with tests and ISOs downloading as before.</p>
 <h2 data-number="85.5" id="developing-tests-with-container-setup"><span class="header-section-number">85.5</span> Developing tests with
@@ -9465,7 +9482,7 @@ accomplish this, we can use BindFS. An example entry in
 <code>tests/fedora</code> directory seem to have 777 permissions set,
 but new files are created (in the underlying <code>openqa_fedora</code>
 directory) with <code>jskladan:jskladan</code> user and group, and
-664:a+X permissions.</p>
+664:a+X permissions. <a id="privacypolicy"></a></p>
 <h1 data-number="86" id="introduction-6"><span class="header-section-number">86</span> Introduction</h1>
 <p>openQA is an automated testing framework. This privacy policy
 describes how we collect, use, and protect your personal information
