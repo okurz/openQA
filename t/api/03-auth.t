@@ -325,6 +325,4 @@ subtest 'Auth::check validation including localhost fallback and API key verific
     $c->req->headers->header('X-API-Hash' => $hash);
     ok $c->check, 'API key authentication succeeds with valid HMAC and timestamp';
 };
-
-
 done_testing();
