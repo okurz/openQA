@@ -18,35 +18,31 @@ sub check ($self) {
     return 1 if $config->{no_localhost_auth} && $self->is_local_request;
     return 0 if $self->via_domain($config->{global}->{file_domain});
 
-    my $req = $self->req;
-    my $headers = $req->headers;
-    my $key = $headers->header('X-API-Key');
-    my $hash = $headers->header('X-API-Hash');
+    my $headers = $self->req->headers;
+    my $key     = $headers->header('X-API-Key');
+    my $hash    = $headers->header('X-API-Hash');
     my $remote_timestamp = $headers->header('X-API-Microtime');
-    my $user;
+
     log_trace($key ? "API key from client: *$key*" : 'No API key from client');
 
-    my $schema = OpenQA::Schema->singleton;
-    my $api_key = $schema->resultset('ApiKeys')->find({key => $key});
-    if ($api_key) {
-        if ($self->_is_timestamp_valid(time, $remote_timestamp)) {
-            my $exp = $api_key->t_expiration;
-            # It has no expiration date or it's in the future
-            if (!$exp || $exp->epoch > time) {
-                if (my $secret = $api_key->secret) {
-                    my $sum = hmac_sha1_sum($self->req->url->to_string . $remote_timestamp, $secret);
-                    $user = $api_key->user if secure_compare($hash, $sum);
-                    log_trace(sprintf 'API auth by user: %s, operator: %d', $user->username, $user->is_operator)
-                      if $user;
-                }
-            }
+    my $api_key = OpenQA::Schema->singleton->resultset('ApiKeys')->find({key => $key});
+    if ($api_key && $self->_valid_hmac($hash, $self->req->url, time, $remote_timestamp, $api_key)) {
+        my $user = $api_key->user;
+        if ($user && $user->is_operator) {
+            log_trace(sprintf 'API auth by user: %s, operator: %d', $user->username, $user->is_operator);
+            return 1;
         }
     }
-    elsif ($self->_auth_method_is_none()) {
-        $user = $schema->resultset('Users')->find({username => DEFAULT_ADMIN});
+    elsif ($config->{auth}->{method} eq 'None') {
+        my $user = OpenQA::Schema->singleton->resultset('Users')->find({username => DEFAULT_ADMIN});
+        if ($user && $user->is_operator) {
+            log_trace(sprintf 'API auth by user: %s, operator: %d (None provider fallback)', $user->username, $user->is_operator);
+            return 1;
+        }
     }
-    return 1 if ($user && $user->is_operator);
-
+        }
+    }
+    log_trace('Rejecting authentication');
     $self->render(json => {error => 'Not authorized'}, status => 403);
     return undef;
 }

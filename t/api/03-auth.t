@@ -324,5 +324,9 @@ subtest 'Auth::check validation including localhost fallback and API key verific
     $hash = hmac_sha1_sum($c->req->url->to_string . $microtime, 'EXCALIBUR');
     $c->req->headers->header('X-API-Hash' => $hash);
     ok $c->check, 'API key authentication succeeds with valid HMAC and timestamp';
+
+    $t->app->config->{auth}->{method} = 'None';
+    $c->req->headers->remove('X-API-Key');
+    ok $c->check, 'Auth::check succeeds for None auth method even without API key';
 };
 done_testing();
