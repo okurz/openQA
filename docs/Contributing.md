@@ -540,7 +540,6 @@ Also find more details in
   look at the
   [openQA-helper repository](https://github.com/Martchus/openQA-helper).
 
-<a id="quick-container-development-setup"></a>
 ### Quick container development setup
 
 #### Requirements
