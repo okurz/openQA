@@ -2032,7 +2032,6 @@ Without taking any of those additional measures the openQA services will at
 least still run as a distinct user (when using upstream-provided systemd unit
 files).
 
-<a id="authentication"></a>
 ### Authentication
 
 Authentication via OpenID is enabled by default. Do **not** change the
