@@ -1,4 +1,3 @@
-<a id="installing"></a>
 # Installing
 
 ## Introduction
@@ -28,7 +27,6 @@ setup suitable to develop openQA itself, have a look at the
 
 openQA is provided in containers. Multiple variants exist.
 
-<a id="single-instance-container"></a>
 ### Single-instance container
 
 The easiest and quickest way to spawn a single instance of openQA with a
