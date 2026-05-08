@@ -1,4 +1,3 @@
-<a id="networking"></a>
 # Networking
 
 For tests using the QEMU backend the networking type used is controlled by the
