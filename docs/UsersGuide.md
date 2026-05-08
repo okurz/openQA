@@ -216,6 +216,7 @@ by different means:
 - Using declarative schedule definitions in the YAML format using REST API
   routes or an online-editor within the web UI including a syntax checker.
 
+<a id="variable_expansion"></a>
 ### Variable expansion
 
 Any job setting can refer to another variable using this syntax: `%NAME%`. When
@@ -468,6 +469,7 @@ corresponding icons
 <img src="images/tests-overview-issue_icon.png" alt="Different icons for product and test issues" />
 </figure>
 
+<a id="build_tagging"></a>
 ### Build tagging
 
 #### Tag builds with special comments on group overview
@@ -1198,6 +1200,7 @@ Tests can be triggered over multiple ways, using `openqa-clone-job`,
 `jobs post`, `isos post` as well as retriggering existing jobs or whole media
 over the web UI.
 
+<a id="cloning_existing_jobs_openqa_clone_job"></a>
 #### Cloning existing jobs - openqa-clone-job
 
 If one wants to recreate an existing job from any publicly available openQA
@@ -1350,6 +1353,7 @@ To get an overview about the fail ratio and confidence interval of sporadically
 failing applications you can also use a script like
 [this](https://github.com/okurz/scripts/blob/master/count_fail_ratio).
 
+<a id="scenarios_yaml"></a>
 ##### Defining test scenarios in YAML
 
 Instead of relying on the tables for machines, mediums/products, test suites and
@@ -1434,6 +1438,7 @@ openqa-dump-templates --json --group test > test.json
 openqa-load-templates test.json
 ```
 
+<a id="asset_handling"></a>
 ## Asset handling
 
 Multiple parameters exist to reference "assets" to be used by tests. "Assets"
@@ -1622,6 +1627,7 @@ Further remarks:
 - The [Auditing](Installing.md#auditing) section explains the cleanup of
   the audit log.
 
+<a id="archiving"></a>
 ### Automatic archiving of old jobs
 
 Archiving of important jobs can be enabled:
@@ -1768,6 +1774,7 @@ openSUSE.+x86_64 = 10
 Note that modifications to the file will count against the limit, so if an
 asset was updated within the timespan it will not be removed.
 
+<a id="timers_and_triggers"></a>
 ### Timers and triggers
 
 Cleanup can be triggered in different ways. One option is to use
@@ -1804,6 +1811,7 @@ for example for the asset cleanup:
 systemctl mask openqa-enqueue-asset-cleanup.timer
 ```
 
+<a id="amqp_events"></a>
 ## Consuming AMQP events from openQA
 
 The message topic follows the format `SCOPE.APPLICATION.OBJECT.ACTION`, for example `opensuse.openqa.job.done` or `opensuse.openqa.comment.create`. The `topic_prefix` setting controls the `SCOPE` part; if left empty the topic starts with `openqa.` directly. Consumers can use `#` to match any number of words or `*` to match exactly one word. `opensuse.openqa.#` subscribes to all openQA events, for instance.
