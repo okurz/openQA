@@ -1,4 +1,3 @@
-<a id="containerizedsetup"></a>
 # Containerized Setup
 
 The installation guide already contains simple one-liners for starting
