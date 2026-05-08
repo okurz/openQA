@@ -1,4 +1,3 @@
-<a id="client"></a>
 # Client
 
 There are two ways to interact with openQA as a user. The web UI and the REST
