@@ -287,7 +287,6 @@ elements such as buttons and then click inside the matched area.
 Each click point can have an `id`, and if a needle contains multiple click points you must pass it to `testapi::assert_and_click` to select which click point
 to use.
 
-<a id="configuration"></a>
 ### Configuration
 
 The different components of openQA read their configuration from the following
