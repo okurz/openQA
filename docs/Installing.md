@@ -40,6 +40,7 @@ podman run --name openqa --device /dev/kvm -p 1080:80 -p 1443:443 --rm -it \
 Once the startup has finished, the web UI is accessible via <http://localhost:1080>
 or <https://localhost:1443>.
 
+<a id="how_to_run_a_test_with_single_instance_container_in_5_minutes"></a>
 #### How to run a test with single-instance container in 5 minutes
 
 
@@ -1435,6 +1436,7 @@ systemctl enable --now openqa-dump-db.timer
 
 Backups are stored at `/var/lib/openqa/backup`.
 
+<a id="auditing"></a>
 ## Auditing - tracking openQA changes
 
 Auditing plugin enables openQA administrators to maintain overview about what is happening with the system.
@@ -1707,6 +1709,7 @@ need to be stopped during the (short) migration.
     sudo -u postgres rm -r /var/lib/pgsql/data.$oldver
     ```
 
+<a id="working_on_database_related_performance_problems"></a>
 ## Working on database-related performance problems
 
 Without extra setup, PostgreSQL already gathers many statistics, check out
