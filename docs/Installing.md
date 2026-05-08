@@ -417,7 +417,6 @@ specifications are recommended per openQA worker instance:
 
 - 40GB HDD (preferably SSD or NVMe)
 
-<a id="basic-configuration"></a>
 ## Basic configuration
 
 For a local instance setup you can simply execute the script:
@@ -509,7 +508,6 @@ You can do that in
 httpsonly = 0
 ```
 
-<a id="database"></a>
 ### Database
 
 openQA requires PostgreSQL 14 or newer. By default, a database with name
