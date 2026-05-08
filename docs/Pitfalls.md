@@ -1,4 +1,3 @@
-<a id="pitfalls"></a>
 # Pitfalls
 
 ## Needle editing
