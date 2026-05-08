@@ -1096,7 +1096,6 @@ such as buttons and then click inside the matched area.</p>
 contains multiple click points you must pass it to
 <code>testapi::assert_and_click</code> to select which click point to
 use.</p>
-<p><a id="configuration"></a></p>
 <h3 data-number="1.3.4" id="configuration"><span class="header-section-number">1.3.4</span> Configuration</h3>
 <p>The different components of openQA read their configuration from the
 following files:</p>
@@ -1302,8 +1301,7 @@ supports a remote-download feature of assets from trusted domains.</p>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>         BUILD=Rawhide-20160308.n.0</span></code></pre></div>
 <p>More details on triggering tests can also be found in the <a href="#usersguide">Users Guide</a>.</p>
 <h2 data-number="1.6" id="pitfalls"><span class="header-section-number">1.6</span> Pitfalls</h2>
-<p>Take a look at <a href="#pitfalls">Documented Pitfalls</a>.
-<a id="installing"></a></p>
+<p>Take a look at <a href="#pitfalls">Documented Pitfalls</a>.</p>
 <h1 data-number="2" id="installing"><span class="header-section-number">2</span> Installing</h1>
 <h2 data-number="2.1" id="introduction-1"><span class="header-section-number">2.1</span> Introduction</h2>
 <p>openQA is an automated test tool that makes it possible to test the
@@ -1327,7 +1325,6 @@ suitable to develop openQA itself, have a look at the <a href="#development-setu
 <p><a id="container_setup"></a></p>
 <h2 data-number="2.2" id="container-based-setup"><span class="header-section-number">2.2</span> Container based setup</h2>
 <p>openQA is provided in containers. Multiple variants exist.</p>
-<p><a id="single-instance-container"></a></p>
 <h3 data-number="2.2.1" id="single-instance-container"><span class="header-section-number">2.2.1</span> Single-instance
 container</h3>
 <p>The easiest and quickest way to spawn a single instance of openQA
@@ -1336,6 +1333,7 @@ engine is the following:</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">podman</span> run <span class="at">--name</span> openqa <span class="at">--device</span> /dev/kvm <span class="at">-p</span> 1080:80 <span class="at">-p</span> 1443:443 <span class="at">--rm</span> <span class="at">-it</span> <span class="dt">\</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  registry.opensuse.org/devel/openqa/containers/openqa-single-instance</span></code></pre></div>
 <p>Once the startup has finished, the web UI is accessible via <a href="http://localhost:1080">http://localhost:1080</a> or <a href="https://localhost:1443">https://localhost:1443</a>.</p>
+<p><a id="how_to_run_a_test_with_single_instance_container_in_5_minutes"></a></p>
 <h4 data-number="2.2.1.1" id="how-to-run-a-test-with-single-instance-container-in-5-minutes"><span class="header-section-number">2.2.1.1</span> How to run a test with
 single-instance container in 5 minutes</h4>
 <p><video role="img" src="images/openqa-in-5-minutes.webm" controls><a href="images/openqa-in-5-minutes.webm">Video</a></video></p>
@@ -1596,7 +1594,6 @@ specifications are recommended per openQA worker instance:</p>
 <li><p>8GB RAM</p></li>
 <li><p>40GB HDD (preferably SSD or NVMe)</p></li>
 </ul>
-<p><a id="basic-configuration"></a></p>
 <h2 data-number="2.6" id="basic-configuration"><span class="header-section-number">2.6</span> Basic configuration</h2>
 <p>For a local instance setup you can simply execute the script:</p>
 <div class="sourceCode" id="cb29"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/usr/share/openqa/script/configure-web-proxy</span></span></code></pre></div>
@@ -1665,7 +1662,6 @@ HTTPS off. You can do that in <a href="#configuration">the web UI
 configuration</a>:</p>
 <div class="sourceCode" id="cb34"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[openid]</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="dt">httpsonly </span><span class="ot">=</span><span class="st"> </span><span class="dv">0</span></span></code></pre></div>
-<p><a id="database"></a></p>
 <h3 data-number="2.6.4" id="database"><span class="header-section-number">2.6.4</span> Database</h3>
 <p>openQA requires PostgreSQL 14 or newer. By default, a database with
 name <code>openqa</code> and <code>geekotest</code> user as owner is
@@ -2400,6 +2396,7 @@ by the <code>openqa-dump-db.timer</code>. To enable automatic database
 backup, run:</p>
 <div class="sourceCode" id="cb77"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> enable <span class="at">--now</span> openqa-dump-db.timer</span></code></pre></div>
 <p>Backups are stored at <code>/var/lib/openqa/backup</code>.</p>
+<p><a id="auditing"></a></p>
 <h2 data-number="2.11" id="auditing---tracking-openqa-changes"><span class="header-section-number">2.11</span> Auditing - tracking openQA
 changes</h2>
 <p>Auditing plugin enables openQA administrators to maintain overview
@@ -2652,6 +2649,7 @@ the new version:</p>
 <li><p>Delete the old data directory if not needed anymore:</p>
 <div class="sourceCode" id="cb93"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> <span class="at">-u</span> postgres rm <span class="at">-r</span> /var/lib/pgsql/data.<span class="va">$oldver</span></span></code></pre></div></li>
 </ol>
+<p><a id="working_on_database_related_performance_problems"></a></p>
 <h2 data-number="2.15" id="working-on-database-related-performance-problems"><span class="header-section-number">2.15</span> Working on database-related
 performance problems</h2>
 <p>Without extra setup, PostgreSQL already gathers many statistics,
@@ -3300,6 +3298,7 @@ API.</li>
 API routes or an online-editor within the web UI including a syntax
 checker.</li>
 </ul>
+<p><a id="variable_expansion"></a></p>
 <h3 data-number="3.2.6" id="variable-expansion"><span class="header-section-number">3.2.6</span> Variable expansion</h3>
 <p>Any job setting can refer to another variable using this syntax:
 <code>%NAME%</code>. When the test job is created, the string will be
@@ -3518,6 +3517,7 @@ this and show corresponding icons</p>
 <img role="img" aria-label="Different icons for product and test issues" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbsAAACbCAIAAAB00KLLAAAACXBIWXMAAA7rAAAO6wFxzYGVAAAgAElEQVR4nO3dZ3gUVRcA4DOzvWTTO2lAqAFMkKqgKAgqNkBBsXcRBbGhnwgIKIgiTUARBAEFpHcBQaQFCEUSakJIARLSCNvLlO/HhCXZbJLJ7myyZM/75Mdm9t47d0+yZ+7M3JkhDAYDIIQQ4oFs7A4ghNAdAzMmQgjxhRkTIYT4woyJEEJ8YcZECCG+MGMihBBfmDERQogvzJgIIcQXZkyEEOILMyZCCPGFGRMhhPjCjIkQQnxhxkQIIb4wYyKEEF+YMRFCiC/MmAghxBdmTIQQ4gszJkII8SVusDWxNFV2+OCN40d0589aS4spg0GkUEqDgtSt2gbc1Tnk3vtJubzBOoMQQi4gGuA5P7byGzm//nRl9Qpb+Y2ayohV6sjHByW8OVIeEeXp/iCEkGs8njGvrFp+cfpkyqDnU5iUSJq/MzrhzXcJkQuDX5aw5AJL315AEKw0FoiGG0cjhJo2D2ZMxmw+/fHIot076lsxIKVL8txFksCgetWSXPtWcmWiw0Iq7FVr/Jz6dgAhhJzy1Jkf2mxKe3WYC+kSAMpPHDvy7BOWkuJ61RKV76y+kFGluNABhBByyiMZk2WY02NGlJ9Mc7kFY+7lk2+/RJtNfCswJtJw3HEhKaeDBrvcB4QQcuCRjJm3bFHx3l1uNqI9c/ri9Ck8C4v0x4C1OiykAwayIo2b3UAIITvhM6a54GrmzGmCNJX/x9LyU9VGjs6QugPVF1KhwwXpBkIIcYTPmNk/zWHMZmHaYtlLs7/jU5DU7XesKgmnNQ8K0w2EEAIAwTMmpdNdW79awAZLD+/XZ12soxBrFemPOfYkZBgQIgF7ghBCAmfMor93MFbH44luKty2qfYCpOE4MI7niOiQ57kXBK0Vle+Q5H8uP/ug6KaT8+kIIcSTwLO7y1IPCtsgAJQdOQjwUS0FRFrHlbLyloQlR1q8jNTtJ42nK01rJwTvHkLIdwicMbXnMoRtEAB0588CywJRY7KrfhCTMGfJLj7tsJBRJtH+/QTvHkLIdwi8V265XihsgwBAGw2UvuaLLFma1KfyaYeKHCNYnxBCPknoMz+1pDa3mtXW9BZpPEXQda+UlcVROJsdIeQegTMmKZUK2+CtZmU1vSXS8Tpyaot4H2/JgRByk8AZUxIQKGyDAAAEIdb41/QmqXU8iAkArCS0yq/iYCr0ReE7hhDyMQIPu9QtE80FV4VtUxkbT0okNb1rP4jJSsIZv1605l7GrzcAyNNv34ODihgBpFLYXiGEfJDAGdO/Y0rJ/n+EbvOuWt61NZsAwDKa3oy8lX2huGjR7RKkigp7S9guIYR8k8B75WF9BwjbIACEP/RoLe9SYa9RYa9XTpcAIKp0mTkV9gor9sCxAoSQ7xE4Y/q1aadp10HABqXBoSG9+tS31u0bcxASW8R7AvYHIeTLhL8TR/MRowRsLf61t0lZjSfKnSIs2YT1GveaCn6GlTYTsD8IIV8mfMYMe3BAcM/egjSlat4y9rmX61ur0kWTBM5aRwgJyCN3FG4/ebrEP8DNRkiJJGnqrPoOMKHSLjkd+AijaONmNxBCyM4jGVMeGX3Xj4vcms1OEEnf/ODfoZMLVe2nfWw4wEQICcpTT0YL7NwtecFSsdrPhbqkRJI0dWbEo0+6UJewXiUsOQDA+N3DqLu70AJCCNXEUxkTAIJ79Oq6cqNf26R61VLExN7966qox128Btx+0WRNA0yVSqVSqVxrHCHk4zz4vHIOS1F5yxdf/mWetbSk9pJitV/sC68mvPGuSOH69TnSnPfERYsZZXtz0lH7Qi5FGgwGlUrFsiwAELfuHefpj48Qako8njE5tNl0/a+t13dsuXH8KKWrciMikULp3yk5/KFHIx59QlLz9eM8yU8nk+aL1haLqOBh3BKHLGl/bX+BSRMhxFMj5AvT1XxrSTFlNIjkCmlQsCImjiCFOThA2IoVJ+NZWaypY7r9TkV8MqZKpcK8iRCqUyPcAE0RHaOIjvFEy6T+MFS7sZvBYODyI8uyhLMbuXMpFQebCKE6efDMT8NjlElUxEgq9OV61eIGmwghVKcmPrCqfs7HAR7QRAjx15RvS179zHh1OMBECPHXpPbKa1JnWsQBJkKIj6acMblzPtxrHEsihNzXlDMmVE2aCCHkpiaeMfnAXXKEEE9NP2PiMBMhJJSmnzGh1qSJA0yEEH8+kTEBR5oIISHgCAshhPjylTEmQgi5DzMmQgjxhRkTIYT4arLXleOjKRB/eDQf8dRkMyYAJHe9p7G7gO4AJ48erLsQQgCAe+UIIcQfZkyEEOILMyZCCPGFGRMhhPjCjIkQQnxhxkQIIb4wY3oFhUL+3bQpu7dvXrxwfmP3BQCgc8pd2zaubexeIOR1fCVjzps948iBvan79xzct3vNymXPDXvGtXaUSuW6VSvatmld/a17e/b4bfHPYrErU1wffbh/UFBQ/4FPvjNytGsdu3Nt3bBGqVAEBwctX/KLfWFCfNyqFUu++OyTyiXdWRjTLPqnH2cd2Ltz07rVA/r388xHQU2fr2RMAJg5Z173Xg/06fvwzNnz3n37jeS7OrnQyOuvvHj85Klz5y9Uf+vAocPl5TeHDHrShWZjY2LOnTtP07TFYnGh+p0rPi62qLjYaDJ1Tk5OO36SWzjgob6zf5ief+Vq5ZJuLvx60oSMM+ce6D/wf19O/OTD0a0SW3rmA6EmzocyJsdqsx04dDg3Ny8uNgYADu7bbf/ydGjfbu/Obdzr6KioeXN+2Ltz2+oVS/v1fYDbRZVKpYOefHz1mvUAQJLkeyPe3rphzd87Nq/+/Tcu/65dv3Ho04Md1rht49oOSe0XL5x/cN/u0JCQoKDAb7+e9NeWDRvW/PHUE48BwIi33nj0kQEDHxmwad3q7l27VC/ApxGuzDNDBi1d9NPK5UtWLF3UIak9tzwkOPibyRN3bdv0z65t7414GwCcVo9pFr1g7qw9O7eu/v23DklJ3EKSJNf/+cfARwY4fKJhzwxZOH/u6hVLf/pxVmxsTOUV/bVlw7aNaz/9aIxCIa9leXxc7JqVyxbMnRUb02zNymVjPxnzUN8H1qxcplQqDQbjm++8d/7CxcordWdhXGxsQnzcTwsXWa3W9Iwze/buc/hECPEkLiwsbOw+NCixWNylc0pIaMiRY2k1lSEIYuqUicdPnHr/g48DAwK+//ZrbnlS+3YWqzUzKwsAOqckP9DnvqeffcFoMsXFxpaWlQLAsbTjUZERUVGR164VVG5wwhefTZn2XVbWJZ1eP3/OzIuZmWMfHx8dFbn45/m5efnzflqoVqtomv5+5hwAWDB3lkOBEydP1dkIV6bP/b3fHPG+xWJ5ZsigTz/64PmXXweAbyZPvJyTM+iZ51hg/dRqAPj6qwkO1U+e+m/alK+Opp0YOfrDAH//GdO/4XrOMEzqkWN5+VccQtSjW9cR739gs9lefemFqZMnDn/pNZZlp06ZeO78hceeeloilU4Y99lHH4ya9PU0AHC6PCc3b8iwFz4c/V56xtmdu//+bfHPY78Yz8Vt/8FDAEASVTbn7iyMi4u5eu2a1Wbjfs26lN3rnp6Vq/jatwC5zIfGmKNGvnNw3+6D/+yaOmXi7LnzCwpq/JLExDRrldjyp18WURRVXFLyx6o13PKE+LicnFzudWFhob+/5rGBDysVity8PL3eAABGk6mgsLB5fLxDg7+v+vPEyVNanS4yMiL5ro4LFi5mGCb/ytV9+w/0ua9X5ZJRUZE1FeDTyPoNm7n9+qPH0hLi4wAgOiqqY4f2M2f/qNPr9XpDQeF1p6uIjYlp0aI595FLSktXr1ln79K072acTs9w+ESbt26z2WwAsPyPVS2aJ8TGxMQ0i+6Q1P7HBQutNpvBYJi3YOGjD/cXi8U1LefaaZXY8sLFTJFIFB4eVstfxE0Kudxsvn24w2AwKJUKD60LNW3i5s2bN3YfGsisufP/WPWnSCRq2aL5N5MnKhSKP9eur1Li1mMtQoKDb2q1JpOZ+7WouIh7oVapdHo99zr/ytW33x31yksvvPn6q1u2bp87/2cug+h0erXa8bZJubl53IvwsDAAWLl8CferTCo9lHqkcslaCvBppKysjHtB0zSXlcLDw7RandFkqn0VISFBVT9ycQ1RrKDV6bgXVqvVYDQGBwcRBGi1OrO5ooXC69dFIlFIcHBYWKjT5cOfG9qjW5foqKgZ334tFotVSuWff/y2d9/+H+f/XPuqXWA0meRymf1XlUplutUfju98C5CbmvK9i5yiafrCxcx/9x/s0b3rn2vXUxQlEom4t4KDgrgXZWVlGj8/qVRqtVoBwF/jzy03GA1qldre1MXMrM++GB8WFjp1ylcvPf/cL78uBQC1Wm0wGB1WygLLvSgqKqZpesjQ4fY9RAe1FODTiL2MXUlpqUbjp1DIb2dDZ9Xj42L9NRqZTMYNUQP8A5x2zy4sLIx7odFo/NTq4pISgiA0Gj+lQsFl54iICIZhSkpLpTKp0+Xf/zA7MjJi6uSJL7321oCH+ia1b/fdD7NrX6nLLmVfjo6Kkkgk3FatRfME++YHoXrxob1yDkmSiS1b3n/fvWfPnQeA3Ny8lOROACCVSOznQPLyr+Tm5b328oskSWr8/IY+PYhbnpt3hdvVBYDIiHDujEdpaVlBQYFMLgMAuVweER6Wm59f09qvXrv2X3rGB6NGKpVKAIiMjAgPD6tXAZ5l7PLzr5y/cPH9d99RKhRyuTwhId5p9bz8Kzm5uW++9opYLA4I8B8y+PYZ/88++bBTxw4OzT4z+Kng4CCJRDLynTcvXMy8cuVqXl5+esaZ9959WyqVqtWq9955a/tfuyiKqmk5ADSPj8/OvgwALZonXMq+XNNHcN+1awXnzl988/VXpBJJUvt2fR/os2Pnbs+tDjVhPpQxR7834siBvYf27f5h+jd79u5b8tsKAJg+Y9YjA/r//tvieXN+OJSaypVkGObTz79Mvqvjru2bFi+cl3aiYtZLesYZhULBnVsPCAiY/s2kXds2bV6/miTIpctWAMDdKcnFxSV5eTVmTAD4/IsJSqVy/erf9+3e/sP0qWEhIfUtwLMMh2XZsf/7Miw0dPP61ds3revf70Gn1bmP3KFD+13bNv08b87GTVu46iRJdumc0iw6yqHZHTt3z54xfceW9bExMZ+Nm8CyLAB88vm4oKDAHVvWr17xW3FJyfQZs7jCNS1PiI/LzskFgBbNm3s0YwLAFxO+atemzZ6dW6dN+WrOvAX/nU736OpQU0Vw/+tND0EQQt1R+P7evd58/ZXnXnwVAMaMGqlQKKZMne605Mzvp6WlnVj+xypB1uu1tm1c+8WESdzZ+Sbg5NGDTfVbgATnQ2PMeunSOSUoMBAAAgMChj879Pit7PDzol87J9/VulVi9So9unUNDgpaVekscxOGz35Hvsnnzvzw1KlTh/FffObnpzaZzIdSj/y0cBG3XK83DBo63GmVw0eOHj5ytAH7iBBqaLhXjnwd7pUj/nCvHCGE+MKMiRBCfGHGRAghvprycczG7gK6YzTVbwESXJPNmAghJDjcK0cIIb4wYyKEEF+YMRFCiC/MmAghxBdmTIQQ4gszJkII8YUZEyGE+Go69y4yW3Ul2hy9uYSizT41yZQgCIlIrpKHhGji5VI/9xv0nUhi6AQkeDC9UxOZwX69PLOoPAuqPeXGxxDhAS3DApzcu5M/X40khk5AAgTTazWFMeb18syi8kwAUKoUCoVcLBY1do8aGkXRJpPZaDBdL88EAJf/WX0wkhg6AQkVTG/WgBmTpuH0STiTATnZUH4DTCaQycHfH+ISoE1bSLkbpLK6G6nGbNUVlWcBQGCgRiqTCt3pO4NYLPLzU0mlkvIb2qLyLI0qUi5R112tKt+MJIZOQIIE08s1SMbUaWHDWvhrG+i0Tt49kQYAoFDA/Q/CkGEQElqvtku0lwFYpUrhy/+pHJlMqlQpjAZTqfZydLDj0x/r5MuRxNAJyM1g8pFTbDh+uUxrsoVpZN1bhgT7uTLYco3nM+aOrbBkIZhMdRQzmWD7Fti1A4YOh8FDQcR3p0ZvLgUAhULuZjebBoVCbjSY9KYSF+r6eCQxdAJyJ5i105upyeszdmcU2pdIROSLvRPeerAl2SC3K/NkxrRa4PtpkHqwHlUoClYshRNp8Pl40PjzqkGbAcA3DxtVJxKJAMBGW1yo6+ORxNAJyJ1g1sJso99ZfPTc1Sq7qjaaWbT3UqnO8sVTScKuzimPZUyLBb4cC+fPulL33Bn49AP4+nsIDKyz7B19rv+RSWXci23jggRpkNvKsizjQt1GjKTgcXChQV8L3T8Z1vWp5rwSmqZZfxW5bHSAgL1yJ5i1WPxPtkO6tNuQdqVPu/B7WtfvmJ4LPDODnWVh+tcupkvOtaswaRxYBN5GIYQAYG+69dv1+swCymJjKQZKdQKnNkE4bIZYFjak5ddSft0xx3c9sSHzTMbcvB6OpbrbyKVMWPKLEL0RXomWeWRSmX3zjtCdZUuamXsx8G7Z6o8D//yk7p25BjZ7x4XeX+3663SBfUmZ3lKmt9ZSJbNQV/nXOX9d7Dl+Z+UWBOGBvfLiIli2RJimtm+G+x6ANm2FaU04565Qjd0FhFxXcKNiUDmsl0It98bnuxgslMlKj1t9WmeyDekWCwBBatm/4/vVUsX+MRiGnbzhzKbjVwDAYqOF7ZgHxph/rgSrQHvTLAu/LxWmKUGdx4yJ7mRGS8X+aqDKS+8s8fHAdg8mRTAsO3XT2UV7LwEAQYBSKqrlRyEVAYCVYsauPMWlyxH9Eh/v3EzYjgk9xjQaYM9OIRv87yTk5UJsnJBtug3HmOiOZj9V5bXPDxSLiG+GdpooEW09eXX+7sxlBy7zrEgzrMlKEwSMeaTtsz2FzxtCZ8zUQ2CzCdzmgX3w3IuuVTWY2aen3wCA1tHiH17VGCzs5mPmA2et18sZhoVQf7Jna+mgHnJux6TcwGw+Zkm9aC0qZ2w0hAeQPVpLn75HrpLd/rd6YWZ55cPk9kOZm/8XJLq1tc4soLamWTLyqFIdQzOsv5JsHS1+OEXWuYWklq5qjey6VPORi9ZiLcMwEBZAdm8lfbqnXOVNO00sC3szrPsyLNnX6ZtGBgD8lWSLCFHvdtL7kmQi0vXCcOvba7Ky61PN+89Zi8oZhoXwAPKeNtIhPeUKqWMcLDZ2Xap5/1lr4Q2GJCHMn+zZRvpkN7l37mZ6Q+iOZtomrKxysM/hVHt91+tRJElMGNzBYqN3ZxTqzfUbo7w/oLUn0iUInzFPnxK4Qa5NVzOm5NbnM1rYMj3z+XJdXvHt4xp5xXReselIpvW7lzUFN5jxf+gqZ8P8Ejq/xJSWZZ3xqkYq5vslXH3QvHSvsfJJulIdc+i89dB566Du8tf7KatXEZNwrYz+bJmuWHt77Vzf9qZbvntZE+rvFbtOFhs7fqX+dE6VLWKpjinVMUczbTtOWr56zk8uIVwozJGJiRIt88Xvzv9G37+skVUqrzWyHy/V5pfcLplTROcUmfamW75+XiPgpxaEV4VOkE42DIKANlGayvPV7Ub0S2wT5b/91LXt/12r/m67aF6zuV0gdMbMviRwgwBwORtY1rX9BxFZUctsZWdsNDAMTBjm1zFezLJw6rJt5maDzsRevk6vPWzek25Ry4nRj/klxYqZSu9mX6e3Hbc82a3icg5u2lpNk+BOXrYt2WMEgAAV+c4AZXJzCcPC6RzbzM0Go4Vdl2pOihN3b+V4IR1JEt9vNDAsfPSk+u4WEoWMyCmiftllTM+lirXM9A36b1/yihTwx34z93VqHSV+s78yIVxEM5CRS83fYSi6yWTkUcv2mt54SOlCYY5cSkxbp6domDDMr1O8mGbgRLZt9haD3sxmF9Jb0iyDe9y+qGbGJj2XLts2E7/xkLJ5uMhig1OXbYt2G7/fqCcJYLxpnq6XhK5rooT7j3X6D+zCehtRmyj/nq1CMvLLG3i9Qg9eyoS/LgrMJjAZXatq348o1jLZ1+lvX/LrmiiRSwiFlOjRWvpin4o//+//mmwUTH9Z07mFRFbt3dQLfI8zbEitmLTxRj9lr3ZStZzQKIh720pfuF/BLd+a5uScmJViswqor5/3e6CDVKMkJCJIjBRPfNYvPIAEgIw8KiPPKw6b/numovMfPK5q20wslxAqGdGtleSzwWq5hIgMJAvLGdcKc8oNzJVSevpLfl0TJTIJoZQR97aVvvJgxV/hyMXbM0uyCqijmTYACPYjJz3n1yZaLBUTfgqiVzvp1Bc1WQW0V6VL8KbQCdVJnyX4mR8XU1sdDAZQqtxsY3APeUDVM4OVDywO7uF4/Mv+bm4x34TFAkQGkjf0bOeWVQ5ZdkuU/vSXEQAyC5w39UBHWUxIlWvs5BLi4RQ5N2I9dN6aFNv49+UruXXQICKwShhbR4vXjXWc0FevwnaDeygC1VXKJzeviGTlQxYHzlVswx5OkSllVf5qEQFk/2TZxqPmuj5Ng/Ke0AnVSZ8l9BhTUtvJDddJBbglzN0tHfsW7Hf741c/LWN/12DmO2L56lm/RSMD1o0N1CiqfI1DNBVN6UzOm+rWykncOsRVZMmsGvJsA/O/tb3ZearuMUu9Ctt1Tazxr3BDfzt0F65WBKRjvJO4danWSKPzntAJvl5PMNvocqOV+zG7NKFSb6bsLdhoIYfGQo9c/DRgFnrzThCgEuAuexEBjpsHSaVRXVi1syv2dym3A26/RUNNl23Fhzr5Q9g7bJ9v3Lh6tZNuOGIGgPnbDadzbP2TZZ3iJTXdfaJehe0cRjdQ6a9gpW7H7mpZxbcoKsjJJj82xOvuiOE9oROqk56Tll02cskxinbrwMqHy0/YX/srJX+O6hWkFuZGfEJnzJhYKC4SuM3IKBAL0M/aTxfyOZnIx/VyZvd/lvNXqRIdc0PP2CigaLbOnBugdrJ2+7wi/oNcj3qxj+JSIZWeS7EAB85ZD5yzKqRESnNJ7/bSHq2lDl+tehW24zknQX9rqO50IpFG6XWzi7wndEJ10nOsFCPscWgbxVCMYGMOoTNmqzYVdwgWUGJrgRv0mM3HzAt3Gl0Yk8qc/btLRBULeY4RPE0uIaa+oPn7tGXtYXNuMQ0AJit78Lz14HlrRCD5wWNq+2GE+hauL8utgEhqjZv38J7QCdVJz+nZKuSvsQ8YLBUHXraevPrL3nrPwJn67F2tIytmmASqpGq5YD0XOgTd74GVywVus+e9AjfoGccv2ebvMAIAAfBwiqx3e2mov0ijIMQikIiJgZNru22HjWarjxFst3ZMhBr/uo8goG8nWd9Osrxi+vAF6+ELtovXKAAovMGM+1333ct+LSPFrhWuF4mI4LYiFF3l0ArHbPOKDYwDLwmdgJ30nCC11L4T3SLclcdStghXxwR7ZCKU0Gd+EppDi5ZCNhgQCCldhGzQY9YdrjiAO/w+xchHVR3jJZGBpEpOyCREnfsEWqOTL7mu1n3PxhUbKhp6r2Lma5rZr2viwrjredkV/zq/0369CvNR6XiFk8iWG7wxY9o1bug80UmPigio953tRSTRLMhT80Y9cDHJM8OFbO2ppwU5Ud4Asgor9iMGpDg+daTylRhOVb52xc5+fqNZsNedyrBrGSn+9KmK83IXrtbxMetVuBaRgbWdE8st8oqpBXVqlNDVV2Ot1659tH99T9okxwdKPHZFpwfa7d4T7koRpqlmMfDIY8I05XkmS41Dwr9O3Z647nT8w83HdpCeU/HNbxXd+JMxa2FP6PY74ghVuCaJt/YNnc7tP+IsmN6p4UPngsZaL4ckifvbhteryqAuMR7qDHjqjsIjPwA/V44+VCEWw+hPvHOAaT/mWPksdtCt6W+Xi6psik9m2/amW+x3Q3B64nvnKUvRzSrDJaOF3XGyIs/e27bxgzB3q2HUL9pnpt9Iz3VMUudvzY6MDRW5UNgFPVpXzD3cftxsqXrUMr+E3nPau27d71WhE6STDSm7SL8zvX53BT579aaHOgOeypihYfD5BLdmsxMEjPoIElsJ1ychhd+aKbnthMVKscU3GQDocmuG/NythkuFtJViC24wy/4xjV+pG36fwv7ftie94ian9hkUMgnRIkI09jftwXNWvZm10XDhGjXu94rbgnRNlLSIaPy9cqWcyCyg9GZ2yhrdzlOWUh1DMaA1sakXrNM36Lkyj3WRuVDYBR3jJW2biQGgsJyZsFKfVUDZaNCZ2H8yrJ8v17WKEjtcCNS4vCp0gnSywZTqLO8vTdObqWZBSj953fmEK7P8QM68XZke6pLHdvfaJcG4STD1K1eumxSLYeQY6N3HA90SxoMdpUv2mADg17+Nv/5tBIBt44Ke7a04fMFWpmcuFdLvLby9lRt4t+zxrnK9ieWuVFmww7hgh3HbuCD7lQhyCYx5Qv35Mu2UNXqHFcWEiMY8LsDsffc9f58ir5g+mmnTGtmZmw0O7xIAT3WX9+skc6Gwaz55Sv3REm2pjvkvx/b+L7d3w0P9yTFPqD9ZquV2ISkaGv0Jj94WOvc72TBMVnr0suOF5WZ/pWTOy3eLRcT0zef+Pe98ureIJIZ0ix3RL/HHnRdXp+Yt/ueSVEy+3qeF4L3y5AGyTsnw7SyYMQ2ys+pRKyISRn0E7RriQZouG9RDYbTA3gzLDR2jkhPRwSIACFKTP7ymWbHPdPyS7aaB8VeRcaGix7vKucvXBvWQF5QzxzKtZisbESgCAOut3UmNkowIIGe97r8u1Zx6wVp0k2FYiAgke7WVDu4h95KpRVIxMWGY3+EL1n1nrFkFdKmOsVKsXEKE+pPtY8T9k2WtosSuFXZNeAA5/23/NYdMhy/Yim4yJAGh/mT3VpJB3RUaJaFWEKU6AACLjRU39vRMbwud+51sACwL/1v137mrWomI/G54CjdVaMYLKZmFumHQ8qUAAAKTSURBVJ2nCy4XG/yVEgCIDFQ81DGyTaSmX8eIyAAFAHw8sJ3Zxmw6fmXB7kyFVDT8nnhhO0Z4/MGhNAVbNsLa1XCzrvsyKZUw8EkYPBTk9ZhPkJ6zDQDCI0Lc6WNTcr2wBAA6xD9S34oYSQydgFwOJudige65uQcBYOKQDo8mR9erLsOyX/55esd/BTKJ6OCE2h4N5ALPbzdEYnhiMAwYCIf2w8F/4ewZMFTd95TLoVUb6NkLet0Paq/YA0UINa4W4eoXeyfEBavqmy4BgCSIiUM6NgtShvvXey5nnRpqpC2TQZ++0KcvAEDRdbhRBmYzyGSg8YfIKHeeNkIQnh8m3zm4SBCEKyf0fDySGDoBuRNMjogk3u/v+uXRIpJ4u2+iy9Vr0RgT/cLCIax+E6xqIRbJbZSJomhxox/h9wI0TQGAROTKptXHI4mhE5A7wfRyXvEAGXeo5SEAYDJ51x1kG4vJaAEAtSLYhbo+HkkMnYDcCaaXu+MzZogmHoAwGkwWSyPfBrXRWSxWo9FEABGiSXChui9HEkMnIDeD6eXu+Iwpl/qFB7QEgPIbWp3OQFG0rx1QYlmgKFqnNZTf0AJAWECiTOLKCTQfjCSGTkBCBdPLNZEj1kXlWUXlmazzi7Z9BQFEWEBiWIBb947yzUhi6AQkSDC9VhPJmABgselLtJf1plIbbWZZr3jMQ8MgCFIikqsVwSGaBEG26r4TSQydgAQPpndqOhkTIYQ87Y4/jokQQg0GMyZCCPGFGRMhhPjCjIkQQnxhxkQIIb4wYyKEEF+YMRFCiC/MmAghxBdmTIQQ4gszJkII8YUZEyGE+MKMiRBCfGHGRAghvjBjIoQQX5gxEUKIL8yYCCHEF2ZMhBDi6/+9GJmhAqWh5QAAAABJRU5ErkJggg==" alt="Different icons for product and test issues" />
 </figure>
 
+<p><a id="build_tagging"></a></p>
 <h3 data-number="3.3.6" id="build-tagging"><span class="header-section-number">3.3.6</span> Build tagging</h3>
 <h4 data-number="3.3.6.1" id="tag-builds-with-special-comments-on-group-overview"><span class="header-section-number">3.3.6.1</span> Tag builds with special
 comments on group overview</h4>
@@ -4190,6 +4190,7 @@ combined with other filtering parameters, e.g.:</p>
 <code>openqa-clone-job</code>, <code>jobs post</code>,
 <code>isos post</code> as well as retriggering existing jobs or whole
 media over the web UI.</p>
+<p><a id="cloning_existing_jobs_openqa_clone_job"></a></p>
 <h4 data-number="3.5.3.1" id="cloning-existing-jobs---openqa-clone-job"><span class="header-section-number">3.5.3.1</span> Cloning existing jobs -
 openqa-clone-job</h4>
 <p>If one wants to recreate an existing job from any publicly available
@@ -4309,6 +4310,7 @@ corresponding overview page:</p>
 <span id="cb128-3"><a href="#cb128-3" aria-hidden="true" tabindex="-1"></a>_GROUP=<span class="st">&quot;Test Development:openSUSE Tumbleweed&quot;</span></span></code></pre></div>
 <p>To get an overview about the fail ratio and confidence interval of
 sporadically failing applications you can also use a script like <a href="https://github.com/okurz/scripts/blob/master/count_fail_ratio">this</a>.</p>
+<p><a id="scenarios_yaml"></a></p>
 <h5 data-number="3.5.3.3.2" id="defining-test-scenarios-in-yaml"><span class="header-section-number">3.5.3.3.2</span> Defining test scenarios
 in YAML</h5>
 <p>Instead of relying on the tables for machines, mediums/products, test
@@ -4375,6 +4377,7 @@ POST request conversely updates the YAML for a particular group.</p>
 templates:</p>
 <div class="sourceCode" id="cb132"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a><span class="ex">openqa-dump-templates</span> <span class="at">--json</span> <span class="at">--group</span> test <span class="op">&gt;</span> test.json</span></code></pre></div>
 <div class="sourceCode" id="cb133"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb133-1"><a href="#cb133-1" aria-hidden="true" tabindex="-1"></a><span class="ex">openqa-load-templates</span> test.json</span></code></pre></div>
+<p><a id="asset_handling"></a></p>
 <h2 data-number="3.6" id="asset-handling"><span class="header-section-number">3.6</span> Asset handling</h2>
 <p>Multiple parameters exist to reference &quot;assets&quot; to be used by tests.
 &quot;Assets&quot; are essentially content that is stored by the openQA web-UI and
@@ -4561,6 +4564,7 @@ section of the web UI configuration.</p></li>
 <li><p>The <a href="#auditing">Auditing</a> section explains the cleanup
 of the audit log.</p></li>
 </ul>
+<p><a id="archiving"></a></p>
 <h3 data-number="3.7.1" id="automatic-archiving-of-old-jobs"><span class="header-section-number">3.7.1</span> Automatic archiving of old
 jobs</h3>
 <p>Archiving of important jobs can be enabled:</p>
@@ -4687,6 +4691,7 @@ match assets with the names <code>testrepo-latest</code> and
 <span id="cb135-3"><a href="#cb135-3" aria-hidden="true" tabindex="-1"></a><span class="dt">openSUSE.+x86_64 </span><span class="ot">=</span><span class="st"> </span><span class="dv">10</span></span></code></pre></div>
 <p>Note that modifications to the file will count against the limit, so
 if an asset was updated within the timespan it will not be removed.</p>
+<p><a id="timers_and_triggers"></a></p>
 <h3 data-number="3.7.6" id="timers-and-triggers"><span class="header-section-number">3.7.6</span> Timers and triggers</h3>
 <p>Cleanup can be triggered in different ways. One option is to use
 <code>minion_task_triggers</code> and specify tasks via
@@ -4712,6 +4717,7 @@ To completely disable cleanup make sure that no minion cleanup tasks are
 enabled over the config file and prevent individual or all cleanup
 systemd timers, for example for the asset cleanup:</p>
 <div class="sourceCode" id="cb136"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb136-1"><a href="#cb136-1" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> mask openqa-enqueue-asset-cleanup.timer</span></code></pre></div>
+<p><a id="amqp_events"></a></p>
 <h2 data-number="3.8" id="consuming-amqp-events-from-openqa"><span class="header-section-number">3.8</span> Consuming AMQP events from
 openQA</h2>
 <p>The message topic follows the format
@@ -7063,8 +7069,7 @@ the test modules to be registered into the database, this leads to the
 following relation: A test module&#39;s name is used to create a file with
 details (details-$testmodule.json), that will contain a reference to
 step details, which is a collection of references to files, using a
-field &quot;text&quot; as tie in, and expecting a filename.
-<a id="client"></a></p>
+field &quot;text&quot; as tie in, and expecting a filename.</p>
 <h1 data-number="6" id="client"><span class="header-section-number">6</span> Client</h1>
 <p>There are two ways to interact with openQA as a user. The web UI and
 the REST API. In this guide we will focus on the latter. You&#39;ve probably
@@ -7301,7 +7306,7 @@ short).</p>
 <pre><code>openqa-cli archive --host http://openqa.example.com --with-thumbnails \
     408 ~/openqa_job_408</code></pre>
 <p>See also <a href="#archiving">Archiving</a> for automatic archiving
-of old jobs. <a id="pitfalls"></a></p>
+of old jobs.</p>
 <h1 data-number="7" id="pitfalls-1"><span class="header-section-number">7</span> Pitfalls</h1>
 <h2 data-number="7.1" id="needle-editing"><span class="header-section-number">7.1</span> Needle editing</h2>
 <ul>
@@ -7436,7 +7441,7 @@ ports 20013, 20023, … and 20103.</p></li>
 </ol></li>
 <li><p>It can also help to look at the <a href="images/architecture.svg">architecture diagram</a> which shows
 which component needs access to which other components and the ports
-used by default. <a id="networking"></a></p></li>
+used by default.</p></li>
 </ol>
 <h1 data-number="8" id="networking"><span class="header-section-number">8</span> Networking</h1>
 <p>For tests using the QEMU backend the networking type used is
@@ -7450,14 +7455,12 @@ Tests can be triggered in parallel same as for QEMU based ones and
 synchronization primitives can be used. For the physical network
 according separation needs to be ensured externally where needed as
 means for machines to be able to access each other.</p>
-<p><a id="qemu-user-networking"></a></p>
 <h2 data-number="8.1" id="qemu-user-networking"><span class="header-section-number">8.1</span> QEMU User Networking</h2>
 <p>With QEMU <a href="http://wiki.qemu.org/Documentation/Networking#User_Networking_.28SLIRP.29">user
 networking</a> each jobs gets its own isolated network with TCP and UDP
 routed to the outside. DHCP is provided by QEMU. The MAC address of the
 machine can be controlled with the <code>NICMAC</code> variable. If not
 set, it is <code>52:54:00:12:34:56</code>.</p>
-<p><a id="tap-based-network"></a></p>
 <h2 data-number="8.2" id="tap-based-network"><span class="header-section-number">8.2</span> TAP Based Network</h2>
 <p>os-autoinst can connect QEMU to TAP devices of the host system to
 leverage advanced network setups provided by the host by setting
@@ -7552,7 +7555,6 @@ will be added to the zone. IP-Forwarding will be enabled.</p>
 <span id="cb260-2"><a href="#cb260-2" aria-hidden="true" tabindex="-1"></a><span class="ex">firewall-cmd</span> <span class="at">--list-all-zones</span></span></code></pre></div>
 <h4 data-number="8.2.1.2" id="what-is-left-to-do-after-running-os-autoinst-setup-multi-machine"><span class="header-section-number">8.2.1.2</span> What is left to do after
 running os-autoinst-setup-multi-machine</h4>
-<p><a id="gre-tunnels"></a></p>
 <h5 data-number="8.2.1.2.1" id="gre-tunnels"><span class="header-section-number">8.2.1.2.1</span> GRE tunnels</h5>
 <p>By default all multi-machine workers have to be on a single physical
 machine. You can join multiple physical machines and its OVS bridges
@@ -7869,7 +7871,7 @@ create a machine with the following settings:</p>
 <div class="sourceCode" id="cb278"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb278-1"><a href="#cb278-1" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> enable <span class="at">--now</span> openqa-vde_switch</span>
 <span id="cb278-2"><a href="#cb278-2" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> enable <span class="at">--now</span> openqa-slirpvde</span></code></pre></div>
 <p>With this setting all jobs on the same host would be in the same
-network and share the same SLIRP instance. <a id="contributing"></a></p>
+network and share the same SLIRP instance.</p>
 <h1 data-number="9" id="contributing"><span class="header-section-number">9</span> Contributing</h1>
 <h2 data-number="9.1" id="introduction-5"><span class="header-section-number">9.1</span> Introduction</h2>
 <p>openQA is an automated test tool that makes it possible to test the
@@ -7888,6 +7890,7 @@ repository</a>.</p>
 <p><a id="guidelines"></a></p>
 <p>As mentioned, the central point of development is the <a href="https://github.com/os-autoinst">os-autoinst organization on
 GitHub</a> where several repositories can be found.</p>
+<p><a id="repo-urls"></a></p>
 <h3 data-number="9.2.1" id="repository-urls"><span class="header-section-number">9.2.1</span> Repository URLs</h3>
 <ul>
 <li><p>os-autoinst: <a href="https://github.com/os-autoinst/os-autoinst">https://github.com/os-autoinst/os-autoinst</a></p>
@@ -8124,6 +8127,7 @@ out the <a href="#repo-urls">Git repositories</a> and either execute
 existing tests or start the daemons manually.</p>
 <p>Install the necessary <a href="#development-dependencies">Development
 Dependencies</a> first.</p>
+<p><a id="testing"></a></p>
 <h3 data-number="9.7.1" id="conducting-tests"><span class="header-section-number">9.7.1</span> Conducting tests</h3>
 <p>To execute all existing checks and tests simply call:</p>
 <div class="sourceCode" id="cb281"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb281-1"><a href="#cb281-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test</span></code></pre></div>
@@ -8180,6 +8184,7 @@ variable <code>OPENQA_FULLSTACK_TEMP_DIR</code> to a clean directory
 the test, for example the log files from individual test job runs within
 the full stack test.</p></li>
 </ul>
+<p><a id="customize_base_directory"></a></p>
 <h3 data-number="9.7.2" id="customize-base-directory"><span class="header-section-number">9.7.2</span> Customize base directory</h3>
 <p>It is possible to customize the openQA base directory (which is for
 instance used to store test results) by setting the environment variable
@@ -8192,6 +8197,7 @@ need a big amount of disk space.</p>
 <p><strong>WARNING:</strong> Be sure to <strong>clear</strong> that
 variable when running unit tests locally.</p>
 </blockquote>
+<p><a id="customize_configuration_directory"></a></p>
 <h3 data-number="9.7.3" id="customize-configuration-directory"><span class="header-section-number">9.7.3</span> Customize configuration
 directory</h3>
 <p>When running openQA from a Git checkout it will find configuration
@@ -8247,6 +8253,7 @@ user <code>postgres</code>:</p>
 <p><strong>NOTE:</strong> To remove the database again, you can use e.g.
 <code>dropdb openqa-local</code> as your regular user.</p>
 </blockquote>
+<p><a id="importing_production_data"></a></p>
 <h4 data-number="9.7.4.1" id="importing-production-data"><span class="header-section-number">9.7.4.1</span> Importing production
 data</h4>
 <p>Assuming you have already followed steps 1. to 4. above:</p>
@@ -8321,7 +8328,6 @@ extension.&quot; make sure you have all listed dependencies including the
 Tumbleweed have a look at the <a href="https://github.com/Martchus/openQA-helper">openQA-helper
 repository</a>.</p></li>
 </ul>
-<p><a id="quick-container-development-setup"></a></p>
 <h3 data-number="9.7.6" id="quick-container-development-setup"><span class="header-section-number">9.7.6</span> Quick container development
 setup</h3>
 <h4 data-number="9.7.6.1" id="requirements"><span class="header-section-number">9.7.6.1</span> Requirements</h4>
@@ -8855,6 +8861,7 @@ and put only openQA-devel into it Script
 <code>tools/ci/build_dependencies.sh</code> can be also modified when
 major changes are performed, e.g. different OS version or packages from
 forked OBS project, etc.</p>
+<p><a id="run-tests-in-container"></a></p>
 <h3 data-number="9.12.3" id="run-tests-locally-using-a-container"><span class="header-section-number">9.12.3</span> Run tests locally using a
 container</h3>
 <p>One way is to build an image using the
@@ -9014,7 +9021,6 @@ documentation. That could be handy for example in situations where you
 do not have the filesystem directly accessible (i.e. remote
 development). The magic line in this case would be:</p>
 <pre><code>podman run --rm -it -p 8000:8000 -v .:/opt/openqa openqa_devel:latest make serve-docs</code></pre>
-<p><a id="branding"></a></p>
 <h1 data-number="10" id="branding"><span class="header-section-number">10</span> Branding</h1>
 <p>You can alter the appearance of the openQA web UI to some extent
 through the &quot;branding&quot; mechanism. The <code>branding</code>
