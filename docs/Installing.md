@@ -45,7 +45,6 @@ or <https://localhost:1443>.
 
 
 
-![](images/openqa-in-5-minutes.webm)
 
 
 
@@ -158,7 +157,7 @@ podman run \
 ```
 
 Check out the
-[containerized setup section](ContainerizedSetup.md#containerizedsetup)
+[containerized setup section](ContainerizedSetup.md#containerized-setup)
 for more details.
 
 Take a look at
