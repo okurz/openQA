@@ -1,4 +1,3 @@
-<a id="contributing"></a>
 # Contributing
 
 ## Introduction
