@@ -1994,6 +1994,22 @@ sub investigate ($self, %args) {
         my @recent_jobs = @previous[0 .. ($#previous < 9 ? $#previous : 9)];
         my $recent_failed = scalar(grep { $_->result && $_->result eq 'failed' } @recent_jobs);
         $inv{same_scenario_statistics} = {total => scalar(@recent_jobs), failed => $recent_failed};
+        my @failed_modules = $self->failed_modules;
+        if (@failed_modules && $self->get_column('BUILD') && $self->group_id) {
+            my $similar_failures = $self->result_source->resultset->search(
+                {
+                    'me.BUILD' => $self->get_column('BUILD'),
+                    'me.group_id' => $self->group_id,
+                    'me.id' => {'!=', $self->id},
+                    'modules.name' => { -in => [ @failed_modules ] },
+                    'modules.result' => 'failed'
+                },
+                {
+                    join => 'modules',
+                    distinct => 1
+                })->count;
+            $inv{same_build_module_failures} = $similar_failures;
+        }
     }
     return {error => 'No result directory available for current job'} unless $self->result_dir();
     my $ignore = OpenQA::App->singleton->config->{global}->{job_investigate_ignore};
