@@ -1990,6 +1990,11 @@ sub investigate ($self, %args) {
     my @previous = $self->_previous_scenario_jobs(undef, {}, undef);
     return {error => 'No previous job in this scenario, cannot provide hints'} unless @previous;
     my %inv;
+    if (@previous) {
+        my @recent_jobs = @previous[0 .. ($#previous < 9 ? $#previous : 9)];
+        my $recent_failed = scalar(grep { $_->result && $_->result eq 'failed' } @recent_jobs);
+        $inv{same_scenario_statistics} = {total => scalar(@recent_jobs), failed => $recent_failed};
+    }
     return {error => 'No result directory available for current job'} unless $self->result_dir();
     my $ignore = OpenQA::App->singleton->config->{global}->{job_investigate_ignore};
     my $self_file = eval { Mojo::File->new($self->result_dir(), 'vars.json')->slurp };
