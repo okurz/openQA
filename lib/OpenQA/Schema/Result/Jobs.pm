@@ -1994,14 +1994,14 @@ sub investigate ($self, %args) {
         my @recent_jobs = @previous[0 .. ($#previous < 9 ? $#previous : 9)];
         my $recent_failed = scalar(grep { $_->result && $_->result eq 'failed' } @recent_jobs);
         $inv{same_scenario_statistics} = {total => scalar(@recent_jobs), failed => $recent_failed};
-        my @failed_modules = $self->failed_modules;
-        if (@failed_modules && $self->get_column('BUILD') && $self->group_id) {
+        my $failed_modules = $self->failed_modules;
+        if (@$failed_modules && $self->get_column('BUILD') && $self->group_id) {
             my $similar_failures = $self->result_source->resultset->search(
                 {
                     'me.BUILD' => $self->get_column('BUILD'),
                     'me.group_id' => $self->group_id,
                     'me.id' => {'!=', $self->id},
-                    'modules.name' => { -in => [ @failed_modules ] },
+                    'modules.name' => {-in => $failed_modules},
                     'modules.result' => 'failed'
                 },
                 {
@@ -2009,24 +2009,73 @@ sub investigate ($self, %args) {
                     distinct => 1
                 })->count;
             $inv{same_build_module_failures} = $similar_failures;
-            my $investigations_rs = $self->result_source->resultset->search(
-                {
-                    'settings.key' => 'OPENQA_INVESTIGATE_ORIGIN',
-                    'settings.value' => {like => '%/t' . $self->id}
-                },
-                {
-                    join => 'settings',
-                });
-            my @investigation_jobs;
-            for my $ij ($investigations_rs->all) {
-                push @investigation_jobs,
-                  {
-                    id => $ij->id,
-                    state => $ij->state,
-                    result => $ij->result,
-                  };
+        }
+
+        my $investigations_rs = $self->result_source->resultset->search(
+            {
+                'settings.key' => 'OPENQA_INVESTIGATE_ORIGIN',
+                'settings.value' => {like => '%/t' . $self->id}
+            },
+            {
+                join => 'settings',
+            });
+        my @investigation_jobs;
+        for my $ij ($investigations_rs->all) {
+            push @investigation_jobs,
+              {
+                id => $ij->id,
+                state => $ij->state,
+                result => $ij->result,
+              };
+        }
+        $inv{investigation_jobs} = \@investigation_jobs if @investigation_jobs;
+
+        if (@investigation_jobs) {
+            my $passed = grep { $_->{result} && $_->{result} eq 'passed' } @investigation_jobs;
+            if ($passed) {
+                $inv{retrigger_suggestion}
+                  = 'Retry recommended: Investigation job passed, indicating possible sporadic or infrastructure issue.';
+                $inv{retry_recommended} = 1;
             }
-            $inv{investigation_jobs} = \@investigation_jobs if @investigation_jobs;
+            else {
+                my $all_done = !grep { $_->{state} ne 'done' } @investigation_jobs;
+                if ($all_done) {
+                    $inv{retrigger_suggestion}
+                      = 'Retry not recommended: Investigation jobs also failed, indicating a persistent issue.';
+                    $inv{retry_recommended} = 0;
+                }
+                else {
+                    $inv{retrigger_suggestion}
+                      = 'Investigation jobs are still running. Wait for their results before retrying.';
+                    $inv{retry_recommended} = 0;
+                }
+            }
+        }
+        else {
+            if ($inv{same_build_module_failures} && $inv{same_build_module_failures} >= 5) {
+                $inv{retrigger_suggestion}
+                  = 'Retry not recommended: The same module failed in 5 or more other jobs in this build (broad regression).';
+                $inv{retry_recommended} = 0;
+            }
+            elsif ($inv{same_scenario_statistics} && $inv{same_scenario_statistics}->{total} > 0) {
+                my $stats = $inv{same_scenario_statistics};
+                if ($stats->{total} >= 5 && $stats->{failed} == $stats->{total}) {
+                    $inv{retrigger_suggestion}
+                      = 'Retry not recommended: Scenario has consistently failed in the last '
+                      . $stats->{total}
+                      . ' runs.';
+                    $inv{retry_recommended} = 0;
+                }
+                else {
+                    $inv{retrigger_suggestion}
+                      = 'Consider deeper investigation or wait for auto-review before retrying.';
+                    $inv{retry_recommended} = 0;
+                }
+            }
+            else {
+                $inv{retrigger_suggestion} = 'Consider deeper investigation or wait for auto-review before retrying.';
+                $inv{retry_recommended} = 0;
+            }
         }
     }
     return {error => 'No result directory available for current job'} unless $self->result_dir();

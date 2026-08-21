@@ -1091,10 +1091,36 @@ function renderInvestigationTab(response) {
   theadElement.appendChild(headTrElement);
 
   const tbodyElement = document.createElement('tbody');
-  let alertbox;
+  const alertboxes = [];
   Object.keys(response).forEach(key => {
-    const value = response[key];
+    let value = response[key];
     let type = 'pre';
+
+    if (key === 'same_scenario_statistics') {
+      const stats = value;
+      value = 'Failed ' + stats.failed + ' times out of the last ' + stats.total + ' runs in this scenario.';
+    } else if (key === 'same_build_module_failures') {
+      value = 'The same module failed in ' + value + ' other jobs in this build.';
+    } else if (key === 'investigation_jobs') {
+      const links = value.map(ij => {
+        return (
+          '<a href="/tests/' +
+          ij.id +
+          '">Job ' +
+          ij.id +
+          '</a> (' +
+          ij.state +
+          (ij.state === 'done' ? ': ' + ij.result : '') +
+          ')'
+        );
+      });
+      type = 'html';
+      value = links.join('<br>');
+    } else if (key === 'retrigger_suggestion') {
+      type = 'suggestion';
+    } else if (key === 'retry_recommended') {
+      return; // Skip rendering this as a regular row
+    }
 
     // The value can be an object with attribute "type" to determine the
     // behavior. The accepted types are:
@@ -1116,19 +1142,29 @@ function renderInvestigationTab(response) {
     if (type === 'link') {
       const html = document.createElement('a');
       if (key === 'first_bad') {
-        alertbox = document.createElement('div');
+        const alertbox = document.createElement('div');
         alertbox.appendChild(document.createTextNode('Investigate the first bad test directly: '));
         html.href = value.link + '#investigation';
         html.innerHTML = value.text;
         alertbox.appendChild(html);
         alertbox.className = 'alert alert-info';
         html.className = 'alert-link';
+        alertboxes.push(alertbox);
         return;
       } else {
         html.href = value.link;
         html.innerHTML = value.text;
         valueElement.appendChild(html);
       }
+    } else if (type === 'html') {
+      valueElement.innerHTML = value;
+    } else if (type === 'suggestion') {
+      const suggestionBox = document.createElement('div');
+      const isRecommended = response.retry_recommended;
+      suggestionBox.className = 'alert mt-2 ' + (isRecommended ? 'alert-info' : 'alert-warning');
+      suggestionBox.innerHTML = '<strong>Suggestion: </strong>' + value;
+      alertboxes.push(suggestionBox);
+      return; // Skip adding a row
     } else {
       const preElement = document.createElement('pre');
       let preElementMore = document.createElement('pre');
@@ -1211,8 +1247,8 @@ function renderInvestigationTab(response) {
   tableElement.appendChild(theadElement);
   tableElement.appendChild(tbodyElement);
   tabPanelElement.innerHTML = '';
-  if (alertbox) {
-    tabPanelElement.appendChild(alertbox);
+  if (alertboxes.length > 0) {
+    alertboxes.forEach(ab => tabPanelElement.appendChild(ab));
   }
   tabPanelElement.appendChild(tableElement);
   tabPanelElement.dataset.initialized = true;

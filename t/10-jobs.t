@@ -466,6 +466,9 @@ subtest 'carry over, including soft-fails' => sub {
         is $job->result, OpenQA::Jobs::Constants::FAILED, 'job result is failed';
         ok my $inv = $job->investigate, 'job can provide investigation details';
         ok $inv, 'job provides failure investigation';
+        ok exists $inv->{same_scenario_statistics}, 'scenario failure statistics exist';
+        ok exists $inv->{retrigger_suggestion}, 'retrigger suggestion exists';
+        ok exists $inv->{retry_recommended}, 'retry_recommended boolean exists';
         is ref(my $last_good = $inv->{last_good}), 'HASH', 'previous job identified as last good and it is a hash';
         is $last_good->{text}, 99997, 'last_good hash has the text';
         is $last_good->{type}, 'link', 'last_good hash has the type';

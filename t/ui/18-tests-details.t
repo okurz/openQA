@@ -952,6 +952,29 @@ subtest 'alert box shown if not already on first bad' => sub {
       ->text_unlike(qr/Investigate the first bad test/, 'no alert shown for first bad itself');
 };
 
+subtest 'rich investigation statistics are rendered' => sub {
+    # Prepare the DB to show rich stats for job 99940
+    my $target_job = $jobs->find(99940);
+    $target_job->settings->create({ key => 'OPENQA_INVESTIGATE_ORIGIN', value => 'http://localhost/t99940' });
+    my $ij = $jobs->create({
+        state => 'done',
+        result => 'passed',
+        TEST => 'investigate:retry'
+    });
+    $ij->settings->create({ key => 'OPENQA_INVESTIGATE_ORIGIN', value => 'http://localhost/t99940' });
+
+    $driver->get('/tests/99940');
+    wait_for_ajax(msg => 'details tab for job 99940 loaded to test rich investigation');
+    $driver->find_element_by_link_text('Investigation')->click;
+
+    my $investigation_tab = $driver->find_element('#investigation');
+    $investigation_tab->text_like(qr/Failed 1 times out of the last 1 runs in this scenario/, 'same_scenario_statistics rendered properly');
+    $investigation_tab->text_like(qr/Job \d+ \(done: passed\)/, 'investigation_jobs rendered properly');
+
+    my $alert = $driver->find_element("//div[\@id='investigation']//div[contains(., 'Suggestion')]", 'xpath');
+    $alert->text_like(qr/Suggestion:.*Retry recommended: Investigation job passed/, 'retrigger suggestion rendered properly in an alert box');
+};
+
 subtest 'archived icon' => sub {
     $t->get_ok('/tests/99947/infopanel_ajax')->status_is(200);
     is $t->tx->res->dom->find('#job-archived-badge')->size, 0, 'archived icon not shown by default';
