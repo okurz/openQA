@@ -2009,6 +2009,24 @@ sub investigate ($self, %args) {
                     distinct => 1
                 })->count;
             $inv{same_build_module_failures} = $similar_failures;
+            my $investigations_rs = $self->result_source->resultset->search(
+                {
+                    'settings.key' => 'OPENQA_INVESTIGATE_ORIGIN',
+                    'settings.value' => {like => '%/t' . $self->id}
+                },
+                {
+                    join => 'settings',
+                });
+            my @investigation_jobs;
+            for my $ij ($investigations_rs->all) {
+                push @investigation_jobs,
+                  {
+                    id => $ij->id,
+                    state => $ij->state,
+                    result => $ij->result,
+                  };
+            }
+            $inv{investigation_jobs} = \@investigation_jobs if @investigation_jobs;
         }
     }
     return {error => 'No result directory available for current job'} unless $self->result_dir();
