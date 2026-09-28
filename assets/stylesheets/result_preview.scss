@@ -216,3 +216,36 @@ div.preview_container_inner {
     }
   }
 }
+.log_command_header {
+  cursor: pointer;
+  padding: 5px;
+  background-color: #e9ecef;
+  border-bottom: 1px solid #dee2e6;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+[data-bs-theme='dark'] .log_command_header {
+  background-color: #2b3035;
+  border-bottom: 1px solid #495057;
+}
+.log_command_arrow {
+  margin-right: 8px;
+  font-size: 10px;
+  color: #6c757d;
+  width: 12px;
+  display: inline-block;
+  text-align: center;
+}
+.log_command_title {
+  font-family: monospace;
+  font-weight: bold;
+}
+.log_command_body {
+  padding-top: 5px;
+  pre {
+    margin-bottom: 0;
+    padding-bottom: 0 !important;
+  }
+}

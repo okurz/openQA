@@ -300,8 +300,8 @@ img.resborder_na {
   padding: 4px;
 }
 span.resborder {
-  width: 60px;
-  height: 45px;
+  width: 40px;
+  height: 30px;
   display: inline-block;
   text-align: center;
   overflow-wrap: break-word;
@@ -309,7 +309,7 @@ span.resborder {
   overflow: hidden;
   vertical-align: middle;
   background: #dfffff;
-  font-size: small;
+  font-size: xx-small;
   padding: 1px;
   &.icon_audio {
     background-size: contain;
@@ -343,7 +343,7 @@ span.resborder_na {
     height: auto;
   }
 }
-.text-result, .serial-result-preview {
+.text-result {
   .resborder {
     font-family: monospace;
     text-align: left;
@@ -362,7 +362,7 @@ span.resborder_na {
   }
 }
 [data-bs-theme='dark'] {
-  .text-result, .serial-result-preview {
+  .text-result {
     .resborder {
       background-color: $default-bg-color-dark;
       color: lighten($link-color-dark, 25%);

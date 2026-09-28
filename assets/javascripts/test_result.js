@@ -249,12 +249,36 @@ function setCurrentPreview(stepPreviewContainer, force) {
   if (!link) {
     return;
   }
-  if (link.data('text')) {
+  if (link.data('text') || link.data('textorig')) {
     stepPreviewContainer.addClass('current_preview');
     setPageHashAccordingToCurrentTab(link.attr('href'));
-    const text = unescape(link.data('text'));
+    let text;
+    if (link.data('text')) {
+      text = unescape(link.data('text'));
+    } else {
+      const textData = link.data('textorig');
+      const moduleCategory = link.data('module-category') || '';
+      const moduleName = link.data('module-name');
+      const stepNum = link.data('step-num');
+
+      // Create stepActions elements
+      const snippets = window.testResultSnippets || {};
+      const E = createElement;
+      const stepActions = E('span', [], {class: 'step_actions', style: 'float: right'});
+      if (snippets.bug_actions) {
+        stepActions.innerHTML = renderTemplate(snippets.bug_actions, {MODULE: moduleName, STEP: stepNum});
+      }
+
+      // Call createLogLink from render.js
+      const logLink = createLogLink({category: moduleCategory, name: moduleName}, {num: stepNum});
+      if (logLink) stepActions.append(logLink);
+
+      const textresult = E('pre', [textData]);
+      text = stepActions.outerHTML + textresult.outerHTML;
+    }
     const linksTd = stepPreviewContainer.closest('td').get(0);
-    if (linksTd.previousElementSibling.getAttribute('mode') === 'log') {
+    const mode = linksTd.previousElementSibling.getAttribute('mode');
+    if (mode === 'log' || mode === 'log-expanded') {
       hidePreviewContainer();
       const log_container = stepPreviewContainer.get(0).nextElementSibling;
       log_container.querySelector('div').innerHTML = text;
@@ -280,43 +304,134 @@ function setCurrentPreview(stepPreviewContainer, force) {
   });
 }
 
-function showTextBoxes(el) {
+function parseCommandBlock(textData) {
+  if (!textData) return null;
+  const commandMatch = textData.match(/# Command: ([^\n]+)/);
+  if (!commandMatch) return null;
+
+  const command = commandMatch[1].trim();
+  const exitCodeMatch = textData.match(/(# Exit code: \d+|# [^:\n]+: \d+)\s*$/);
+  const exitCode = exitCodeMatch ? exitCodeMatch[1].trim() : null;
+
+  let resultText = textData;
+  resultText = resultText.replace(/# Command: [^\n]*\n?/, '');
+  resultText = resultText.replace(/# wait_serial expected: [^\n]*\n?/, '');
+  resultText = resultText.replace(/# Result:\n?/, '');
+  if (exitCode) {
+    resultText = resultText.replace(/(# Exit code: \d+|# [^:\n]+: \d+)\s*$/, '');
+  }
+
+  return {
+    command: command,
+    result: resultText.trim(),
+    exitCode: exitCode
+  };
+}
+
+function showTextBoxes(el, forceAction) {
   setCurrentPreview(null);
   const E = createElement;
   const resultTd = el.closest('td');
   const linksTd = resultTd.nextElementSibling;
   const divs = linksTd.querySelectorAll('div.links_a');
-  divs.forEach(div => {
-    const cl = div.getAttribute('class');
+  const currentMode = resultTd.getAttribute('mode');
 
-    if (resultTd.getAttribute('mode') === 'log') {
-      div.classList.remove('logview');
-    } else {
-      const link = div.querySelector('a');
-      const textData = link.dataset.textorig;
-      if (textData) {
-        const textresult = E('pre', [textData]);
-        const logbox_inner = E('div', [textresult], {class: 'log_container_in preview_container_inner'});
-        const logbox = E('div', [logbox_inner], {class: 'log_container_out preview_container_outer'});
-        div.after(logbox);
-      }
-      div.classList.add('logview');
-    }
-  });
-  el.firstChild.classList.toggle('fa-expand');
-  el.firstChild.classList.toggle('fa-compress');
-  if (resultTd.getAttribute('mode') === 'log') {
+  if (forceAction === 'collapse' || currentMode === 'log-expanded') {
     resultTd.setAttribute('mode', 'default');
+    el.firstChild.className = 'fa fa-expand';
     el.setAttribute('title', 'Expand row');
     el.setAttribute('aria-lebel', 'Expand row');
     const logdivs = linksTd.querySelectorAll('div.log_container_out');
     logdivs.forEach(div => {
       div.remove();
     });
+    divs.forEach(div => {
+      div.classList.remove('logview');
+    });
+  } else if (currentMode === 'log') {
+    const collapsedBoxes = linksTd.querySelectorAll('div.log_container_out.cmd-collapsible.collapsed');
+    if (collapsedBoxes.length > 0) {
+      collapsedBoxes.forEach(box => {
+        box.classList.remove('collapsed');
+        box.classList.add('expanded');
+        const arrow = box.querySelector('.log_command_arrow');
+        if (arrow) arrow.textContent = '▼';
+        const body = box.querySelector('.log_command_body');
+        if (body) body.style.display = 'block';
+      });
+      el.firstChild.className = 'fa fa-compress';
+      el.setAttribute('title', 'Collapse row');
+      el.setAttribute('aria-lebel', 'Collapse row');
+      resultTd.setAttribute('mode', 'log-expanded');
+    } else {
+      resultTd.setAttribute('mode', 'default');
+      el.firstChild.className = 'fa fa-expand';
+      el.setAttribute('title', 'Expand row');
+      el.setAttribute('aria-lebel', 'Expand row');
+      const logdivs = linksTd.querySelectorAll('div.log_container_out');
+      logdivs.forEach(div => {
+        div.remove();
+      });
+      divs.forEach(div => {
+        div.classList.remove('logview');
+      });
+    }
   } else {
+    divs.forEach(div => {
+      const link = div.querySelector('a');
+      const textData = link.dataset.textorig;
+      if (textData) {
+        const parsed = parseCommandBlock(textData);
+        let logbox;
+        if (parsed) {
+          const cmdHeader = E(
+            'div',
+            [
+              E('span', ['▶'], {class: 'log_command_arrow'}),
+              E('span', ['# Command: ' + parsed.command], {class: 'log_command_title'})
+            ],
+            {class: 'log_command_header'}
+          );
+
+          const cmdBody = E('div', [E('pre', [parsed.result + (parsed.exitCode ? '\n' + parsed.exitCode : '')])], {
+            class: 'log_command_body',
+            style: 'display: none;'
+          });
+
+          cmdHeader.onclick = e => {
+            const isCollapsed = logbox.classList.contains('collapsed');
+            if (isCollapsed) {
+              logbox.classList.remove('collapsed');
+              logbox.classList.add('expanded');
+              cmdHeader.querySelector('.log_command_arrow').textContent = '▼';
+              cmdBody.style.display = 'block';
+            } else {
+              logbox.classList.remove('expanded');
+              logbox.classList.add('collapsed');
+              cmdHeader.querySelector('.log_command_arrow').textContent = '▶';
+              cmdBody.style.display = 'none';
+            }
+            e.stopPropagation();
+          };
+
+          const logbox_inner = E('div', [cmdHeader, cmdBody], {class: 'log_container_in preview_container_inner'});
+          logbox = E('div', [logbox_inner], {
+            class: 'log_container_out preview_container_outer cmd-collapsible collapsed'
+          });
+        } else {
+          const textresult = E('pre', [textData]);
+          const logbox_inner = E('div', [textresult], {class: 'log_container_in preview_container_inner'});
+          logbox = E('div', [logbox_inner], {class: 'log_container_out preview_container_outer'});
+        }
+        div.after(logbox);
+      }
+      div.classList.add('logview');
+    });
+
     resultTd.setAttribute('mode', 'log');
-    el.setAttribute('title', 'Collapse row');
-    el.setAttribute('aria-lebel', 'Collapse row');
+    el.firstChild.className = 'fa fa-expand';
+    el.setAttribute('title', 'Expand all outputs in row');
+    el.setAttribute('aria-lebel', 'Expand all outputs in row');
   }
 }
 
@@ -965,8 +1080,13 @@ function setupTestDetailsFilter(tabConfig) {
   const toggleAllRows = collapse => {
     document.querySelectorAll('button.logview_expand_btn').forEach(btn => {
       const resultTd = btn.closest('td');
-      if (resultTd && (resultTd.getAttribute('mode') === 'log') === collapse) {
-        showTextBoxes(btn);
+      if (resultTd) {
+        const isExpanded = resultTd.getAttribute('mode') === 'log' || resultTd.getAttribute('mode') === 'log-expanded';
+        if (isExpanded && collapse) {
+          showTextBoxes(btn, 'collapse');
+        } else if (!isExpanded && !collapse) {
+          showTextBoxes(btn);
+        }
       }
     });
   };

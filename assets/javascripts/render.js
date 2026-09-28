@@ -176,13 +176,21 @@ function renderModuleRow(module, snippets) {
       }
       box.push(
         E('img', [], {
-          width: 60,
-          height: 45,
+          width: 40,
+          height: 30,
           src: thumb,
           alt: alt,
           class: 'resborder ' + resborder
         })
       );
+      if (step.needle) {
+        box.push(
+          E('span', [' ' + step.needle], {
+            class: 'needle_name',
+            style: 'font-size: 11px; margin-left: 5px; color: #6c757d; vertical-align: middle;'
+          })
+        );
+      }
     } else if (step.audio) {
       box.push(
         E('span', [], {
@@ -191,37 +199,35 @@ function renderModuleRow(module, snippets) {
         })
       );
     } else if (step.text) {
-      if (title === 'wait_serial') {
-        const previewLimit = 120;
-        // jshint ignore:start
-        let shortText = textData.replace(/.*# Result:\n*/s, '');
-        // jshint ignore:end
-        if (shortText.length > previewLimit) {
-          shortText = shortText.substr(0, previewLimit) + '…';
+      let displayText;
+      if (typeof textData === 'string' && textData.startsWith('Unable to read ')) {
+        displayText = textData;
+      } else if (title === 'wait_serial') {
+        if (textData && !textData.includes('# Command:')) {
+          displayText = textData;
+        } else {
+          displayText = 'Serial';
         }
-        box.push(E('span', [shortText], {class: 'resborder ' + resborder}));
       } else {
-        box.push(E('span', [step.title ? step.title : 'Text'], {class: 'resborder ' + resborder}));
+        displayText = step.title ? step.title : 'Text';
       }
+      if (displayText.length > 120) {
+        displayText = displayText.substr(0, 120) + '…';
+      }
+      box.push(E('span', [displayText], {class: 'resborder ' + resborder}));
     } else {
       const content = step.title || E('i', [], {class: 'fa-solid fa-circle-question'});
       box.push(E('span', [content], {class: 'resborder ' + resborder}));
     }
     if (step.text && title !== 'Soft Failed') {
       hasTextResults = true;
-      const stepActions = E('span', [], {class: 'step_actions step_actions_text'});
-      stepActions.innerHTML = renderTemplate(snippets.bug_actions, {MODULE: module.name, STEP: step.num});
 
-      stepActions.append(createLogLink(module, step));
-
-      const textresult = E('pre', [textData]);
-      let html = stepActions.outerHTML;
-      html += textresult.outerHTML;
-      const txt = escape(html);
       const link = E('a', box, {
         class: 'no_hover' + (title === 'wait_serial' ? ' serial-result-preview' : ''),
-        'data-text': txt,
         'data-textorig': textData,
+        'data-module-category': module.category || '',
+        'data-module-name': module.name,
+        'data-step-num': step.num,
         title: title,
         href: href
       });
@@ -309,6 +315,7 @@ function batchProcess(items, processor, options = {}) {
 }
 
 async function renderModuleTable(container, response, shouldContinue = () => true) {
+  window.testResultSnippets = response.snippets;
   container.innerHTML = response.snippets.header;
 
   const E = createElement;
